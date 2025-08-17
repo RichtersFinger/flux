@@ -30,11 +30,12 @@ setup(
     ],
     packages=[
         "flux",
+        "flux.db",
+        "flux.app",
         "flux.cli",
         "flux.cli.index",
-        "flux.app",
     ],
-    package_data={"flux": ["client/**/*", "schema.sql"]},
+    package_data={"flux": ["client/**/*", "db/schema.sql"]},
     entry_points={
         "console_scripts": [
             "flux = flux:cli",

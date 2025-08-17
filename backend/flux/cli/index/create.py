@@ -7,6 +7,7 @@ import sqlite3
 from befehl import Parser, Option, Command
 
 from flux.config import FluxConfig
+from flux.db import Transaction
 from ..common import verbose, index_location, get_index
 
 
@@ -54,24 +55,26 @@ class CreateIndex(Command):
         if verbose:
             print(f"Creating database at '{index_db}'")
 
-        db = sqlite3.connect(index_db)
-        cursor = db.cursor()
-        cursor.executescript(
-            FluxConfig.SCHEMA_LOCATION.read_text(encoding="utf-8")
-        )
-        db.commit()
-
         # initialize database
         if verbose:
             print("Initializing database")
 
-        cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO index_metadata (schema_version) VALUES "
-            + f"('{version('flux')}')"
-        )
-        if root is not None:
-            cursor.execute(
-                f"INSERT INTO index_metadata (root) VALUES ({str(root)})"
+        with Transaction(index_db) as t:
+            t.cursor.executescript(
+                FluxConfig.SCHEMA_LOCATION.read_text(encoding="utf-8")
             )
-        cursor.execute("INSERT INTO index_metadata (initialized) VALUES (1)")
+
+            t.cursor.execute(
+                "INSERT INTO index_metadata (schema_version) VALUES "
+                + f"('{version('flux')}')"
+            )
+            if root is not None:
+                t.cursor.execute(
+                    f"INSERT INTO index_metadata (root) VALUES ('{str(root)}')"
+                )
+            t.cursor.execute(
+                "INSERT INTO index_metadata (initialized) VALUES (1)"
+            )
+
+        if verbose:
+            print("Created a new index")

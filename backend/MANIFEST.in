@@ -1,2 +1,2 @@
 graft client
-include schema.sql
+include db/schema.sql

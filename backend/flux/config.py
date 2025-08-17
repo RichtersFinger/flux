@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
+from flux import db
+
 
 class FluxConfig:
     """`flux`-configuration."""
@@ -14,7 +16,7 @@ class FluxConfig:
         else Path(".flux")
     ).resolve()
     INDEX_DB_FILE = Path("index.db")
-    SCHEMA_LOCATION = Path(__file__).parent / "schema.sql"
+    SCHEMA_LOCATION = Path(db.__file__).parent / "schema.sql"
 
     MODE = os.environ.get("MODE", "prod")  # "prod" | "dev"
     DEV_CORS_FRONTEND_URL = os.environ.get(
