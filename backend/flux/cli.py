@@ -1,11 +1,15 @@
 """`flux`-CLI definition."""
 
 from typing import Optional
+import sys
 from pathlib import Path
 from importlib.metadata import version
+import sqlite3
 
 import filetype
 from befehl import Parser, Option, Cli, Command, Argument
+
+from flux.config import FluxConfig
 
 
 def parse_as_flux_dir(data) -> tuple[bool, Optional[str], Optional[Path]]:
@@ -40,14 +44,83 @@ batch = Option(
 verbose = Option(("-v", "--verbose"), helptext="verbose output")
 
 
+def get_index(args):
+    """Gets index from args or default from config."""
+    index_path = None
+    if index_location in args:
+        index_path = args[index_location][0]
+    else:
+        index_path = FluxConfig.INDEX_DEFAULT_LOCATION
+    return index_path.resolve()
+
+
 class CreateIndex(Command):
     """Subcommand for creating index."""
 
     index_location = index_location
     verbose = verbose
+    root = Option(
+        "--root",
+        helptext=(
+            "data source root-directory for all records; all records to be "
+            + "added to the index must be located in that directory; providing"
+            + " a root allows to easily migrate the flux index later on if the"
+            + " data source moves to a different location"
+        ),
+        nargs=1,
+        parser=Parser.parse_as_dir,
+    )
 
     def run(self, args):
-        pass
+        # pylint: disable=redefined-outer-name
+        verbose = self.verbose in args
+
+        # read and process index-location
+        index = get_index(args)
+
+        if verbose:
+            print(f"Creating index at '{index}'")
+
+        index.mkdir(parents=True, exist_ok=True)
+
+        # read and process root-location
+        root = args.get(self.root, [None])[0]
+
+        if root is not None and verbose:
+            print(f"Setting root to '{root}'")
+
+        # create database
+        index_db = index / "index.db"
+        if index_db.is_file():
+            print(f"File '{index_db}' already exists", file=sys.stderr)
+            sys.exit(1)
+
+        if verbose:
+            print(f"Creating database at '{index_db}'")
+
+        db = sqlite3.connect(index_db)
+        cursor = db.cursor()
+        cursor.executescript(
+            (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
+        )
+        db.commit()
+
+        # initialize database
+        if verbose:
+            print("Initializing database")
+
+        cursor = db.cursor()
+        cursor.execute(
+            "INSERT INTO index_metadata (schema_version) VALUES "
+            + f"('{version('flux')}')"
+        )
+        if root is not None:
+            cursor.execute(
+                f"INSERT INTO index_metadata (root) VALUES ({str(root)})"
+            )
+        cursor.execute(
+            "INSERT INTO index_metadata (initialized) VALUES (1)"
+        )
 
 
 class AddToIndex(Command):
@@ -117,6 +190,7 @@ class Index(Command):
     """Subcommand for indexing."""
 
     create = CreateIndex("create", helptext="create a new index")
+    # show = ShowIndex("show", helptext="print information on an exiting index")
     add = AddToIndex("add", helptext="add resources to an exiting index")
     rm = RmFromIndex("rm", helptext="delete resources from an exiting index")
 
@@ -136,7 +210,7 @@ class Run(Command):
 class FluxCli(Cli):
     """CLI for `flux`."""
 
-    index = Index("index", helptext="create index for given source directory")
+    index = Index("index", helptext="create or update a flux-index")
     run_ = Run("run", helptext="run flux app")
     version = Option(("-v", "--version"), helptext="prints library version")
 
