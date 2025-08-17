@@ -31,7 +31,7 @@ setup(
     packages=[
         "flux",
     ],
-    package_data={"flux": ["client/**/*"]},
+    package_data={"flux": ["client/**/*", "schema.sql"]},
     entry_points={
         "console_scripts": [
             "flux = flux:cli",
