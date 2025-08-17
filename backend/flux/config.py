@@ -12,3 +12,4 @@ class FluxConfig:
         if "INDEX_DEFAULT_LOCATION" in os.environ
         else Path(".flux")
     )
+    SCHEMA_LOCATION = Path(__file__).parent / "schema.sql"

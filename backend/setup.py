@@ -30,6 +30,8 @@ setup(
     ],
     packages=[
         "flux",
+        "flux.cli",
+        "flux.cli.index",
     ],
     package_data={"flux": ["client/**/*", "schema.sql"]},
     entry_points={
