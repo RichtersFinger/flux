@@ -46,7 +46,7 @@ class CreateIndex(Command):
             print(f"Setting root to '{root}'")
 
         # create database
-        index_db = index / "index.db"
+        index_db = index / FluxConfig.INDEX_DB_FILE
         if index_db.is_file():
             print(f"File '{index_db}' already exists", file=sys.stderr)
             sys.exit(1)

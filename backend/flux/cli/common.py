@@ -35,5 +35,5 @@ def get_index(args):
     if index_location in args:
         index_path = args[index_location][0]
     else:
-        index_path = FluxConfig.INDEX_DEFAULT_LOCATION
+        index_path = FluxConfig.INDEX_LOCATION
     return index_path.resolve()
