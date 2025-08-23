@@ -29,7 +29,7 @@ index_location = Option(
 )
 
 
-def get_index(args):
+def get_index(args) -> Path:
     """Gets index from args or default from config."""
     index_path = None
     if index_location in args:
