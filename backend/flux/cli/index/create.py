@@ -2,9 +2,8 @@
 
 import sys
 from importlib.metadata import version
-import sqlite3
 
-from befehl import Parser, Option, Command
+from befehl import Command
 
 from flux.config import FluxConfig
 from flux.db import Transaction
@@ -16,17 +15,6 @@ class CreateIndex(Command):
 
     index_location = index_location
     verbose = verbose
-    root = Option(
-        "--root",
-        helptext=(
-            "data source root-directory for all records; all records to be "
-            + "added to the index must be located in that directory; providing"
-            + " a root allows to easily migrate the flux index later on if the"
-            + " data source moves to a different location"
-        ),
-        nargs=1,
-        parser=Parser.parse_as_dir,
-    )
 
     def run(self, args):
         # pylint: disable=redefined-outer-name
@@ -39,12 +27,6 @@ class CreateIndex(Command):
             print(f"Creating index at '{index}'")
 
         index.mkdir(parents=True, exist_ok=True)
-
-        # read and process root-location
-        root = args.get(self.root, [None])[0]
-
-        if root is not None and verbose:
-            print(f"Setting root to '{root}'")
 
         # create database
         index_db = index / FluxConfig.INDEX_DB_FILE
@@ -63,15 +45,10 @@ class CreateIndex(Command):
             t.cursor.executescript(
                 FluxConfig.SCHEMA_LOCATION.read_text(encoding="utf-8")
             )
-
             t.cursor.execute(
                 "INSERT INTO index_metadata (schema_version) VALUES "
                 + f"('{version('flux')}')"
             )
-            if root is not None:
-                t.cursor.execute(
-                    f"INSERT INTO index_metadata (root) VALUES ('{str(root)}')"
-                )
             t.cursor.execute(
                 "INSERT INTO index_metadata (initialized) VALUES (1)"
             )
