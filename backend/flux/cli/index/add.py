@@ -3,11 +3,15 @@
 from typing import Optional
 import sys
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from uuid import uuid4
+import json
+import subprocess
 
 import filetype
 from befehl import Parser, Option, Command, Argument
 
+from flux.config import FluxConfig
 from ..common import verbose, index_location, get_index
 from .common import batch, dry_run
 
@@ -16,18 +20,20 @@ from .common import batch, dry_run
 class VideoFile:
     """Record class for a video-file."""
 
-    path: str
+    path: Path
     name: str
-    mimetype: str
+    metadata: dict
+    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 @dataclass
 class Season:
     """Record class for a season in a series."""
 
-    path: str
+    path: Path
     name: str
     episodes: list[VideoFile]
+    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 @dataclass
@@ -38,6 +44,7 @@ class Series:
     name: str
     seasons: list[Season]
     specials: list[VideoFile]
+    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 class AddToIndex(Command):
@@ -86,15 +93,67 @@ class AddToIndex(Command):
                 False,
                 "At least one target needs to be specified.",
             )
-        if self.batch in args and self.name_ in args:
-            return (
-                False,
-                f"Option '{self.name_.names[0]}' isincompatible with batch "
-                + "mode.",
-            )
+        if self.name_ in args:
+            if len(args.get(self.target, [])) > 1:
+                return (
+                    False,
+                    f"Option '{self.name_.names[0]}' is incompatible with "
+                    + "multiple targets.",
+                )
+            if self.batch in args:
+                return (
+                    False,
+                    f"Option '{self.name_.names[0]}' is incompatible with "
+                    + "batch mode.",
+                )
         return True, ""
 
     INDENTATION = "   "
+
+    @staticmethod
+    def get_metadata(file: Path) -> Optional[dict]:
+        """
+        Runs ffprobe to collect metadata of video file. Returns
+        JSON or `None` if not successful.
+        """
+        try:
+            result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-print_format",
+                    "json",
+                    "-show_format",
+                    "-show_streams",
+                    str(file),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc_info:
+            print(
+                "\033[1;33m"
+                + f"Failed to collect metadata for '{file}': {exc_info} "
+                + f"({exc_info.stderr})"
+                + "\033[0m",
+                file=sys.stderr,
+            )
+            return None
+        # impose minimum requirements for metadata of video files
+        result_json = json.loads(result.stdout)
+        if (
+            "format" not in result_json
+            or any(
+                key not in result_json["format"]
+                for key in ["size", "duration", "nb_streams"]
+            )
+            or not isinstance(result_json["format"]["nb_streams"], int)
+            or result_json["format"]["nb_streams"] < 1
+        ):
+            return None
+        return result_json
 
     @classmethod
     def process_video_file(
@@ -115,21 +174,84 @@ class AddToIndex(Command):
         verbose -- whether to run in verbose mode
                    (default False)
         """
-        ft = filetype.guess(file)
-        if (
-            ft is not None
-            and ft.mime is not None
-            and ft.mime.startswith("video/")
-        ):
+        # file
+        if not file.is_file():
             if verbose:
                 print(
                     2 * cls.INDENTATION
-                    + f"Adding file '{file.name}' as {context}"
+                    + f"Skipping '{file.name}' (not a file)"
                 )
-            return VideoFile(file.name, file.name, ft.mime)
+            return None
+
+        # mimetype
+        ft = filetype.guess(file)
+        if ft is None or ft.mime is None or not ft.mime.startswith("video/"):
+            if verbose:
+                print(
+                    2 * cls.INDENTATION
+                    + f"Skipping file '{file.name}' (filetype)"
+                )
+            return None
+
+        # ffprobe
+        metadata = cls.get_metadata(file)
+        if metadata is None:
+            print(
+                2 * cls.INDENTATION + f"Skipping file '{file.name}' (ffprobe)"
+            )
+            return None
+
+        # success
         if verbose:
-            print(2 * cls.INDENTATION + f"Skipping file '{file.name}'")
-        return None
+            print(
+                2 * cls.INDENTATION
+                + f"Adding file '{file.name}' as {context} '{file.stem}'"
+            )
+
+        return VideoFile(file, file.stem, metadata)
+
+    @staticmethod
+    def generate_thumbnail(
+        source: VideoFile, destination: Path, seek: Optional[str] = None
+    ) -> None:
+        """Creates a thumbnail of `source` at `destination`."""
+        if seek is None:
+            seek_seconds = int(
+                0.1 * float(source.metadata["format"]["duration"])
+            )
+            seek = (
+                "00" + f":0{seek_seconds // 60}" + f":{int(seek_seconds % 60)}"
+            )
+        try:
+            result = subprocess.run(
+                [
+                    "ffmpeg",
+                    "-v",
+                    "error",
+                    "-ss",
+                    seek,
+                    "-i",
+                    str(source.path),
+                    "-frames:v",
+                    "1",
+                    str(destination),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc_info:
+            print(
+                f"Failed to create thumbnail from '{source.path}' at "
+                + f"'{destination}': {exc_info}",
+                file=sys.stderr,
+            )
+        if result.returncode != 0:
+            print(
+                f"Failed to create thumbnail from '{source.path}' at "
+                + f"'{destination}': {result.stderr}",
+                file=sys.stderr,
+            )
 
     @classmethod
     def process_series(
@@ -162,23 +284,22 @@ class AddToIndex(Command):
 
         if verbose:
             print("Processing:")
-            print(cls.INDENTATION + f"Index Location: {index}")
-            print(cls.INDENTATION + f"Target: {series.path}")
+            print(cls.INDENTATION + f"Index location: {index}")
             print(cls.INDENTATION + "Content type: series")
+            print(cls.INDENTATION + f"Target location: {series.path}")
             print(cls.INDENTATION + f"Assigned name: {series.name}")
 
         # seasons
         for directory in filter(lambda p: p.is_dir(), target.glob("*")):
-            season = Season(directory.name, directory.name, [])
+            season = Season(directory, directory.name, [])
             if verbose:
                 print(
-                    cls.INDENTATION + f"Processing '{season.path}' as season"
+                    cls.INDENTATION
+                    + f"Processing '{season.path.name}' as season"
                 )
 
             # episodes
-            for file in filter(
-                lambda p: p.is_file(), (series.path / season.path).glob("*")
-            ):
+            for file in filter(lambda p: p.is_file(), season.path.glob("*")):
                 episode = cls.process_video_file(
                     file, "episode", verbose=verbose
                 )
@@ -196,7 +317,51 @@ class AddToIndex(Command):
                 series.specials.append(special)
 
         # generate thumbnails
-        # ...
+        # * general preparations
+        thumbnails = (
+            index
+            / FluxConfig.THUMBNAILS
+            / (series.path.name + "-" + series.id)
+        ).resolve()
+        if verbose:
+            print(cls.INDENTATION + "Creating thumbnails")
+            print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
+        if not dry_run:
+            thumbnails.mkdir(parents=True, exist_ok=False)
+
+        # * seasons
+        for season in series.seasons:
+            (thumbnails / season.path.name).mkdir()
+            if verbose:
+                print(
+                    2 * cls.INDENTATION
+                    + f"Creating thumbnails for season '{season.name}'"
+                )
+            for episode in season.episodes:
+                if verbose:
+                    print(
+                        3 * cls.INDENTATION
+                        + f"Creating thumbnail for episode '{episode.name}'"
+                    )
+                if not dry_run:
+                    cls.generate_thumbnail(
+                        episode,
+                        thumbnails
+                        / season.path.name
+                        / (episode.path.name + ".jpg"),
+                    )
+        # * specials
+        for special in series.specials:
+            if verbose:
+                print(
+                    2 * cls.INDENTATION
+                    + f"Creating thumbnail for special '{special.name}'"
+                )
+            if not dry_run:
+                cls.generate_thumbnail(
+                    special,
+                    thumbnails / (special.path.name + ".jpg"),
+                )
 
         # write to database
         # ...

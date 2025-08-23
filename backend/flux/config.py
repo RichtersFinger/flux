@@ -17,6 +17,7 @@ class FluxConfig:
     ).resolve()
     INDEX_DB_FILE = Path("index.db")
     SCHEMA_LOCATION = Path(db.__file__).parent / "schema.sql"
+    THUMBNAILS = Path(".thumbnails")
 
     MODE = os.environ.get("MODE", "prod")  # "prod" | "dev"
     DEV_CORS_FRONTEND_URL = os.environ.get(

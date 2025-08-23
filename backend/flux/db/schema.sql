@@ -36,7 +36,7 @@ CREATE TABLE episodes (
     season_id TEXT NOT NULL REFERENCES seasons (id) ON DELETE CASCADE,
     path TEXT NOT NULL,
     name TEXT NOT NULL,
-    mimetype TEXT NOT NULL
+    metadata_json text NOT NULL
 );
 
 CREATE TABLE specials (
@@ -44,5 +44,5 @@ CREATE TABLE specials (
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
     path TEXT NOT NULL,
     name TEXT NOT NULL,
-    mimetype TEXT NOT NULL
+    metadata_json text NOT NULL
 );
