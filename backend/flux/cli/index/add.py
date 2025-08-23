@@ -236,20 +236,16 @@ class AddToIndex(Command):
                     "1",
                     str(destination),
                 ],
-                check=False,
+                check=True,
                 capture_output=True,
                 text=True,
             )
         except subprocess.CalledProcessError as exc_info:
             print(
-                f"Failed to create thumbnail from '{source.path}' at "
-                + f"'{destination}': {exc_info}",
-                file=sys.stderr,
-            )
-        if result.returncode != 0:
-            print(
-                f"Failed to create thumbnail from '{source.path}' at "
-                + f"'{destination}': {result.stderr}",
+                "\033[1;33m"
+                + f"Failed to create thumbnail from '{source.path}' at "
+                + f"'{destination}': {exc_info} ({exc_info.stderr})"
+                + "\033[0m",
                 file=sys.stderr,
             )
 
