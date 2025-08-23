@@ -17,10 +17,32 @@ CREATE TABLE users (
 
 CREATE TABLE records (
     id TEXT NOT NULL PRIMARY KEY,
-    type TEXT NOT NULL
+    type TEXT CHECK( type IN ('series','movie','collection') ) NOT NULL,
+    path TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL
 );
 
-CREATE TABLE record_metadata (
+CREATE TABLE seasons (
+    id TEXT NOT NULL PRIMARY KEY,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
     name TEXT NOT NULL
+);
+
+CREATE TABLE episodes (
+    id TEXT NOT NULL PRIMARY KEY,
+    record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
+    season_id TEXT NOT NULL REFERENCES seasons (id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
+    name TEXT NOT NULL,
+    mimetype TEXT NOT NULL
+);
+
+CREATE TABLE specials (
+    id TEXT NOT NULL PRIMARY KEY,
+    record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
+    name TEXT NOT NULL,
+    mimetype TEXT NOT NULL
 );
