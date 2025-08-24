@@ -1,7 +1,7 @@
 """Common test-fixtures."""
 
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, copy
 from uuid import uuid4
 
 import pytest
@@ -10,11 +10,25 @@ from flux.cli.index.create import CreateIndex
 
 
 @pytest.fixture(scope="session", name="tmp")
-def _tmp() -> Path:
+def _tmp(request) -> Path:
     """Temporary directory"""
     __tmp = Path("tests/tmp")
+
+    def _tmp_cleanup(target):
+        if target.is_dir():
+            rmtree(target)
+
+    request.addfinalizer(lambda: _tmp_cleanup(__tmp))
+
+    _tmp_cleanup(__tmp)
     __tmp.mkdir(parents=True, exist_ok=False)
     return __tmp
+
+
+@pytest.fixture(scope="session", name="fixtures")
+def _fixtures() -> Path:
+    """Fixture directory"""
+    return Path("tests/fixtures")
 
 
 @pytest.fixture()
@@ -25,12 +39,17 @@ def tmp_index(tmp) -> Path:
     return _tmp_index
 
 
-@pytest.fixture(scope="session", autouse=True)
-def tmp_cleanup(request, tmp):
-    """Clean up temp_folder"""
-
-    def _tmp_cleanup(target):
-        if target.is_dir():
-            rmtree(target)
-
-    request.addfinalizer(lambda: _tmp_cleanup(tmp))
+@pytest.fixture()
+def tmp_series(fixtures: Path, tmp: Path) -> Path:
+    """Generate fake series and return path"""
+    series = tmp / str(uuid4()) / "fake-series"
+    series.mkdir(exist_ok=False, parents=True)
+    for p in [
+        series / "s1" / "e01.mp4",
+        series / "s1" / "e02.mp4",
+        series / "s2" / "e01.mp4",
+        series / "a.mp4",
+    ]:
+        p.parent.mkdir(exist_ok=True)
+        copy(fixtures / "sample.mp4", p)
+    return series

@@ -397,7 +397,7 @@ class AddToIndex(Command):
         thumbnails = (
             index
             / FluxConfig.THUMBNAILS
-            / (series.path.name + "-" + series.id)
+            / series.id
         ).resolve()
         if verbose:
             print(cls.INDENTATION + "Creating thumbnails")
