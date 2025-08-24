@@ -16,6 +16,7 @@ class Transaction:
 
     def __enter__(self):
         self.connection = sqlite3.connect(self.path, autocommit=False)
+        self.connection.execute("PRAGMA foreign_keys = 1")
         self.cursor = self.connection.cursor()
         return self
 

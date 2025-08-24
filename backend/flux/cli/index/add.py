@@ -12,6 +12,7 @@ import filetype
 from befehl import Parser, Option, Command, Argument
 
 from flux.config import FluxConfig
+from flux.db import Transaction
 from ..common import verbose, index_location, get_index
 from .common import batch, dry_run
 
@@ -42,6 +43,7 @@ class Series:
 
     path: Path
     name: str
+    description: str
     seasons: list[Season]
     specials: list[VideoFile]
     id: str = field(default_factory=lambda: str(uuid4()))
@@ -69,6 +71,13 @@ class AddToIndex(Command):
         "--name",
         helptext=(
             "explicitly specify record-name (not available in batch-mode)"
+        ),
+        nargs=1,
+    )
+    description = Option(
+        "--description",
+        helptext=(
+            "provide a record-description (not available in batch-mode)"
         ),
         nargs=1,
     )
@@ -105,6 +114,19 @@ class AddToIndex(Command):
                     False,
                     f"Option '{self.name_.names[0]}' is incompatible with "
                     + "batch mode.",
+                )
+        if self.description in args:
+            if len(args.get(self.target, [])) > 1:
+                return (
+                    False,
+                    f"Option '{self.description.names[0]}' is incompatible "
+                    + "with multiple targets.",
+                )
+            if self.batch in args:
+                return (
+                    False,
+                    f"Option '{self.description.names[0]}' is incompatible "
+                    + "with batch mode.",
                 )
         return True, ""
 
@@ -223,7 +245,7 @@ class AddToIndex(Command):
                 "00" + f":0{seek_seconds // 60}" + f":{int(seek_seconds % 60)}"
             )
         try:
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "ffmpeg",
                     "-v",
@@ -256,6 +278,7 @@ class AddToIndex(Command):
         index: Path,
         target: Path,
         name: Optional[str] = None,
+        description: Optional[str] = None,
         *,
         verbose: bool = False,
         dry_run: bool = False,
@@ -268,6 +291,8 @@ class AddToIndex(Command):
         target -- target path
         name -- name of the series
                 (default None; uses directory name)
+        description -- description of the series
+                       (default None; uses placeholder)
         verbose -- whether to run in verbose mode
                    (default False)
         dry_run -- whether to run a simulation (automatically verbose)
@@ -276,7 +301,13 @@ class AddToIndex(Command):
         if dry_run:
             verbose = True
 
-        series = Series(target.resolve(), name or target.name, [], [])
+        series = Series(
+            target.resolve(),
+            name or target.name,
+            description or "No description provided",
+            [],
+            [],
+        )
 
         if verbose:
             print("Processing:")
@@ -285,7 +316,8 @@ class AddToIndex(Command):
             print(cls.INDENTATION + f"Target location: {series.path}")
             print(cls.INDENTATION + f"Assigned name: {series.name}")
 
-        # seasons
+        # collect data from filesystem
+        # * seasons
         for directory in filter(lambda p: p.is_dir(), target.glob("*")):
             season = Season(directory, directory.name, [])
             if verbose:
@@ -294,7 +326,7 @@ class AddToIndex(Command):
                     + f"Processing '{season.path.name}' as season"
                 )
 
-            # episodes
+            # * episodes
             for file in filter(lambda p: p.is_file(), season.path.glob("*")):
                 episode = cls.process_video_file(
                     file, "episode", verbose=verbose
@@ -304,13 +336,61 @@ class AddToIndex(Command):
 
             series.seasons.append(season)
 
-        # specials
+        # * specials
         if verbose:
             print(cls.INDENTATION + "Processing specials")
         for file in filter(lambda p: p.is_file(), target.glob("*")):
             special = cls.process_video_file(file, "special", verbose=verbose)
             if special is not None:
                 series.specials.append(special)
+
+        # write to database
+        if not dry_run:
+            index_db = index / FluxConfig.INDEX_DB_FILE
+            with Transaction(index_db) as t:
+                t.cursor.execute(
+                    "INSERT INTO records VALUES (?, ?, ?, ?, ?)",
+                    (
+                        series.id,
+                        "series",
+                        str(series.path),
+                        series.name,
+                        series.description,
+                    ),
+                )
+                for season in series.seasons:
+                    t.cursor.execute(
+                        "INSERT INTO seasons VALUES (?, ?, ?, ?)",
+                        (
+                            season.id,
+                            series.id,
+                            str(season.path.relative_to(series.path)),
+                            season.name,
+                        ),
+                    )
+                    for episode in season.episodes:
+                        t.cursor.execute(
+                            "INSERT INTO episodes VALUES (?, ?, ?, ?, ?, ?)",
+                            (
+                                episode.id,
+                                series.id,
+                                season.id,
+                                str(episode.path.relative_to(season.path)),
+                                episode.name,
+                                json.dumps(episode.metadata),
+                            ),
+                        )
+                for special in series.specials:
+                    t.cursor.execute(
+                        "INSERT INTO specials VALUES (?, ?, ?, ?, ?)",
+                        (
+                            special.id,
+                            series.id,
+                            str(special.path.relative_to(series.path)),
+                            special.name,
+                            json.dumps(special.metadata),
+                        ),
+                    )
 
         # generate thumbnails
         # * general preparations
@@ -359,9 +439,6 @@ class AddToIndex(Command):
                     thumbnails / (special.path.name + ".jpg"),
                 )
 
-        # write to database
-        # ...
-
     def run(self, args):
         # pylint: disable=redefined-outer-name
         verbose = self.verbose in args
@@ -391,6 +468,7 @@ class AddToIndex(Command):
                         index,
                         t.resolve(),
                         args.get(self.name_, [None])[0],
+                        args.get(self.description, [None])[0],
                         verbose=verbose,
                         dry_run=dry_run,
                     )

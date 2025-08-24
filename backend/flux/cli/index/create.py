@@ -46,8 +46,8 @@ class CreateIndex(Command):
                 FluxConfig.SCHEMA_LOCATION.read_text(encoding="utf-8")
             )
             t.cursor.execute(
-                "INSERT INTO index_metadata (schema_version) VALUES "
-                + f"('{version('flux')}')"
+                "INSERT INTO index_metadata (schema_version) VALUES (?)",
+                (version("flux"),)
             )
             t.cursor.execute(
                 "INSERT INTO index_metadata (initialized) VALUES (1)"
