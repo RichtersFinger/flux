@@ -1,0 +1,188 @@
+openapi: '3.0.3'
+info:
+  title: flux - OpenAPI-Document
+  description:
+    This is the OpenAPI 3.0 specification for the flux backend-API.
+  version: v0
+servers:
+  - url: 'http://localhost:8620/'
+externalDocs:
+  description: See official flux GitHub-repository.
+  url: 'https://github.com/RichtersFinger/flux'
+tags:
+  - name: user
+    description: user API
+  - name: library
+    description: library API
+  - name: stream
+    description: streaming API
+paths:
+  /api/v0/ping:
+    get:
+      summary: ping test
+      description: Returns 'pong'.
+      tags:
+        - default
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /api/v0/login:
+    get:
+      summary: test login
+      description: Returns OK if credentials are valid.
+      tags:
+        - user
+      security:
+        - HttpHeaderAuth: []
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '401':
+          description: fail
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: UNAUTHORIZED
+  /api/v0/lib/records:
+    get:
+      summary: list available records
+      description:
+        Returns a list of available records for the given query.
+      tags:
+        - library
+      security:
+        - HttpHeaderAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+        - name: type
+          in: query
+          description: content type
+          required: false
+          schema:
+            $ref: '#/components/schemas/RecordType'
+        - name: range
+          in: query
+          description: request subset of records
+          required: false
+          schema:
+            type: string
+            pattern: '/[0-9]+-[0-9]+/'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request:
+                    type: object
+                    description: request metadata
+                    properties:
+                      id:
+                        type: string
+                        description:
+                          request identifier (if provided by client)
+                      ok:
+                        type: boolean
+                        description:
+                          whether request has been processed successfully
+                      error:
+                        type: object
+                        description:
+                          problem description in case of error
+                        properties:
+                          code:
+                            type: string
+                            description: error-code
+                          short:
+                            type: string
+                            description: short error description
+                          long:
+                            type: string
+                            description: long error description
+                    required:
+                      - ok
+                      - timestamp
+                  content:
+                    type: array
+                    description: array of records
+                    items:
+                      type: object
+                      description: record information
+                      properties:
+                        id:
+                          type: string
+                          description: record identifier
+                        type:
+                          $ref: '#/components/schemas/RecordType'
+                        name:
+                          type: string
+                          description: record name
+                        description:
+                          type: string
+                          description: record description
+                      required:
+                        - id
+                        - type
+                required:
+                  - request
+  /api/v0/video:
+    get:
+      summary: stream data
+      description: Returns data stream.
+      tags:
+        - stream
+      security:
+        - HttpHeaderAuth: []
+      parameters:
+        - name: id
+          in: query
+          description: content identifier
+          required: true
+          schema:
+            type: string
+        - name: range
+          in: header
+          description: request chunk
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+          content:
+            application/octet-stream: {}
+components:
+  securitySchemes:
+    HttpHeaderAuth:
+      type: apiKey
+      in: header
+      name: X-Flux-Auth
+  parameters:
+    requestId:
+      name: type
+      in: query
+      description: request identifier
+      required: false
+      schema:
+        type: string
+  schemas:
+    RecordType:
+      type: string
+      description: record type identifier
+      enum:
+        - series
+        - movie
+        - collection
