@@ -31,14 +31,113 @@ paths:
               schema:
                 type: string
                 example: pong
-  /api/v0/login:
-    get:
-      summary: test login
-      description: Returns OK if credentials are valid.
+  /api/v0/user/register:
+    post:
+      summary: register new user
+      description: Returns OK if user has been created successfully.
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/RequestMd'
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    username:
+                      type: string
+                      description: username for new account
+                      example: user0
+                      pattern: /[a-zA-Z0-9\.@_-]+/
+                    password:
+                      type: string
+                      description: password for new account
+                      example: 202cb962ac59075b964b07152d234b70
+                  required:
+                    - username
+                    - password
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '409':
+          description: fail
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: CONFLICT
+    delete:
+      summary: delete user
+      description: Returns OK if user has been deleted.
       tags:
         - user
       security:
-        - HttpHeaderAuth: []
+        - sessionCookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/RequestMd'
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    password:
+                      type: string
+                      description: password for new account
+                      example: 202cb962ac59075b964b07152d234b70
+                  required:
+                    - password
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+  /api/v0/user/session:
+    post:
+      summary: create new session
+      description: Returns session id if successful.
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/RequestMd'
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    username:
+                      type: string
+                      description: user name
+                      example: user0
+                    password:
+                      type: string
+                      description: user password
+                      example: 202cb962ac59075b964b07152d234b70
+                  required:
+                    - username
+                    - password
       responses:
         '200':
           description: success
@@ -54,6 +153,166 @@ paths:
               schema:
                 type: string
                 example: UNAUTHORIZED
+    delete:
+      summary: delete session
+      description: Returns OK if session has been deleted.
+      tags:
+        - user
+      security:
+        - sessionCookieAuth: []
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+    get:
+      summary: validate session
+      description: Returns OK if session is valid.
+      tags:
+        - user
+      security:
+        - sessionCookieAuth: []
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '401':
+          description: fail
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: UNAUTHORIZED
+  /api/v0/user/password:
+    put:
+      summary: change user password
+      description: Returns OK if new password has been set.
+      tags:
+        - user
+      security:
+        - sessionCookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/RequestMd'
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    currentPassword:
+                      type: string
+                      description: current password
+                      example: 202cb962ac59075b964b07152d234b70
+                    newPassword:
+                      type: string
+                      description: new password
+                      example: 250cf8b51c773f3f8dc8b4be867a9a02
+                  required:
+                    - currentPassword
+                    - newPassword
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '401':
+          description: fail
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: UNAUTHORIZED
+  /api/v0/user/configuration:
+    get:
+      summary: get user configuration
+      description: Returns current user configuration.
+      tags:
+        - user
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    type: object
+                    description: user configuration
+                    properties:
+                      darkMode:
+                        type: boolean
+                        description: whether dark mode is active
+                        example: true
+                    required:
+                      - darkMode
+                required:
+                  - meta
+    put:
+      summary: update user configuration
+      description: Returns OK if configuration has been updated.
+      tags:
+        - user
+      security:
+        - sessionCookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meta:
+                  $ref: '#/components/schemas/RequestMd'
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    darkMode:
+                      type: boolean
+                      description: whether darkMode is active
+                      example: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    type: object
+                    description: user configuration
+                    properties:
+                      darkMode:
+                        type: boolean
+                        description: whether dark mode is active
+                        example: true
+                    required:
+                      - darkMode
+                required:
+                  - meta
   /api/v0/index/records:
     get:
       summary: list available records
@@ -62,7 +321,7 @@ paths:
       tags:
         - index
       security:
-        - HttpHeaderAuth: []
+        - sessionCookieAuth: []
       parameters:
         - $ref: '#/components/parameters/requestId'
         - name: type
@@ -86,15 +345,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  request:
-                    $ref: '#/components/schemas/Request'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
                   content:
                     type: array
                     description: array of records
                     items:
                       $ref: '#/components/schemas/Record'
                 required:
-                  - request
+                  - meta
   /api/v0/index/record:
     get:
       summary: get record info
@@ -102,7 +361,7 @@ paths:
       tags:
         - index
       security:
-        - HttpHeaderAuth: []
+        - sessionCookieAuth: []
       parameters:
         - $ref: '#/components/parameters/requestId'
         - name: recordId
@@ -119,12 +378,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  request:
-                    $ref: '#/components/schemas/Request'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
                   content:
                     $ref: '#/components/schemas/Record'
                 required:
-                  - request
+                  - meta
   /video:
     get:
       summary: stream data
@@ -132,7 +391,7 @@ paths:
       tags:
         - static
       security:
-        - HttpHeaderAuth: []
+        - sessionCookieAuth: []
       parameters:
         - name: id
           in: query
@@ -161,7 +420,7 @@ paths:
       tags:
         - static
       security:
-        - HttpHeaderAuth: []
+        - sessionCookieAuth: []
       parameters:
         - name: id
           in: query
@@ -179,10 +438,10 @@ paths:
                 format: binary
 components:
   securitySchemes:
-    HttpHeaderAuth:
+    sessionCookieAuth:
       type: apiKey
-      in: header
-      name: X-Flux-Auth
+      in: cookie
+      name: fluxSession
   parameters:
     requestId:
       name: requestId
@@ -192,14 +451,21 @@ components:
       schema:
         type: string
   schemas:
-    Request:
+    RequestId:
+      type: string
+      description: request identifier
+    RequestMd:
       type: object
       description: request metadata
       properties:
         id:
-          type: string
-          description:
-            request identifier (if provided by client)
+          $ref: '#/components/schemas/RequestId'
+    ResponseMd:
+      type: object
+      description: response metadata
+      properties:
+        id:
+          $ref: '#/components/schemas/RequestId'
         ok:
           type: boolean
           description:

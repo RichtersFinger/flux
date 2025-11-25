@@ -12,7 +12,22 @@ CREATE UNIQUE INDEX only_one_schema_version ON index_metadata ((1)) WHERE schema
 
 CREATE TABLE users (
     id TEXT NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    -- configuration details
+    dark_mode INTEGER DEFAULT 0
+);
+
+CREATE TABLE user_secrets (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    salt TEXT NOT NULL,
+    password TEXT NOT NULL
+);
+
+CREATE TABLE sessions (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    expires_at TEXT
 );
 
 CREATE TABLE records (
