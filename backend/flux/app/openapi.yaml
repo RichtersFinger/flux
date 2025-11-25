@@ -12,10 +12,10 @@ externalDocs:
 tags:
   - name: user
     description: user API
-  - name: library
-    description: library API
-  - name: stream
-    description: streaming API
+  - name: index
+    description: index API
+  - name: static
+    description: endpoints for static data
 paths:
   /api/v0/ping:
     get:
@@ -54,13 +54,13 @@ paths:
               schema:
                 type: string
                 example: UNAUTHORIZED
-  /api/v0/lib/records:
+  /api/v0/index/records:
     get:
       summary: list available records
       description:
         Returns a list of available records for the given query.
       tags:
-        - library
+        - index
       security:
         - HttpHeaderAuth: []
       parameters:
@@ -87,63 +87,50 @@ paths:
                 type: object
                 properties:
                   request:
-                    type: object
-                    description: request metadata
-                    properties:
-                      id:
-                        type: string
-                        description:
-                          request identifier (if provided by client)
-                      ok:
-                        type: boolean
-                        description:
-                          whether request has been processed successfully
-                      error:
-                        type: object
-                        description:
-                          problem description in case of error
-                        properties:
-                          code:
-                            type: string
-                            description: error-code
-                          short:
-                            type: string
-                            description: short error description
-                          long:
-                            type: string
-                            description: long error description
-                    required:
-                      - ok
-                      - timestamp
+                    $ref: '#/components/schemas/Request'
                   content:
                     type: array
                     description: array of records
                     items:
-                      type: object
-                      description: record information
-                      properties:
-                        id:
-                          type: string
-                          description: record identifier
-                        type:
-                          $ref: '#/components/schemas/RecordType'
-                        name:
-                          type: string
-                          description: record name
-                        description:
-                          type: string
-                          description: record description
-                      required:
-                        - id
-                        - type
+                      $ref: '#/components/schemas/Record'
                 required:
                   - request
-  /api/v0/video:
+  /api/v0/index/record:
+    get:
+      summary: get record info
+      description: Returns record information.
+      tags:
+        - index
+      security:
+        - HttpHeaderAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+        - name: recordId
+          in: query
+          description: record identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request:
+                    $ref: '#/components/schemas/Request'
+                  content:
+                    $ref: '#/components/schemas/Record'
+                required:
+                  - request
+  /video:
     get:
       summary: stream data
-      description: Returns data stream.
+      description: Returns (chunk of) video stream.
       tags:
-        - stream
+        - static
       security:
         - HttpHeaderAuth: []
       parameters:
@@ -163,7 +150,33 @@ paths:
         '200':
           description: success
           content:
-            application/octet-stream: {}
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /thumbnail:
+    get:
+      summary: download thumbnail
+      description: Returns thumbnail.
+      tags:
+        - static
+      security:
+        - HttpHeaderAuth: []
+      parameters:
+        - name: id
+          in: query
+          description: content identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
 components:
   securitySchemes:
     HttpHeaderAuth:
@@ -172,13 +185,62 @@ components:
       name: X-Flux-Auth
   parameters:
     requestId:
-      name: type
+      name: requestId
       in: query
       description: request identifier
       required: false
       schema:
         type: string
   schemas:
+    Request:
+      type: object
+      description: request metadata
+      properties:
+        id:
+          type: string
+          description:
+            request identifier (if provided by client)
+        ok:
+          type: boolean
+          description:
+            whether request has been processed successfully
+        error:
+          type: object
+          description:
+            problem description in case of error
+          properties:
+            code:
+              type: string
+              description: error-code
+            short:
+              type: string
+              description: short error description
+            long:
+              type: string
+              description: long error description
+      required:
+        - ok
+    Record:
+      type: object
+      description: record information
+      properties:
+        id:
+          type: string
+          description: record identifier
+        type:
+          $ref: '#/components/schemas/RecordType'
+        name:
+          type: string
+          description: record name
+        description:
+          type: string
+          description: record description
+        thumbnail:
+          type: string
+          description: thumbnail identifier
+      required:
+        - id
+        - type
     RecordType:
       type: string
       description: record type identifier
