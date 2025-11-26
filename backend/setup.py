@@ -32,6 +32,8 @@ setup(
         "flux",
         "flux.db",
         "flux.app",
+        "flux.api",
+        "flux.api.v0",
         "flux.cli",
         "flux.cli.index",
     ],

@@ -8,7 +8,7 @@ from flux import db
 
 
 class FluxConfig:
-    """`flux`-configuration."""
+    """`flux`-configuration singleton."""
 
     INDEX_LOCATION = (
         Path(os.environ["INDEX_LOCATION"])

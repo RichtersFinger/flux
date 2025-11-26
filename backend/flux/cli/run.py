@@ -19,12 +19,9 @@ class Run(Command):
         # read and process index-location
         index = get_index(args)
 
-        class Config(config.FluxConfig):
-            pass
-
         if index is not None:
             if verbose:
                 print(f"Using index at '{index}'")
-            Config.INDEX_LOCATION = index
+            config.FluxConfig.INDEX_LOCATION = index
 
-        app.run(config=Config())
+        app.app.run()
