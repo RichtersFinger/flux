@@ -35,7 +35,6 @@
 }
 ::-webkit-scrollbar-track {
   border-radius: 5px;
-  margin: 10px;
 }
 ::-webkit-scrollbar {
   width: 8px;
