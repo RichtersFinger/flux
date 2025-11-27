@@ -8,7 +8,11 @@ interface LocationStore {
   getPathname: () => string;
   getSearch: () => URLSearchParams | undefined;
   subscribe: (callback: () => void) => () => void;
-  navigate: (pathname: string, search?: string, useHistory?: boolean) => void;
+  navigate: (
+    pathname?: string,
+    search?: string | URLSearchParams,
+    useHistory?: boolean
+  ) => void;
 }
 
 // custom store implementation
@@ -28,11 +32,9 @@ const locationStore: LocationStore = {
   },
   navigate(pathname, search, useHistory = true) {
     // update store
-    locationStore.pathname = pathname;
+    if (pathname !== undefined) locationStore.pathname = pathname;
     if (search !== undefined) {
-      if (typeof search === "string")
-        locationStore.search = new URLSearchParams(search);
-      else locationStore.search = search;
+      locationStore.search = new URLSearchParams(search);
     }
 
     // update location
