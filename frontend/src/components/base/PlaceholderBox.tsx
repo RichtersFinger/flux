@@ -10,13 +10,14 @@ export default function PlaceholderBox({
   onClick,
 }: PlaceholderBoxProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(1000);
+  const [width, setWidth] = useState<number | undefined>(undefined);
 
   useLayoutEffect(() => {
     function handleResize() {
       if (!ref.current) return;
       setWidth(ref.current.offsetWidth);
     }
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -31,9 +32,11 @@ export default function PlaceholderBox({
         <div
           className="absolute bg-white -top-10 blur-lg placeholder-box-bar"
           style={
-            {
-              "--range": `${2.5 * width}px`,
-            } as React.CSSProperties
+            width
+              ? ({
+                  "--range": `${2.5 * width}px`,
+                } as React.CSSProperties)
+              : undefined
           }
         />
       </div>

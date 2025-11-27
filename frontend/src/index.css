@@ -53,7 +53,7 @@ select.no-arrow {
 
   width: 4px;
   height: 100vh;
-  animation: PlaceholderBoxAnimation var(--duration, 2s) linear infinite;
+  animation: PlaceholderBoxAnimation var(--duration) linear infinite;
 }
 
 @keyframes PlaceholderBoxAnimation {
