@@ -48,9 +48,12 @@ select.no-arrow {
 }
 
 .placeholder-box-bar {
+  --duration: 2s;
+  --range: 100vw;
+
   width: 4px;
-  height: 100vw;
-  animation: PlaceholderBoxAnimation 2s linear infinite;
+  height: 100vh;
+  animation: PlaceholderBoxAnimation var(--duration, 2s) linear infinite;
 }
 
 @keyframes PlaceholderBoxAnimation {
@@ -61,6 +64,6 @@ select.no-arrow {
     transform: translateX(-10vw);
   }
   100% {
-    transform: translateX(100vw);
+    transform: translateX(var(--range));
   }
 }
