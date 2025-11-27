@@ -46,3 +46,21 @@ select.no-arrow {
   -webkit-appearance:none;
   appearance:none;
 }
+
+.placeholder-box-bar {
+  width: 4px;
+  height: 100vw;
+  animation: PlaceholderBoxAnimation 2s linear infinite;
+}
+
+@keyframes PlaceholderBoxAnimation {
+  0% {
+    transform: translateX(-10vw);
+  }
+  50% {
+    transform: translateX(-10vw);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
+}
