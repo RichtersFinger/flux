@@ -25,8 +25,7 @@ CREATE TABLE user_secrets (
 
 CREATE TABLE sessions (
     id TEXT NOT NULL PRIMARY KEY,
-    username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
-    expires_at TEXT
+    username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE
 );
 
 CREATE TABLE records (
