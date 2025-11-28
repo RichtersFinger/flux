@@ -19,7 +19,7 @@ class FluxConfig:
     SCHEMA_LOCATION = Path(db.__file__).parent / "schema.sql"
     THUMBNAILS = Path(".thumbnails")
 
-    MODE = os.environ.get("MODE", "prod")  # "prod" | "dev"
+    MODE = os.environ.get("MODE", "prod")  # "prod" | "dev" | "test"
     DEV_CORS_FRONTEND_URL = os.environ.get(
         "DEV_CORS_FRONTEND_URL", "http://localhost:3000"
     )

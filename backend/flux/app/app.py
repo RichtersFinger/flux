@@ -4,7 +4,9 @@ import sys
 import socket
 import urllib.request
 from importlib.metadata import version
+from uuid import uuid4
 
+from werkzeug.exceptions import HTTPException
 from flask import Flask, Response, send_from_directory
 
 from flux.config import FluxConfig
@@ -146,8 +148,33 @@ def app_factory() -> Flask:
     if FluxConfig.MODE == "dev":
         load_cors(_app, FluxConfig.DEV_CORS_FRONTEND_URL)
 
+    # error handler
+    @_app.errorhandler(Exception)
+    def handle_exception(e):
+        if isinstance(e, HTTPException):
+            return e
+
+        # print to log
+        error_id = str(uuid4())
+        print(
+            "\033[31mERROR:\033[0m " + f" [{error_id}] " + str(e),
+            file=sys.stderr,
+        )
+        if FluxConfig.MODE == "prod":
+            return Response(
+                f"INTERNAL SERVER ERROR (id: {error_id})",
+                mimetype="text/plain",
+                status=500,
+            )
+        return Response(
+            f"INTERNAL SERVER ERROR: {e}",
+            mimetype="text/plain",
+            status=500,
+        )
+
     # print welcome message
-    print_welcome_message(FluxConfig)
+    if FluxConfig.MODE != "test":
+        print_welcome_message(FluxConfig)
 
     @_app.route("/version", methods=["GET"])
     def get_version():
@@ -158,6 +185,7 @@ def app_factory() -> Flask:
 
     register_static_api(_app)
     api_v0.default.register_api(_app)
+    api_v0.user.register_api(_app)
 
     @_app.route("/", defaults={"path": ""})
     @_app.route("/<path:path>")
