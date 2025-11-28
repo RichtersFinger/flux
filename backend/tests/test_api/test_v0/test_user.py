@@ -27,23 +27,55 @@ def _patch_config(tmp: Path, request):
 
 
 # pylint: disable=unused-argument
-def test_simple_transaction(patch_config):
-    """Test simple `Transaction`s."""
+def test_user_api_workflow(patch_config):
+    """Test user-api workflow."""
+    # setup (create index and app)
     cli(["index", "create", "-i", str(FluxConfig.INDEX_LOCATION)])
     client = app_factory().test_client()
-    assert client.post(
-        "/api/v0/user/register",
-        json={"content": {"username": "user0", "password": "password0"}},
-    ).status_code == 200
 
-    with Transaction(FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE) as t:
+    # register
+    # * make request
+    assert (
+        client.post(
+            "/api/v0/user/register",
+            json={"content": {"username": "user0", "password": "password0"}},
+        ).status_code
+        == 200
+    )
+    # * check database
+    with Transaction(
+        FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+    ) as t:
         t.cursor.execute("SELECT name FROM users WHERE name='user0'")
         username = t.cursor.fetchone()[0]
         t.cursor.execute(
             "SELECT salt, password FROM user_secrets WHERE username='user0'"
         )
         salt, password = t.cursor.fetchone()
-
     assert username == "user0"
     assert salt is not None
     assert "password0" not in password
+
+    # create session
+    # * not logged in
+    assert client.get("/api/v0/user/session").status_code == 401
+    # * login (bad-credentials)
+    assert client.post(
+        "/api/v0/user/session",
+        json={"content": {"username": "user0", "password": "password1"}},
+    ).status_code == 401
+    # * login
+    assert client.post(
+        "/api/v0/user/session",
+        json={"content": {"username": "user0", "password": "password0"}},
+    ).status_code == 200
+    # * logged in
+    assert client.get("/api/v0/user/session").status_code == 200
+
+    # delete session
+    # * logout
+    assert client.delete("/api/v0/user/session").status_code == 200
+    # * not logged in
+    assert client.get("/api/v0/user/session").status_code == 401
+    # * not logged in
+    assert client.delete("/api/v0/user/session").status_code == 401

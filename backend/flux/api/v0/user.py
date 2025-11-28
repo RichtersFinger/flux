@@ -1,6 +1,7 @@
 """User-API endpoints"""
 
 from typing import Iterable, Callable, Any, Optional
+import sys
 from uuid import uuid4
 from hashlib import sha512
 import re
@@ -9,6 +10,7 @@ from flask import Flask, request, Response
 
 from flux.db import Transaction
 from flux.config import FluxConfig
+from flux.api.common import session_cookie_auth
 
 
 def run_validation(
@@ -72,6 +74,11 @@ def validate_username(username: str, *, name=None) -> tuple[bool, str]:
     return True, ""
 
 
+def hash_password(password: str, salt: str) -> str:
+    """Returns hashed password."""
+    return sha512((salt + password).encode(encoding="utf-8")).hexdigest()
+
+
 def register_api(app: Flask):
     """Sets up api endpoints."""
 
@@ -95,15 +102,12 @@ def register_api(app: Flask):
 
         # create user
         salt = str(uuid4())
-        hashed_password = sha512(
-            (salt + password).encode(encoding="utf-8")
-        ).hexdigest()
+        hashed_password = hash_password(password, salt)
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
         ) as t:
             t.cursor.execute(
-                """INSERT INTO users (name) VALUES (?)""",
-                (username,),
+                "INSERT INTO users (name) VALUES (?)", (username,)
             )
             t.cursor.execute(
                 """
@@ -119,3 +123,96 @@ def register_api(app: Flask):
                 ),
             )
         return Response("OK", mimetype="text/plain", status=200)
+
+    @app.route("/api/v0/user/session", methods=["GET"])
+    @session_cookie_auth(True)
+    def validate_session(
+        # pylint: disable=unused-argument
+        *args,
+    ):
+        """Validate session."""
+        return Response("OK", mimetype="text/plain", status=200)
+
+    @app.route("/api/v0/user/session", methods=["POST"])
+    def create_session():
+        """Login/Create session."""
+        # validate&parse request
+        json = request.get_json(silent=True)
+        if json is None:
+            return Response("Missing JSON.", mimetype="text/plain", status=400)
+        username = json.get("content", {}).get("username")
+        password = json.get("content", {}).get("password")
+        valid, msg = run_validation([validate_string], username)
+        if not valid:
+            return Response(msg, mimetype="text/plain", status=400)
+        valid, msg = run_validation([validate_string], password)
+        if not valid:
+            return Response(msg, mimetype="text/plain", status=400)
+
+        # read from database to validate credentials
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+        ) as t:
+            t.cursor.execute(
+                "SELECT salt, password FROM user_secrets WHERE username=?",
+                (username,),
+            )
+        try:
+            salt, hashed_password = t.data[0]
+        except IndexError:
+            # no row matched/unknown user
+            print(
+                f"INFO: Failed login attempt for username '{username}' "
+                + "(unknown).",
+                file=sys.stderr,
+            )
+            return Response("UNAUTHORIZED", mimetype="text/plain", status=401)
+
+        # validate credentials
+        if hashed_password != hash_password(password, salt):
+            # password does not match
+            print(
+                f"INFO: Failed login attempt for username '{username}' "
+                + "(bad password).",
+                file=sys.stderr,
+            )
+            return Response("UNAUTHORIZED", mimetype="text/plain", status=401)
+
+        # create session
+        session_id = str(uuid4())
+        print(
+            f"INFO: Successful login for username '{username}' "
+            + f"(session '{session_id}').",
+            file=sys.stderr,
+        )
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+        ) as t:
+            t.cursor.execute(
+                "INSERT INTO sessions (id, username) VALUES (?, ?)",
+                (session_id, username),
+            )
+        r = Response("OK", mimetype="text/plain", status=200)
+        r.set_cookie(
+            FluxConfig.SESSION_COOKIE_NAME,
+            session_id,
+            max_age=365 * 24 * 60 * 60,
+        )
+        return r
+
+    @app.route("/api/v0/user/session", methods=["DELETE"])
+    @session_cookie_auth(True)
+    def delete_session(session_id: str, username: str):
+        """Logout from session."""
+        print(
+            f"INFO: Logout for username '{username}' "
+            + f"(session '{session_id}').",
+            file=sys.stderr,
+        )
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+        ) as t:
+            t.cursor.execute("DELETE FROM sessions WHERE id=?", (session_id,))
+        r = Response("OK", mimetype="text/plain", status=200)
+        r.delete_cookie(FluxConfig.SESSION_COOKIE_NAME)
+        return r
