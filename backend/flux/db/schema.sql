@@ -11,22 +11,21 @@ CREATE TABLE index_metadata (
 CREATE UNIQUE INDEX only_one_schema_version ON index_metadata ((1)) WHERE schema_version IS NOT NULL;
 
 CREATE TABLE users (
-    id TEXT NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL PRIMARY KEY,
     -- configuration details
     dark_mode INTEGER DEFAULT 0
 );
 
 CREATE TABLE user_secrets (
     id TEXT NOT NULL PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
     salt TEXT NOT NULL,
     password TEXT NOT NULL
 );
 
 CREATE TABLE sessions (
     id TEXT NOT NULL PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
     expires_at TEXT
 );
 
