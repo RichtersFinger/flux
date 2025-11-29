@@ -16,7 +16,7 @@ export default function TextInput({
   type = "text",
   placeholder,
   icon,
-  maxLength,
+  maxLength = 256,
   onChange,
 }: TextInputProps) {
   return (
