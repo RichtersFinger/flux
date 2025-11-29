@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { FiAlertOctagon, FiX } from "react-icons/fi";
+import { FiAlertOctagon, FiX, FiCheck } from "react-icons/fi";
 
-type MessageBoxColor = "red";
+type MessageBoxColor = "red" | "green";
 const colorStyle: Record<
   MessageBoxColor,
   { body: string; dismiss: string; icon: React.ReactNode }
@@ -10,6 +10,11 @@ const colorStyle: Record<
     body: "bg-red-800 text-red-300 border border-red-300",
     dismiss: "hover:text-red-100",
     icon: <FiAlertOctagon size={24} />,
+  },
+  green: {
+    body: "bg-green-800 text-green-300 border border-green-300",
+    dismiss: "hover:text-green-100",
+    icon: <FiCheck size={24} />,
   },
 };
 
@@ -60,7 +65,7 @@ export default function MessageBox({
       ref={ref}
       className={`flex flex-row space-x-5 items-start relative p-2 rounded-lg ${colorStyle[color].body} ${className}`}
     >
-      <div className="w-6">{icon ?? colorStyle.red.icon}</div>
+      <div className="w-6">{icon ?? colorStyle[color].icon}</div>
       <div className="flex flex-col space-y-1 grow">
         <h5 className="font-semibold">{title ?? "A problem occurred:"}</h5>
         <p className="text-sm">{body}</p>
