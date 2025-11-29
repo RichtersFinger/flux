@@ -70,7 +70,7 @@ def validate_username(username: str, *, name=None) -> tuple[bool, str]:
             "SELECT COUNT(*) FROM users WHERE name=?", (username,)
         )
     if t.data[0][0] > 0:
-        return False, f"Username '{username}' alerady in use."
+        return False, f"Username '{username}' already in use."
     return True, ""
 
 
@@ -103,6 +103,7 @@ def register_api(app: Flask):
         # create user
         salt = str(uuid4())
         hashed_password = hash_password(password, salt)
+        print(f"INFO: New user '{username}' created.", file=sys.stderr)
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
         ) as t:
