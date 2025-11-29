@@ -9,6 +9,15 @@ export const BASE_URL = process.env.REACT_APP_API_BASE_URL ?? "";
 export const DEFAULT_FETCH_OPTIONS: RequestInit = {
   credentials: process.env.REACT_APP_API_BASE_URL ? "include" : "same-origin",
 };
+/**
+ * Patched global.fetch which pre-applies the base-url and options
+ */
+export function pFetch (input: RequestInfo | URL, init?: RequestInit | undefined) {
+  return fetch(`${BASE_URL}${input}`, {
+    ...DEFAULT_FETCH_OPTIONS,
+    ...init,
+  });
+};
 
 export default function App() {
   const location = useLocation();
@@ -17,7 +26,7 @@ export default function App() {
 
   // check for valid session
   useEffect(() => {
-    fetch(`${BASE_URL}/api/v0/user/session`, { ...DEFAULT_FETCH_OPTIONS })
+    pFetch("/api/v0/user/session")
       .then((response) => {
         if (response.status === 200) setLoggedIn(true);
         else setLoggedIn(false);
