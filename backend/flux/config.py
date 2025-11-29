@@ -30,4 +30,4 @@ class FluxConfig:
     STATIC_PATH = Path(__file__).parent / "client"
     SECRET_KEY = os.environ.get("SECRET_KEY", str(uuid4()))
     PASSWORD = os.environ.get("PASSWORD")
-    SESSION_COOKIE_NAME = "sessionCookieAuth"
+    SESSION_COOKIE_NAME = "fluxSession"
