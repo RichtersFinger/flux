@@ -1,4 +1,5 @@
 interface TextInputProps {
+  id?: string;
   className?: string;
   value?: string;
   type?: "text" | "password";
@@ -9,6 +10,7 @@ interface TextInputProps {
 }
 
 export default function TextInput({
+  id,
   className = "",
   value,
   type = "text",
@@ -25,6 +27,7 @@ export default function TextInput({
         </div>
       ) : null}
       <input
+        id={id}
         className={`p-1 px-2 border border-gray-300 rounded outline-none focus:outline-gray-200 outline-1 ${className} ${
           icon ? "indent-7" : ""
         }`}
