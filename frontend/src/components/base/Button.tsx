@@ -6,6 +6,7 @@ const colorStyle: Record<ButtonColor, string> = {
 interface ButtonProps {
   className?: string;
   color?: ButtonColor;
+  disabled?: boolean;
   children?: React.ReactNode;
   onClick?: (event: React.MouseEvent) => void;
 }
@@ -13,15 +14,23 @@ interface ButtonProps {
 export default function Button({
   className = "",
   color = "blue",
+  disabled = false,
   children,
   onClick,
 }: ButtonProps) {
   return (
     <button
-      className={`p-2 rounded transition-colors select-none ${colorStyle[color]} ${className}`}
+      disabled={disabled}
+      className={`p-2 rounded transition-colors select-none h-10 ${
+        colorStyle[color]
+      } ${className} ${
+        disabled
+          ? "hover:cursor-not-allowed bg-gray-300 hover:bg-gray-300 text-gray-600"
+          : ""
+      }`}
       onClick={onClick}
     >
-      {children}
+      <div className="w-full flex justify-center">{children}</div>
     </button>
   );
 }
