@@ -4,10 +4,11 @@ import { useSyncExternalStore } from "react";
 interface LocationStore {
   pathname: string;
   search?: URLSearchParams;
-  subscribers: Set<() => void>;
+  subscribers: { pathname: Set<() => void>; search: Set<() => void> };
   getPathname: () => string;
   getSearch: () => URLSearchParams | undefined;
-  subscribe: (callback: () => void) => () => void;
+  subscribePathname: (callback: () => void) => () => void;
+  subscribeSearch: (callback: () => void) => () => void;
   navigate: (
     pathname?: string,
     search?: string | URLSearchParams,
@@ -19,16 +20,20 @@ interface LocationStore {
 const locationStore: LocationStore = {
   pathname: window.location.pathname,
   search: new URLSearchParams(window.location.search),
-  subscribers: new Set(),
+  subscribers: { pathname: new Set(), search: new Set() },
   getPathname() {
     return locationStore.pathname;
   },
   getSearch() {
     return locationStore.search;
   },
-  subscribe(callback) {
-    locationStore.subscribers.add(callback);
-    return () => locationStore.subscribers.delete(callback);
+  subscribePathname(callback) {
+    locationStore.subscribers.pathname.add(callback);
+    return () => locationStore.subscribers.pathname.delete(callback);
+  },
+  subscribeSearch(callback) {
+    locationStore.subscribers.search.add(callback);
+    return () => locationStore.subscribers.search.delete(callback);
   },
   navigate(pathname, search, useHistory = true) {
     // update store
@@ -48,7 +53,10 @@ const locationStore: LocationStore = {
     }
 
     // notify subscribers
-    locationStore.subscribers.forEach((callback) => callback());
+    if (pathname !== undefined)
+      locationStore.subscribers.pathname.forEach((callback) => callback());
+    if (search !== undefined)
+      locationStore.subscribers.search.forEach((callback) => callback());
   },
 };
 
@@ -78,11 +86,11 @@ export function useRouter() {
  */
 export function useLocation() {
   const pathname = useSyncExternalStore(
-    locationStore.subscribe,
+    locationStore.subscribePathname,
     locationStore.getPathname
   );
   const search = useSyncExternalStore(
-    locationStore.subscribe,
+    locationStore.subscribeSearch,
     locationStore.getSearch
   );
   return { pathname, search };
