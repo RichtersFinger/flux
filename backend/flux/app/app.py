@@ -5,6 +5,7 @@ import socket
 import urllib.request
 from importlib.metadata import version
 from uuid import uuid4
+from traceback import format_exc
 
 from werkzeug.exceptions import HTTPException
 from flask import Flask, Response, send_from_directory
@@ -158,9 +159,12 @@ def app_factory() -> Flask:
         # print to log
         error_id = str(uuid4())
         print(
-            "\033[31mERROR:\033[0m " + f" [{error_id}] " + str(e),
+            "\033[31mERROR:\033[0m "
+            + f" [{error_id}] "
+            + format_exc(),
             file=sys.stderr,
         )
+
         if FluxConfig.MODE == "prod":
             return Response(
                 f"INTERNAL SERVER ERROR (id: {error_id})",
