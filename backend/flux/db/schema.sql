@@ -13,7 +13,10 @@ CREATE UNIQUE INDEX only_one_schema_version ON index_metadata ((1)) WHERE schema
 CREATE TABLE users (
     name TEXT NOT NULL PRIMARY KEY,
     -- configuration details
-    dark_mode INTEGER DEFAULT 0
+    is_admin INTEGER DEFAULT 0,
+    -- user settings
+    volume INTEGER DEFAULT 100,
+    autoplay INTEGER DEFAULT 0
 );
 
 CREATE TABLE user_secrets (
