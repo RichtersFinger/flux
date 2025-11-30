@@ -1,11 +1,11 @@
 import { useState } from "react";
 
+import { pFetch } from "../../../../util/api";
 import { useLocation, useRouter } from "../../../base/Router";
 import Button from "../../../base/Button";
 import TextInput from "../../../base/TextInput";
 import MessageBox from "../../../base/MessageBox";
 import Spinner from "../../../base/Spinner";
-import { pFetch } from "../../../../App";
 
 interface LoginFormProps {
   onError?: () => void;
