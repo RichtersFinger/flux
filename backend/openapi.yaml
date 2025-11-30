@@ -260,12 +260,40 @@ paths:
                     type: object
                     description: user configuration
                     properties:
-                      darkMode:
-                        type: boolean
-                        description: whether dark mode is active
-                        example: true
+                      user:
+                        type: object
+                        description: user info
+                        properties:
+                          name:
+                            type: string
+                            description: username
+                            example: user0
+                          isAdmin:
+                            type: boolean
+                            description: whether the user is an administrator
+                        required:
+                          - name
+                          - isAdmin
+                      settings:
+                        type: object
+                        description: user settings
+                        properties:
+                          volume:
+                            type: integer
+                            description: player volume
+                            minimum: 0
+                            maximum: 100
+                            example: 85
+                          autoplay:
+                            type: boolean
+                            description: default autoplay behavior
+                            example: true
+                        required:
+                          - volume
+                          - autoplay
                     required:
-                      - darkMode
+                      - user
+                      - settings
                 required:
                   - meta
     put:
@@ -287,9 +315,15 @@ paths:
                   type: object
                   description: request payload
                   properties:
-                    darkMode:
+                    volume:
+                      type: integer
+                      description: player volume
+                      minimum: 0
+                      maximum: 100
+                      example: 85
+                    autoplay:
                       type: boolean
-                      description: whether darkMode is active
+                      description: default autoplay behavior
                       example: true
       responses:
         '200':
@@ -301,16 +335,6 @@ paths:
                 properties:
                   meta:
                     $ref: '#/components/schemas/ResponseMd'
-                  content:
-                    type: object
-                    description: user configuration
-                    properties:
-                      darkMode:
-                        type: boolean
-                        description: whether dark mode is active
-                        example: true
-                    required:
-                      - darkMode
                 required:
                   - meta
   /api/v0/index/records:
