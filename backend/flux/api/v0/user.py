@@ -6,7 +6,7 @@ from uuid import uuid4
 from hashlib import sha512
 import re
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
 
 from flux.db import Transaction
 from flux.config import FluxConfig
@@ -53,7 +53,12 @@ def validate_string(data, *, maxlen: int = 256, name=None) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_username(username: str, *, name=None) -> tuple[bool, str]:
+def validate_username(
+    # pylint: disable=unused-argument
+    username: str,
+    *,
+    name=None,
+) -> tuple[bool, str]:
     """
     Returns tuple
     * validity
@@ -217,3 +222,91 @@ def register_api(app: Flask):
         r = Response("OK", mimetype="text/plain", status=200)
         r.delete_cookie(FluxConfig.SESSION_COOKIE_NAME)
         return r
+
+    @app.route("/api/v0/user/configuration", methods=["GET"])
+    @session_cookie_auth()
+    def get_configuration(_: str, username: str):
+        """Returns configuration."""
+        request_id = request.args.get("requestId")
+        meta = {} if request_id is None else {"id": request_id}
+
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+        ) as t:
+            t.cursor.execute(
+                "SELECT volume, autoplay FROM users WHERE name=?", (username,)
+            )
+
+        if len(t.data) == 0:
+            return (
+                jsonify(
+                    meta=meta
+                    | {
+                        "ok": False,
+                        "error": {
+                            "code": 404,
+                            "short": "NOT FOUND",
+                            "long": f"Unknown username '{username}'.",
+                        },
+                    },
+                ),
+                200,
+            )
+
+        return (
+            jsonify(
+                meta=meta | {"ok": True},
+                content={
+                    "user": {"name": username, "isAdmin": False},
+                    "settings": {
+                        "volume": t.data[0][0],
+                        "autoplay": t.data[0][1] == 1,
+                    },
+                },
+            ),
+            200,
+        )
+
+    @app.route("/api/v0/user/configuration", methods=["PUT"])
+    @session_cookie_auth()
+    def put_configuration(_: str, username: str):
+        """Returns configuration."""
+        json = request.get_json(silent=True)
+        if json is None:
+            return (
+                jsonify(
+                    meta={
+                        "ok": False,
+                        "error": {
+                            "code": 400,
+                            "short": "BAD REQUEST",
+                            "long": "Missing JSON data.",
+                        },
+                    },
+                ),
+                200,
+            )
+        request_id = json.get("meta", {}).get("id")
+        meta = {} if request_id is None else {"id": request_id}
+
+        cols = {}
+        if "volume" in json.get("content", {}):
+            cols["volume"] = json["content"]["volume"]
+        if "autoplay" in json.get("content", {}):
+            cols["autoplay"] = 1 if json["content"]["autoplay"] else 0
+
+        if len(cols) == 0:
+            return jsonify(meta=meta | {"ok": True}), 200
+
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+        ) as t:
+            t.cursor.execute(
+                # pylint: disable=consider-using-f-string
+                "UPDATE users SET {} WHERE name=?".format(
+                    ", ".join(map(lambda k: f"{k}=?", cols.keys()))
+                ),
+                tuple(cols.values()) + (username,),
+            )
+
+        return jsonify(meta=meta | {"ok": True}), 200

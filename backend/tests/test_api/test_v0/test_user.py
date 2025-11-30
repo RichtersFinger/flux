@@ -72,6 +72,22 @@ def test_user_api_workflow(patch_config):
     # * logged in
     assert client.get("/api/v0/user/session").status_code == 200
 
+    # test configuration
+    response = client.get("/api/v0/user/configuration")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    assert response.json["content"]["user"]["name"] == "user0"
+    assert not response.json["content"]["settings"]["autoplay"]
+    assert (
+        client.put(
+            "/api/v0/user/configuration", json={"content": {"autoplay": True}}
+        ).status_code
+        == 200
+    )
+    assert client.get("/api/v0/user/configuration").json["content"][
+        "settings"
+    ]["autoplay"]
+
     # delete session
     # * logout
     assert client.delete("/api/v0/user/session").status_code == 200
