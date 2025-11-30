@@ -192,7 +192,7 @@ def app_factory() -> Flask:
     @_app.route("/<path:path>")
     def get_client(path):
         """Serve static content."""
-        if path != "":
+        if path != "" and (FluxConfig.STATIC_PATH / path).is_file():
             return send_from_directory(FluxConfig.STATIC_PATH, path)
         return send_from_directory(FluxConfig.STATIC_PATH, "index.html")
 
