@@ -129,6 +129,7 @@ export default function RegisterForm({ onError }: RegisterFormProps) {
         {loading ? <Spinner size="xs" /> : "Submit"}
       </Button>
       <Button
+        type="button"
         disabled={loading}
         onClick={() => {
           search?.delete("mode");

@@ -5,9 +5,9 @@ import Page from "./components/flux/Page";
 import Browse from "./components/flux/pages/browse/Browse";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
 
-export const BASE_URL = process.env.REACT_APP_API_BASE_URL ?? "";
+export const BASE_URL = import.meta.env.VITE_DEV_API_BASE_URL ?? "";
 export const DEFAULT_FETCH_OPTIONS: RequestInit = {
-  credentials: process.env.REACT_APP_API_BASE_URL ? "include" : "same-origin",
+  credentials: import.meta.env.VITE_DEV_API_BASE_URL ? "include" : "same-origin",
 };
 /**
  * Patched global.fetch which pre-applies the base-url and options

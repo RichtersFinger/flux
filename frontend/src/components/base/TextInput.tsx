@@ -28,7 +28,7 @@ export default function TextInput({
       ) : null}
       <input
         id={id}
-        className={`p-1 px-2 border border-gray-300 rounded outline-none focus:outline-gray-200 outline-1 ${className} ${
+        className={`p-1 px-2 border bg-gray-50 border-gray-300 rounded outline-none focus:outline-gray-200 ${className} outline-1  ${
           icon ? "indent-7" : ""
         }`}
         type={type}

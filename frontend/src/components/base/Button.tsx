@@ -7,6 +7,7 @@ interface ButtonProps {
   className?: string;
   color?: ButtonColor;
   disabled?: boolean;
+  type?: "submit" | "reset" | "button";
   children?: React.ReactNode;
   onClick?: (event: React.MouseEvent) => void;
 }
@@ -15,12 +16,14 @@ export default function Button({
   className = "",
   color = "blue",
   disabled = false,
+  type,
   children,
   onClick,
 }: ButtonProps) {
   return (
     <button
       disabled={disabled}
+      type={type}
       className={`p-2 rounded transition-colors select-none h-10 ${
         colorStyle[color]
       } ${className} ${

@@ -103,6 +103,7 @@ export default function LoginForm({ onError }: LoginFormProps) {
         {loading ? <Spinner size="xs" /> : "Submit"}
       </Button>
       <Button
+        type="button"
         disabled={loading}
         onClick={() => {
           const newSearch = new URLSearchParams(search);
