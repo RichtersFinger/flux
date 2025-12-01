@@ -8,11 +8,12 @@ from uuid import uuid4
 from traceback import format_exc
 
 from werkzeug.exceptions import HTTPException
-from flask import Flask, Response, send_from_directory
+from flask import Flask, Response, send_from_directory, jsonify
 
 from flux.config import FluxConfig
+from flux.exceptions import APIException
 from flux.api.static import register_api as register_static_api
-from flux.api import v0 as api_v0
+from flux.api import common, v0 as api_v0
 
 
 def load_cors(_app: Flask, url: str) -> None:
@@ -156,12 +157,28 @@ def app_factory() -> Flask:
         if isinstance(e, HTTPException):
             return e
 
+        if isinstance(e, APIException):
+            return (
+                jsonify(
+                    common.wrap_response_json(
+                        {
+                            "ok": False,
+                            "error": {
+                                "code": e.status,
+                                "short": e.short,
+                                "long": str(e),
+                            },
+                        },
+                        None,
+                    )
+                ),
+                200,
+            )
+
         # print to log
         error_id = str(uuid4())
         print(
-            "\033[31mERROR:\033[0m "
-            + f" [{error_id}] "
-            + format_exc(),
+            "\033[31mERROR:\033[0m " + f" [{error_id}] " + format_exc(),
             file=sys.stderr,
         )
 
