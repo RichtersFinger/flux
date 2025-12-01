@@ -23,28 +23,25 @@ paths:
       description: Returns 'pong'.
       tags:
         - default
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: pong
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/user/register:
     post:
       summary: register new user
       description: Returns OK if user has been created successfully.
       tags:
         - user
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                meta:
-                  $ref: '#/components/schemas/RequestMd'
                 content:
                   type: object
                   description: request payload
@@ -63,19 +60,7 @@ paths:
                     - password
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-        '409':
-          description: fail
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: CONFLICT
+          $ref: '#/components/responses/GenericResponseNoContent'
     delete:
       summary: delete user
       description: Returns OK if user has been deleted.
@@ -83,14 +68,14 @@ paths:
         - user
       security:
         - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                meta:
-                  $ref: '#/components/schemas/RequestMd'
                 content:
                   type: object
                   description: request payload
@@ -103,26 +88,21 @@ paths:
                     - password
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/user/session:
     post:
       summary: create new session
-      description: Returns session id if successful.
+      description: Returns session id as cookie if successful.
       tags:
         - user
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                meta:
-                  $ref: '#/components/schemas/RequestMd'
                 content:
                   type: object
                   description: request payload
@@ -140,19 +120,7 @@ paths:
                     - password
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-        '401':
-          description: fail
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: UNAUTHORIZED
+          $ref: '#/components/responses/GenericResponseNoContent'
     delete:
       summary: delete session
       description: Returns OK if session has been deleted.
@@ -160,14 +128,11 @@ paths:
         - user
       security:
         - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
+          $ref: '#/components/responses/GenericResponseNoContent'
     get:
       summary: validate session
       description: Returns OK if session is valid.
@@ -175,21 +140,11 @@ paths:
         - user
       security:
         - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-        '401':
-          description: fail
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: UNAUTHORIZED
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/user/password:
     put:
       summary: change user password
@@ -198,14 +153,14 @@ paths:
         - user
       security:
         - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                meta:
-                  $ref: '#/components/schemas/RequestMd'
                 content:
                   type: object
                   description: request payload
@@ -223,19 +178,7 @@ paths:
                     - newPassword
       responses:
         '200':
-          description: success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-        '401':
-          description: fail
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: UNAUTHORIZED
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/user/configuration:
     get:
       summary: get user configuration
@@ -303,14 +246,14 @@ paths:
         - user
       security:
         - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                meta:
-                  $ref: '#/components/schemas/RequestMd'
                 content:
                   type: object
                   description: request payload
@@ -327,16 +270,7 @@ paths:
                       example: true
       responses:
         '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  meta:
-                    $ref: '#/components/schemas/ResponseMd'
-                required:
-                  - meta
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/index/records:
     get:
       summary: list available records
@@ -478,12 +412,6 @@ components:
     RequestId:
       type: string
       description: request identifier
-    RequestMd:
-      type: object
-      description: request metadata
-      properties:
-        id:
-          $ref: '#/components/schemas/RequestId'
     ResponseMd:
       type: object
       description: response metadata
@@ -496,18 +424,20 @@ components:
             whether request has been processed successfully
         error:
           type: object
-          description:
-            problem description in case of error
+          description: problem description in case of error
           properties:
             code:
-              type: string
+              type: integer
               description: error-code
+              example: 400
             short:
               type: string
               description: short error description
+              example: Bad request
             long:
               type: string
               description: long error description
+              example: Missing required argument in request body.
       required:
         - ok
     Record:
@@ -538,3 +468,15 @@ components:
         - series
         - movie
         - collection
+  responses:
+    GenericResponseNoContent:
+      description: success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              meta:
+                $ref: '#/components/schemas/ResponseMd'
+            required:
+              - meta
