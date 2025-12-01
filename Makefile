@@ -9,6 +9,26 @@ _:
 venv:
 	[ -d "${VENV}" ] || python3 -m venv venv
 
+run-backend-dev-server:
+	cd backend && \
+		source venv/bin/activate && \
+		pip install . && \
+		pip install -r dev-requirements.txt && \
+		MODE=dev flask run
+
+run-frontend-dev-server:
+	docker run \
+		--name flux-build --rm --user 1000:1000 \
+		-p 3000:3000 \
+		-v ./frontend:/frontend \
+		node:25-alpine sh -c 'cd /frontend && npm install && npm run dev -- --host'
+
+run-frontend-linter:
+	docker run \
+		--name flux-build --rm --user 1000:1000 \
+		-v ./frontend:/frontend \
+		node:25-alpine sh -c 'cd /frontend && npm run lint'
+
 ifeq ($(SKIP_CLIENT), yes)
 $(info skipping client!)
 build-frontend:
