@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { APIResponse } from "../../../../types";
 import { pFetch } from "../../../../util/api";
 import { useLocation, useRouter } from "../../../base/Router";
 import Button from "../../../base/Button";
@@ -39,15 +40,19 @@ export default function LoginForm({ onError }: LoginFormProps) {
       .then((response) => {
         setLoading(false);
         if (!response.ok) {
+          response.text().then((text) => console.error(text));
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then((json: APIResponse) => {
+        if (!json.meta.ok) {
           setPassword("");
-          if (response.status === 401) {
-            onError?.();
+          onError?.();
+          if (json.meta.error?.code === 401) {
             setErrorMessage("Incorrect username or password.");
           } else {
-            response.text().then((text) => {
-              onError?.();
-              setErrorMessage(text);
-            });
+            setErrorMessage(json.meta.error?.long ?? "Unknown error");
           }
           return;
         }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { APIResponse } from "../../../../types";
 import { pFetch } from "../../../../util/api";
 import { useLocation, useRouter } from "../../../base/Router";
 import Button from "../../../base/Button";
@@ -42,10 +43,15 @@ export default function RegisterForm({ onError }: RegisterFormProps) {
       .then((response) => {
         setLoading(false);
         if (!response.ok) {
-          response.text().then((text) => {
-            setErrorMessage(text);
-            onError?.();
-          });
+          response.text().then((text) => console.error(text));
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then((json: APIResponse) => {
+        if (!json.meta.ok) {
+          onError?.();
+          setErrorMessage(json.meta.error?.long ?? "Unknown error");
           return;
         }
         setUsername("");

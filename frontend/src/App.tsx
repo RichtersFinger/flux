@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import type { APIResponse } from "./types";
 import { pFetch } from "./util/api";
 import { useLocation } from "./components/base/Router";
 import Page from "./components/flux/Page";
@@ -15,7 +16,14 @@ export default function App() {
   useEffect(() => {
     pFetch("/api/v0/user/session")
       .then((response) => {
-        if (response.status === 200) setLoggedIn(true);
+        if (!response.ok) {
+          response.text().then((text) => console.error(text));
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      }
+      ).then((json: APIResponse) => {
+        if (json.meta.ok) setLoggedIn(true);
         else setLoggedIn(false);
       })
       .catch((error) => {
