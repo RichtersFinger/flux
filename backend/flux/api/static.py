@@ -11,7 +11,7 @@ from .common import header_auth
 def register_api(app: Flask):
     """Sets up api endpoints."""
 
-    @app.route("/api/v0/video", methods=["GET"])
+    @app.route("/video", methods=["GET"])
     @header_auth(FluxConfig.PASSWORD)
     def video():
         headers = request.headers

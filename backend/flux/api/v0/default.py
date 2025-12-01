@@ -1,6 +1,8 @@
 """Default-API endpoints"""
 
-from flask import Flask, Response
+from flask import Flask, jsonify
+
+from flux.api.common import wrap_response_json
 
 
 def register_api(app: Flask):
@@ -8,4 +10,4 @@ def register_api(app: Flask):
 
     @app.route("/api/v0/ping", methods=["GET"])
     def ping():
-        return Response("pong", mimetype="text/plain", status=206)
+        return jsonify(wrap_response_json(None, None)), 200

@@ -35,13 +35,10 @@ def test_user_api_workflow(patch_config):
 
     # register
     # * make request
-    assert (
-        client.post(
-            "/api/v0/user/register",
-            json={"content": {"username": "user0", "password": "password0"}},
-        ).status_code
-        == 200
-    )
+    assert client.post(
+        "/api/v0/user/register",
+        json={"content": {"username": "user0", "password": "password0"}},
+    ).json["meta"]["ok"]
     # * check database
     with Transaction(
         FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
@@ -58,40 +55,46 @@ def test_user_api_workflow(patch_config):
 
     # create session
     # * not logged in
-    assert client.get("/api/v0/user/session").status_code == 401
+    assert (
+        client.get("/api/v0/user/session").json["meta"]["error"]["code"] == 401
+    )
     # * login (bad-credentials)
-    assert client.post(
-        "/api/v0/user/session",
-        json={"content": {"username": "user0", "password": "password1"}},
-    ).status_code == 401
+    assert (
+        client.post(
+            "/api/v0/user/session",
+            json={"content": {"username": "user0", "password": "password1"}},
+        ).json["meta"]["error"]["code"]
+        == 401
+    )
     # * login
     assert client.post(
         "/api/v0/user/session",
         json={"content": {"username": "user0", "password": "password0"}},
-    ).status_code == 200
+    ).json["meta"]["ok"]
     # * logged in
-    assert client.get("/api/v0/user/session").status_code == 200
+    assert client.get("/api/v0/user/session").json["meta"]["ok"]
 
     # test configuration
     response = client.get("/api/v0/user/configuration")
-    assert response.status_code == 200
     assert response.json["meta"]["ok"]
     assert response.json["content"]["user"]["name"] == "user0"
     assert not response.json["content"]["settings"]["autoplay"]
-    assert (
-        client.put(
-            "/api/v0/user/configuration", json={"content": {"autoplay": True}}
-        ).status_code
-        == 200
-    )
+    assert client.put(
+        "/api/v0/user/configuration", json={"content": {"autoplay": True}}
+    ).json["meta"]["ok"]
     assert client.get("/api/v0/user/configuration").json["content"][
         "settings"
     ]["autoplay"]
 
     # delete session
     # * logout
-    assert client.delete("/api/v0/user/session").status_code == 200
+    assert client.delete("/api/v0/user/session").json["meta"]["ok"]
     # * not logged in
-    assert client.get("/api/v0/user/session").status_code == 401
+    assert (
+        client.get("/api/v0/user/session").json["meta"]["error"]["code"] == 401
+    )
     # * not logged in
-    assert client.delete("/api/v0/user/session").status_code == 401
+    assert (
+        client.delete("/api/v0/user/session").json["meta"]["error"]["code"]
+        == 401
+    )
