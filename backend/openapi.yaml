@@ -438,6 +438,10 @@ components:
               type: string
               description: long error description
               example: Missing required argument in request body.
+          required:
+            - code
+            - short
+            - long
       required:
         - ok
     Record:
