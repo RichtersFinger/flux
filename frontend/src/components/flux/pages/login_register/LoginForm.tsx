@@ -7,6 +7,7 @@ import Button from "../../../base/Button";
 import TextInput from "../../../base/TextInput";
 import MessageBox from "../../../base/MessageBox";
 import Spinner from "../../../base/Spinner";
+import { useSessionStore } from "../../../../store";
 
 interface LoginFormProps {
   onError?: () => void;
@@ -15,6 +16,7 @@ interface LoginFormProps {
 export default function LoginForm({ onError }: LoginFormProps) {
   const { search } = useLocation();
   const router = useRouter();
+  const { checkLogin } = useSessionStore();
 
   // form inputs
   const [username, setUsername] = useState("");
@@ -57,6 +59,7 @@ export default function LoginForm({ onError }: LoginFormProps) {
           return;
         }
         // redirect to browse-page
+        checkLogin();
         router.navigate("/browse", new URLSearchParams());
       })
       .catch((error) => {
