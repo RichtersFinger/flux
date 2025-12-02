@@ -18,14 +18,14 @@ run-backend-dev-server:
 
 run-frontend-dev-server:
 	docker run \
-		--name flux-build --rm --user 1000:1000 \
+		--name flux-fe-build --rm --user 1000:1000 \
 		-p 3000:3000 \
 		-v ./frontend:/frontend \
 		node:25-alpine sh -c 'cd /frontend && npm install && npm run dev -- --host'
 
 run-frontend-linter:
 	docker run \
-		--name flux-build --rm --user 1000:1000 \
+		--name flux-fe-lint --rm --user 1000:1000 \
 		-v ./frontend:/frontend \
 		node:25-alpine sh -c 'cd /frontend && npm run lint'
 
