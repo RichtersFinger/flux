@@ -5,7 +5,7 @@ from uuid import uuid4
 from hashlib import sha512
 import re
 
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, jsonify
 
 from flux.db import Transaction
 from flux.config import FluxConfig
@@ -57,11 +57,19 @@ def register_api(app: Flask):
         username = json.get("content", {}).get("username")
         password = json.get("content", {}).get("password")
         valid, msg = common.run_validation(
-            [common.validate_string, validate_username], username
+            [common.validate_string, validate_username],
+            username,
+            required=True,
+            name="username",
         )
         if not valid:
             raise exceptions.BadRequestException(msg)
-        valid, msg = common.run_validation([common.validate_string], password)
+        valid, msg = common.run_validation(
+            [common.validate_string],
+            password,
+            required=True,
+            name="password",
+        )
         if not valid:
             raise exceptions.BadRequestException(msg)
 
@@ -108,10 +116,20 @@ def register_api(app: Flask):
             raise exceptions.BadRequestException("Missing JSON data.")
         username = json.get("content", {}).get("username")
         password = json.get("content", {}).get("password")
-        valid, msg = common.run_validation([common.validate_string], username)
+        valid, msg = common.run_validation(
+            [common.validate_string],
+            username,
+            required=True,
+            name="username",
+        )
         if not valid:
             raise exceptions.BadRequestException(msg)
-        valid, msg = common.run_validation([common.validate_string], password)
+        valid, msg = common.run_validation(
+            [common.validate_string],
+            password,
+            required=True,
+            name="password",
+        )
         if not valid:
             raise exceptions.BadRequestException(msg)
 
@@ -125,14 +143,16 @@ def register_api(app: Flask):
             )
         try:
             salt, hashed_password = t.data[0]
-        except IndexError:
+        except IndexError as exc_info:
             # no row matched/unknown user
             print(
                 f"INFO: Failed login attempt for username '{username}' "
                 + "(unknown).",
                 file=sys.stderr,
             )
-            raise exceptions.UnauthorizedException("Bad credentials.")
+            raise exceptions.UnauthorizedException(
+                "Bad credentials."
+            ) from exc_info
 
         # validate credentials
         if hashed_password != hash_password(password, salt):
@@ -223,12 +243,25 @@ def register_api(app: Flask):
         if json is None:
             raise exceptions.BadRequestException("Missing JSON data.")
 
-        # TODO: properly validate
-
+        # parse and validate
         cols = {}
         if "volume" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [common.validate_integer],
+                json["content"]["volume"],
+                name="content.volume",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
             cols["volume"] = json["content"]["volume"]
         if "autoplay" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [common.validate_boolean],
+                json["content"]["autoplay"],
+                name="content.autoplay",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
             cols["autoplay"] = 1 if json["content"]["autoplay"] else 0
 
         if len(cols) == 0:

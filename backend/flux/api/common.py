@@ -75,6 +75,7 @@ def run_validation(
     validation_steps: Iterable[Callable[[Any], tuple[bool, str]]],
     data: Any,
     *,
+    required: bool = False,
     name: Optional[str] = None,
 ) -> tuple[bool, str]:
     """
@@ -85,6 +86,14 @@ def run_validation(
     * message (in case of invalidity)
     """
     for step in validation_steps:
+        if name is None:
+            _name = ""
+        else:
+            _name = f" '{name}'"
+
+        if required and data is None:
+            return False, f"Missing required field{_name}."
+
         valid, msg = step(data, name=name)
         if not valid:
             return valid, msg
@@ -102,12 +111,56 @@ def validate_string(data, *, maxlen: int = 256, name=None) -> tuple[bool, str]:
     else:
         name = f" '{name}'"
 
-    if data is None:
-        return False, f"Missing required field{name}."
     if not isinstance(data, str):
         return False, f"Bad type in field{name} (not a string)."
     if len(data) > maxlen:
         return False, f"Maximum allowed input length exceeded for field{name}."
+    return True, ""
+
+
+def validate_integer(
+    data,
+    *,
+    minimum: Optional[int] = None,
+    maximum: Optional[int] = None,
+    name=None,
+) -> tuple[bool, str]:
+    """
+    Returns tuple
+    * validity
+    * message (in case of invalidity)
+    """
+    if name is None:
+        name = ""
+    else:
+        name = f" '{name}'"
+
+    if not isinstance(data, int):
+        return False, f"Bad type in field{name} (not an integer)."
+    if minimum is not None and data < minimum:
+        return False, f"Value '{data}' too small for field{name}."
+    if maximum is not None and data > maximum:
+        return False, f"Value '{data}' too large for field{name}."
+    return True, ""
+
+
+def validate_boolean(
+    data,
+    *,
+    name=None,
+) -> tuple[bool, str]:
+    """
+    Returns tuple
+    * validity
+    * message (in case of invalidity)
+    """
+    if name is None:
+        name = ""
+    else:
+        name = f" '{name}'"
+
+    if not isinstance(data, bool):
+        return False, f"Bad type in field{name} (not a boolean)."
     return True, ""
 
 
