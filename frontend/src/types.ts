@@ -12,9 +12,15 @@ export interface APIResponse<ContentType = unknown> {
   content?: ContentType;
 }
 
-interface UserConfiguration {
-  volume?: number;
-  autoplay?: boolean;
+export interface UserConfiguration {
+  user?: {
+    name: string;
+    isAdmin: boolean;
+  }
+  settings?: {
+    volume: number;
+    autoplay: boolean;
+  }
 }
 
 export interface SessionStore {
