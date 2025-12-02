@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 
-import { pFetch } from "./util/api";
+import { formatAPIErrorMessage, pFetch } from "./util/api";
 import type { APIResponse, UserConfiguration } from "./types";
-import { useSessionStore } from "./store";
 import { useLocation } from "./hooks/Router";
+import Toaster, { useToaster } from "./components/base/Toaster";
+import { useSessionStore } from "./store";
 import Page from "./components/flux/Page";
 import Browse from "./components/flux/pages/browse/Browse";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
 
 export default function App() {
   const location = useLocation();
+  const { toast } = useToaster();
   const { loggedIn, checkLogin, userConfiguration, setUserConfiguration } =
     useSessionStore();
 
@@ -28,16 +30,22 @@ export default function App() {
         return response.json();
       })
       .then((json: APIResponse<UserConfiguration>) => {
-        if (json.meta.ok && json.content)
-          setUserConfiguration(json.content);
+        if (json.meta.ok && json.content) setUserConfiguration(json.content);
+        else toast(formatAPIErrorMessage(json.meta));
       })
       .catch((error) => {
+        toast(
+          formatAPIErrorMessage({
+            error: { code: 0, short: "Connection error", long: error.message },
+          })
+        );
         console.error(error);
       });
   }, [loggedIn]);
 
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">
+      <Toaster />
       <Page>
         {
           { "/browse": <Browse />, "/login": <LoginRegister /> }[
