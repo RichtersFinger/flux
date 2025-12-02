@@ -1,4 +1,4 @@
-import { createShallowStore } from "./components/base/Store";
+import { createShallowStore } from "./hooks/Store";
 import type { APIResponse, SessionStore } from "./types";
 import { pFetch } from "./util/api";
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import type { APIResponse } from "../../../../types";
 import { pFetch } from "../../../../util/api";
-import { useLocation, useRouter } from "../../../base/Router";
+import { useLocation, useRouter } from "../../../../hooks/Router";
 import Button from "../../../base/Button";
 import TextInput from "../../../base/TextInput";
 import MessageBox from "../../../base/MessageBox";

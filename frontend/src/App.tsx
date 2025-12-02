@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useSessionStore } from "./store";
-import { useLocation } from "./components/base/Router";
+import { useLocation } from "./hooks/Router";
 import Page from "./components/flux/Page";
 import Browse from "./components/flux/pages/browse/Browse";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";

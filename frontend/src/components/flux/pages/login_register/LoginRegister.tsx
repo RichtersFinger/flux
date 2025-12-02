@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { useLocation } from "../../../base/Router";
+import { useLocation } from "../../../../hooks/Router";
 import Logo from "../../../base/Logo";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
