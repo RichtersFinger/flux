@@ -41,7 +41,7 @@ export default function App() {
         );
         console.error(error);
       });
-  }, [loggedIn]);
+  }, [loggedIn, setUserConfiguration, toast]);
 
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">

@@ -1,4 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+/* eslint-disable react-refresh/only-export-components */
+
+import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { FiAlertOctagon, FiX } from "react-icons/fi";
 
@@ -36,6 +38,10 @@ const toastStore: ToastStore = {
     return id;
   },
   makeToast(toast) {
+    setTimeout(
+      () => toastStore.dropToast(toast.id),
+      toast.duration - (Date.now() - toast.id)
+    );
     toastStore.toasts = [...toastStore.toasts, toast];
     toastStore.subscribers.forEach((callback) => callback());
   },
@@ -70,21 +76,6 @@ export function useToasts() {
 // toaster-component
 export default function Toaster() {
   const toasts = useToasts();
-  const { dropToast } = useToaster();
-  const [timeouts, setTimeouts] = useState<number[]>([]);
-
-  useEffect(() => {
-    setTimeouts(
-      toasts.map((toast) =>
-        setTimeout(
-          () => dropToast(toast.id),
-          toast.duration - (Date.now() - toast.id)
-        )
-      )
-    );
-    return timeouts.forEach((timeout) => clearTimeout(timeout));
-    // eslint-disable-next-line
-  }, [toasts, dropToast]);
 
   return createPortal(
     <div className="fixed z-50 w-full sm:w-8/12 md:w-1/2 lg:w-1/3 right-2 bottom-2">
