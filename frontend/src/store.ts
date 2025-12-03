@@ -6,7 +6,7 @@ import { createShallowStore } from "./hooks/Store";
 export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
   const { toast } = useToaster();
   return {
-    loggedIn: false,
+    loggedIn: undefined,
     checkLogin: () => {
       pFetch("/api/v0/user/session")
         .then((response) => {
@@ -19,8 +19,9 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
         .then((json: APIResponse) => {
           if (json.meta.ok) get().setLoggedIn(true);
           else {
-            toast(formatAPIErrorMessage(json.meta));
             get().setLoggedIn(false);
+            if (json.meta.error?.code !== 401)
+              toast(formatAPIErrorMessage(json.meta));
           }
         })
         .catch((error) => {

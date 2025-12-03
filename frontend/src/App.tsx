@@ -2,21 +2,30 @@ import { useEffect } from "react";
 
 import { formatAPIErrorMessage, pFetch } from "./util/api";
 import type { APIResponse, UserConfiguration } from "./types";
-import { useLocation } from "./hooks/Router";
+import { useLocation, useRouter } from "./hooks/Router";
 import Toaster, { useToaster } from "./components/base/Toaster";
 import { useSessionStore } from "./store";
 import Page from "./components/flux/Page";
 import Browse from "./components/flux/pages/browse/Browse";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
+import Navigate from "./components/base/Navigate";
 
 export default function App() {
   const location = useLocation();
+  const router = useRouter();
   const { toast } = useToaster();
-  const { loggedIn, checkLogin, userConfiguration, setUserConfiguration } =
+  const { loggedIn, checkLogin, setUserConfiguration } =
     useSessionStore();
 
   // check for valid session
   useEffect(() => checkLogin(), [checkLogin]);
+
+  // redirect to login if not already logged in
+  useEffect(() => {
+    if (loggedIn === undefined || loggedIn === true) return;
+    router.navigate("/login", "");
+    // eslint-disable-next-line
+  }, [loggedIn]);
 
   // load user-configuration on valid login
   useEffect(() => {
@@ -46,19 +55,19 @@ export default function App() {
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">
       <Toaster />
-      <Page>
-        {
-          { "/browse": <Browse />, "/login": <LoginRegister /> }[
-            location.pathname
-          ]
-        }
-      </Page>
-      <span className="text-gray-300">{userConfiguration.user?.name}</span>
-      <div
-        className={`w-3 aspect-square rounded-full ${
-          loggedIn ? "bg-green-500" : "bg-red-500"
-        }`}
-      />
+      {loggedIn !== undefined && (
+        <Page>
+          {{
+            "/browse": <Browse />,
+            "/login": loggedIn ? (
+              <Navigate pathname="/browse" search="" />
+            ) : (
+              <LoginRegister />
+            ),
+          }[location.pathname] ??
+            (loggedIn ? <Navigate pathname="/browse" search="" /> : null)}
+        </Page>
+      )}
     </div>
   );
 }

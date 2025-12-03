@@ -24,7 +24,7 @@ export interface UserConfiguration {
 }
 
 export interface SessionStore {
-  loggedIn: boolean;
+  loggedIn: boolean | undefined;
   checkLogin: () => void;
   logout: () => void;
   setLoggedIn: (loggedIn: boolean) => void;
