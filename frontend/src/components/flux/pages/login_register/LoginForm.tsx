@@ -119,7 +119,7 @@ export default function LoginForm({ onError }: LoginFormProps) {
           router.navigate(undefined, newSearch);
         }}
       >
-        Create a new account
+        Not registered yet?
       </Button>
     </form>
   );
