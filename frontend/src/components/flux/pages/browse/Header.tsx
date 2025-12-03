@@ -9,7 +9,8 @@ import Logo from "../../../base/Logo";
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
 
-  const { userConfiguration } = useSessionStore();
+  const { userConfiguration, logout } = useSessionStore();
+
   return (
     <div className="fixed px-1 w-full h-toolbar flex flex-row justify-between items-center z-50 bg-linear-to-r from-gray-800 via-gray-900 to-gray-900 shadow-2xl border-b border-gray-900">
       {/* logo */}
@@ -52,6 +53,7 @@ export default function Header() {
                 <span>Logout</span>
               </div>
             ),
+            onClick: logout,
           },
         ]}
         onDismiss={() => setOpenMenu(false)}

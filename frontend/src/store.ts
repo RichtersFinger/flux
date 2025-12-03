@@ -37,6 +37,32 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
           console.error(error);
         });
     },
+    logout: () => {
+      pFetch("/api/v0/user/session", { method: "DELETE" })
+        .then((response) => {
+          if (!response.ok) {
+            response.text().then((text) => console.error(text));
+            throw new Error(response.statusText);
+          }
+          return response.json();
+        })
+        .then((json: APIResponse) => {
+          if (json.meta.ok) get().setLoggedIn(false);
+          else toast(formatAPIErrorMessage(json.meta));
+        })
+        .catch((error) => {
+          toast(
+            formatAPIErrorMessage({
+              error: {
+                code: 0,
+                short: "Connection error",
+                long: error.message,
+              },
+            })
+          );
+          console.error(error);
+        });
+    },
     setLoggedIn: (loggedIn) => {
       set({ loggedIn });
     },

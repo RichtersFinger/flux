@@ -26,6 +26,7 @@ export interface UserConfiguration {
 export interface SessionStore {
   loggedIn: boolean;
   checkLogin: () => void;
+  logout: () => void;
   setLoggedIn: (loggedIn: boolean) => void;
   userConfiguration: UserConfiguration;
   setUserConfiguration: (userConfiguration: Partial<UserConfiguration>) => void;
