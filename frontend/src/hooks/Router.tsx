@@ -47,7 +47,7 @@ const locationStore: LocationStore = {
       const query = locationStore.search?.toString() ?? "";
       window.history.pushState(
         {},
-        "flux" + locationStore.pathname,
+        "",
         locationStore.pathname + (query === "" ? "" : `?${query}`)
       );
     }

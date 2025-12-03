@@ -1,6 +1,7 @@
 import { useRef } from "react";
 
 import { useLocation } from "../../../../hooks/Router";
+import { useTitle } from "../../../../hooks/Title";
 import Logo from "../../../base/Logo";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
@@ -8,6 +9,8 @@ import RegisterForm from "./RegisterForm";
 export default function LoginRegister() {
   const panelRef = useRef<HTMLDivElement>(null);
   const { search } = useLocation();
+
+  useTitle("flux | Login");
 
   // animate shaking-animation for panel
   function shakePanel() {

@@ -1,7 +1,10 @@
+import { useTitle } from "../../../../hooks/Title";
 import Content from "./Content";
 import Header from "./Header";
 
 export default function Browse() {
+  useTitle("flux | Browse");
+
   return (
     <>
       <Header />
