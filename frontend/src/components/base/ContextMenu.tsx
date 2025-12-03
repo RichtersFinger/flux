@@ -54,14 +54,24 @@ export default function ContextMenu({
               {title}
             </div>
           ) : null}
-          {items?.map((item) => (
-            <div
-              key={item.id}
-              className="w-full truncate px-3 py-2 hover:cursor-pointer hover:bg-gray-400 hover:text-gray-800"
-            >
-              {item.content}
-            </div>
-          ))}
+          {items?.map((item) =>
+            item.disabled ? (
+              <div
+                key={item.id}
+                className="w-full truncate px-3 py-2 hover:cursor-not-allowed bg-gray-600 text-gray-400"
+              >
+                {item.content}
+              </div>
+            ) : (
+              <div
+                key={item.id}
+                className="w-full truncate px-3 py-2 hover:cursor-pointer hover:bg-gray-300 hover:text-gray-800"
+                onClick={item.onClick}
+              >
+                {item.content}
+              </div>
+            )
+          )}
         </div>
       )}
     </div>
