@@ -29,7 +29,7 @@ export default function Button({
       } ${className} ${
         disabled
           ? "hover:cursor-not-allowed bg-gray-300 hover:bg-gray-300 text-gray-600"
-          : ""
+          : "hover:cursor-pointer"
       }`}
       onClick={onClick}
     >
