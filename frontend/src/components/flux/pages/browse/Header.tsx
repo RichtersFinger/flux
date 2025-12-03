@@ -1,8 +1,11 @@
+import { useSessionStore } from "../../../../store";
+import Avatar from "../../../base/Avatar";
 import Logo from "../../../base/Logo";
 
 export default function Header() {
+  const { userConfiguration } = useSessionStore();
   return (
-    <div className="fixed w-full h-toolbar flex flex-row justify-between items-center z-50 bg-linear-to-r from-gray-800 via-gray-900 to-gray-900 shadow-2xl border-b border-gray-900">
+    <div className="fixed px-1 w-full h-toolbar flex flex-row justify-between items-center z-50 bg-linear-to-r from-gray-800 via-gray-900 to-gray-900 shadow-2xl border-b border-gray-900">
       {/* logo */}
       <div className="mx-2">
         <Logo className="text-gray-100" src="/favicon.svg" text="flux" />
@@ -16,9 +19,7 @@ export default function Header() {
         />
       </div>
       {/* user */}
-      <div className="mx-2">
-        <div className="bg-gray-100 border-gray-500 border-2 rounded-full w-12 aspect-square" />
-      </div>
+      <Avatar username={userConfiguration.user?.name} />
     </div>
   );
 }
