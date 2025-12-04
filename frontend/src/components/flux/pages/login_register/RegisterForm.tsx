@@ -7,6 +7,7 @@ import Button from "../../../base/Button";
 import TextInput from "../../../base/TextInput";
 import MessageBox from "../../../base/MessageBox";
 import Spinner from "../../../base/Spinner";
+import Tooltip from "../../../base/Tooltip";
 
 interface RegisterFormProps {
   onError?: () => void;
@@ -77,7 +78,17 @@ export default function RegisterForm({ onError }: RegisterFormProps) {
       {/* Register-Panel */}
       <h5 className="font-semibold text-lg">Create a new account</h5>
       <div className="flex flex-col space-y-2">
-        <label htmlFor="usernameInput">Username</label>
+        <div className="flex flex-row space-x-2">
+          <label htmlFor="usernameInput">Username</label>
+          <Tooltip className="w-64 px-6 py-3" position="br">
+
+            <p>Usernames must satisfy the following conditions:</p>
+            <ul className="list-disc">
+              <li className="ml-5">consist of lower-case letters a-z, numbers 0-9, and the characters .@_-</li>
+              <li className="ml-5">start with a lower case letter</li>
+            </ul>
+          </Tooltip>
+        </div>
         <TextInput
           id="usernameInput"
           className="text-gray-900 w-full"
