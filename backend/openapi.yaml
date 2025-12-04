@@ -50,7 +50,7 @@ paths:
                       type: string
                       description: username for new account
                       example: user0
-                      pattern: /[a-zA-Z0-9\.@_-]+/
+                      pattern: /[a-z][a-z0-9\.@_-]+/
                     password:
                       type: string
                       description: password for new account

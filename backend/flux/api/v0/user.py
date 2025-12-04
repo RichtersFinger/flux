@@ -26,8 +26,14 @@ def validate_username(
     """
     if len(username) < 4:
         return False, f"Username '{username}' too short."
-    if not re.fullmatch(r"[a-zA-Z0-9\.@_-]+", username):
-        return False, f"Username '{username}' contains invalid characters."
+    if not re.fullmatch(r"[a-z]", username[0]):
+        return False, "Username must start with a lower case letter."
+    if not re.fullmatch(r"[a-z0-9\.@_-]+", username):
+        return (
+            False,
+            f"Username '{username}' contains invalid characters (allowed "
+            + "characters are a-z, 0-9, ., @, _, and -).",
+        )
     with Transaction(
         FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
     ) as t:

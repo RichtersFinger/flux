@@ -85,7 +85,7 @@ export default function RegisterForm({ onError }: RegisterFormProps) {
           value={username}
           onChange={(event) =>
             // remove forbidden characters
-            setUsername(event.target.value.replace(/[^a-zA-Z0-9.@_-]/g, ""))
+            setUsername(event.target.value.replace(/[^a-z0-9.@_-]/g, ""))
           }
         />
         <label htmlFor="passwordInput">Password</label>
