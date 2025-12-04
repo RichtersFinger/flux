@@ -47,7 +47,7 @@ export default function ContextMenu({
       }
       {open && (items?.length ?? 0 > 0) && (
         <div
-          className={`w-full pointed-div absolute rounded bg-gray-800 border-gray-400 text-gray-200 border-2 text-nowrap select-none flex flex-col m-1 ${PositionStyles[position]} ${className}`}
+          className={`w-full absolute rounded bg-gray-800 border-gray-400 text-gray-200 border-2 shadow-xl text-nowrap select-none flex flex-col m-1 ${PositionStyles[position]} ${className}`}
         >
           {title ? (
             <div className="px-3 py-2 mb-0 bg-gray-400 text-gray-900">
