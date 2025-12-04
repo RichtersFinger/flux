@@ -14,8 +14,7 @@ export default function App() {
   const location = useLocation();
   const router = useRouter();
   const { toast } = useToaster();
-  const { loggedIn, checkLogin, setUserConfiguration } =
-    useSessionStore();
+  const { loggedIn, checkLogin, setUserConfiguration } = useSessionStore();
 
   // check for valid session
   useEffect(() => checkLogin(), [checkLogin]);
@@ -23,7 +22,7 @@ export default function App() {
   // redirect to login if not already logged in
   useEffect(() => {
     if (loggedIn === undefined || loggedIn === true) return;
-    router.navigate("/login", "");
+    if (location.pathname !== "/login") router.navigate("/login", "");
     // eslint-disable-next-line
   }, [loggedIn]);
 
