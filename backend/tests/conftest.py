@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 
 from flux.cli.index.create import CreateIndex
+from flux.config import FluxConfig
 
 
 @pytest.fixture(scope="session", name="tmp")
@@ -37,6 +38,21 @@ def tmp_index(tmp) -> Path:
     _tmp_index = tmp / str(uuid4())
     CreateIndex("").run({CreateIndex.index_location: [_tmp_index]})
     return _tmp_index
+
+
+@pytest.fixture(name="patch_config")
+def _patch_config(tmp: Path, request):
+    original_mode = FluxConfig.MODE
+    original_index = FluxConfig.INDEX_LOCATION
+
+    def reset():
+        FluxConfig.MODE = original_mode
+        FluxConfig.INDEX_LOCATION = original_index
+
+    request.addfinalizer(reset)
+
+    FluxConfig.MODE = "test"
+    FluxConfig.INDEX_LOCATION = tmp / str(uuid4())
 
 
 @pytest.fixture()

@@ -282,6 +282,12 @@ paths:
         - sessionCookieAuth: []
       parameters:
         - $ref: '#/components/parameters/requestId'
+        - name: search
+          in: query
+          description: search filter
+          required: false
+          schema:
+            type: string
         - name: type
           in: query
           description: content type
@@ -306,10 +312,19 @@ paths:
                   meta:
                     $ref: '#/components/schemas/ResponseMd'
                   content:
-                    type: array
-                    description: array of records
-                    items:
-                      $ref: '#/components/schemas/Record'
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        description: number of records matching filters
+                      records:
+                        type: array
+                        description: array of records
+                        items:
+                          $ref: '#/components/schemas/Record'
+                    required:
+                      - count
+                      - records
                 required:
                   - meta
   /api/v0/index/record:

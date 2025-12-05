@@ -1,4 +1,4 @@
-"""Test database."""
+"""Test user API."""
 
 from pathlib import Path
 from uuid import uuid4
@@ -9,21 +9,6 @@ from flux.db import Transaction
 from flux.config import FluxConfig
 from flux.cli import cli
 from flux.app.app import app_factory
-
-
-@pytest.fixture(name="patch_config")
-def _patch_config(tmp: Path, request):
-    original_mode = FluxConfig.MODE
-    original_index = FluxConfig.INDEX_LOCATION
-
-    def reset():
-        FluxConfig.MODE = original_mode
-        FluxConfig.INDEX_LOCATION = original_index
-
-    request.addfinalizer(reset)
-
-    FluxConfig.MODE = "test"
-    FluxConfig.INDEX_LOCATION = tmp / str(uuid4())
 
 
 # pylint: disable=unused-argument
