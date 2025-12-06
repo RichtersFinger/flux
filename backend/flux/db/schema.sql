@@ -1,3 +1,10 @@
+-- meta tables
+CREATE TABLE migrations (
+  from_version text UNIQUE,
+  to_version text UNIQUE,
+  completed_at text
+);
+
 CREATE TABLE index_metadata (
     schema_version TEXT,
     initialized INTEGER,
@@ -8,8 +15,11 @@ CREATE TABLE index_metadata (
     )
 );
 
-CREATE UNIQUE INDEX only_one_schema_version ON index_metadata ((1)) WHERE schema_version IS NOT NULL;
+CREATE UNIQUE INDEX only_one_schema_version
+ON index_metadata ((1))
+WHERE schema_version IS NOT NULL;
 
+-- auth and session-management
 CREATE TABLE users (
     name TEXT NOT NULL PRIMARY KEY,
     -- configuration details
@@ -31,10 +41,15 @@ CREATE TABLE sessions (
     username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE
 );
 
+-- index tables
+CREATE TABLE thumbnails (
+    id TEXT NOT NULL PRIMARY KEY
+);
+
 CREATE TABLE records (
     id TEXT NOT NULL PRIMARY KEY,
-    type TEXT CHECK( type IN ('series','movie','collection') ) NOT NULL,
-    path TEXT NOT NULL,
+    thumbnail_id TEXT NOT NULL REFERENCES thumbnails (id) ON DELETE SET NULL,
+    type TEXT NOT NULL CHECK( type IN ('series','movie','collection') ),
     name TEXT NOT NULL,
     description TEXT NOT NULL
 );
@@ -42,23 +57,42 @@ CREATE TABLE records (
 CREATE TABLE seasons (
     id TEXT NOT NULL PRIMARY KEY,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
-    path TEXT NOT NULL,
     name TEXT NOT NULL
 );
 
-CREATE TABLE episodes (
+CREATE TABLE videos (
     id TEXT NOT NULL PRIMARY KEY,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
-    season_id TEXT NOT NULL REFERENCES seasons (id) ON DELETE CASCADE,
-    path TEXT NOT NULL,
+    season_id TEXT REFERENCES seasons (id) ON DELETE CASCADE,
+    thumbnail_id TEXT REFERENCES thumbnails (id) ON DELETE SET NULL,
     name TEXT NOT NULL,
-    metadata_json text NOT NULL
+    description TEXT NOT NULL,
+    position INTEGER DEFAULT 0
 );
 
-CREATE TABLE specials (
+CREATE UNIQUE INDEX unique_position
+ON videos (record_id, season_id, position);
+
+-- this distinction from videos-table is made to prepare for future support
+-- of multiple tracks per video
+CREATE TABLE tracks (
     id TEXT NOT NULL PRIMARY KEY,
-    record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
+    video_id TEXT NOT NULL REFERENCES videos (id) ON DELETE CASCADE,
     path TEXT NOT NULL,
-    name TEXT NOT NULL,
-    metadata_json text NOT NULL
+    metadata_json text NOT NULL,
+    is_primary_track INTEGER NOT NULL DEFAULT 1
+);
+
+-- only one track must be marked as primary
+CREATE UNIQUE INDEX unique_primary_track
+ON tracks (video_id)
+WHERE is_primary_track = 1;
+
+-- user playbacks
+CREATE TABLE playbacks (
+    id TEXT NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
+    record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
+    video_id TEXT NOT NULL REFERENCES videos (id) ON DELETE CASCADE,
+    timestamp INTEGER
 );
