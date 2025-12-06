@@ -354,7 +354,72 @@ paths:
                   meta:
                     $ref: '#/components/schemas/ResponseMd'
                   content:
-                    $ref: '#/components/schemas/Record'
+                    allOf:
+                      - $ref: '#/components/schemas/Record'
+                      - type: object
+                        properties:
+                          thumbnail:
+                            type: string
+                            description: thumbnail identifier
+                          content:
+                            type: object
+                            description: record details
+                            properties:
+                              seasons:
+                                type: array
+                                description: |-
+                                  array of seasons for this record
+
+                                  Only applies if record-type is 'series'.
+                                items:
+                                  type: object
+                                  description: seasion information
+                                  properties:
+                                    id:
+                                      type: string
+                                      description: season identifier
+                                    name:
+                                      type: string
+                                      description: season name
+                                    episodes:
+                                      type: array
+                                      description: array of seasons in this season
+                                      items:
+                                        type: object
+                                        description: episode information
+                                        properties:
+                                          id:
+                                            type: string
+                                            description: episode identifier
+                                          name:
+                                            type: string
+                                            description: episode name
+                                          metadata:
+                                            type: object
+                                            description: video/codec metadata
+                                            additionalProperties: true
+                                          thumbnail:
+                                            type: string
+                                            description: thumbnail identifier
+                              specials:
+                                type: array
+                                description: |-
+                                  array of specials for this record
+
+                                  Only applies if record-type is 'series'.
+                                items:
+                                  type: object
+                                  description: special information
+                                  properties:
+                                    id:
+                                      type: string
+                                      description: episode identifier
+                                    name:
+                                      type: string
+                                      description: episode name
+                                    thumbnail:
+                                      type: string
+                                      description: thumbnail identifier
                 required:
                   - meta
   /video:
@@ -474,9 +539,6 @@ components:
         description:
           type: string
           description: record description
-        thumbnail:
-          type: string
-          description: thumbnail identifier
       required:
         - id
         - type
