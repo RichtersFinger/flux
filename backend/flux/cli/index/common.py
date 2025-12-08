@@ -17,3 +17,6 @@ batch = Option(
         + "passed individually"
     ),
 )
+
+
+DEFAULT_THUMBNAIL_EXTENSION = ".jpg"

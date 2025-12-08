@@ -43,7 +43,8 @@ CREATE TABLE sessions (
 
 -- index tables
 CREATE TABLE thumbnails (
-    id TEXT NOT NULL PRIMARY KEY
+    id TEXT NOT NULL PRIMARY KEY,
+    path TEXT NOT NULL
 );
 
 CREATE TABLE records (

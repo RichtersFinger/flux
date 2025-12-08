@@ -14,7 +14,7 @@ from befehl import Parser, Option, Command, Argument
 from flux.config import FluxConfig
 from flux.db import Transaction
 from ..common import verbose, index_location, get_index
-from .common import batch, dry_run
+from .common import batch, dry_run, DEFAULT_THUMBNAIL_EXTENSION
 
 
 @dataclass
@@ -25,6 +25,7 @@ class VideoFile:
     name: str
     metadata: dict
     id: str = field(default_factory=lambda: str(uuid4()))
+    thumbnail_id: str = field(default_factory=lambda: str(uuid4()))
 
 
 @dataclass
@@ -47,6 +48,7 @@ class Series:
     seasons: list[Season]
     specials: list[VideoFile]
     id: str = field(default_factory=lambda: str(uuid4()))
+    thumbnail_id: Optional[str] = None
 
 
 class AddToIndex(Command):
@@ -318,7 +320,7 @@ class AddToIndex(Command):
 
         # collect data from filesystem
         # * seasons
-        for directory in filter(lambda p: p.is_dir(), target.glob("*")):
+        for directory in filter(lambda p: p.is_dir(), series.path.glob("*")):
             season = Season(directory, directory.name, [])
             if verbose:
                 print(
@@ -334,80 +336,44 @@ class AddToIndex(Command):
                 if episode is not None:
                     season.episodes.append(episode)
 
+            if len(season.episodes) == 0:
+                if verbose:
+                    print(
+                        cls.INDENTATION
+                        + f"Omitting empty season '{season.path.name}'"
+                    )
+                continue
             series.seasons.append(season)
 
         # * specials
         if verbose:
             print(cls.INDENTATION + "Processing specials")
-        for file in filter(lambda p: p.is_file(), target.glob("*")):
+        for file in filter(lambda p: p.is_file(), series.path.glob("*")):
             special = cls.process_video_file(file, "special", verbose=verbose)
             if special is not None:
                 series.specials.append(special)
 
-        # write to database
-        if not dry_run:
-            index_db = index / FluxConfig.INDEX_DB_FILE
-            with Transaction(index_db) as t:
-                t.cursor.execute(
-                    "INSERT INTO records VALUES (?, ?, ?, ?, ?)",
-                    (
-                        series.id,
-                        "series",
-                        str(series.path),
-                        series.name,
-                        series.description,
-                    ),
+        # check minimum requirements
+        # * at least one season or one special
+        if len(series.specials) + len(series.seasons) < 1:
+            if verbose:
+                print(
+                    "Cannot process as series: Target needs to contain at "
+                    + "least one season or special",
+                    file=sys.stderr,
                 )
-                for season in series.seasons:
-                    t.cursor.execute(
-                        "INSERT INTO seasons VALUES (?, ?, ?, ?)",
-                        (
-                            season.id,
-                            series.id,
-                            str(season.path.relative_to(series.path)),
-                            season.name,
-                        ),
-                    )
-                    for episode in season.episodes:
-                        t.cursor.execute(
-                            "INSERT INTO episodes VALUES (?, ?, ?, ?, ?, ?)",
-                            (
-                                episode.id,
-                                series.id,
-                                season.id,
-                                str(episode.path.relative_to(season.path)),
-                                episode.name,
-                                json.dumps(episode.metadata),
-                            ),
-                        )
-                for special in series.specials:
-                    t.cursor.execute(
-                        "INSERT INTO specials VALUES (?, ?, ?, ?, ?)",
-                        (
-                            special.id,
-                            series.id,
-                            str(special.path.relative_to(series.path)),
-                            special.name,
-                            json.dumps(special.metadata),
-                        ),
-                    )
+            return
 
         # generate thumbnails
         # * general preparations
-        thumbnails = (
-            index
-            / FluxConfig.THUMBNAILS
-            / series.id
-        ).resolve()
+        thumbnails = (index / FluxConfig.THUMBNAILS).resolve()
         if verbose:
             print(cls.INDENTATION + "Creating thumbnails")
             print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
         if not dry_run:
-            thumbnails.mkdir(parents=True, exist_ok=False)
-
+            thumbnails.mkdir(parents=True)
         # * seasons
         for season in series.seasons:
-            (thumbnails / season.path.name).mkdir()
             if verbose:
                 print(
                     2 * cls.INDENTATION
@@ -423,8 +389,7 @@ class AddToIndex(Command):
                     cls.generate_thumbnail(
                         episode,
                         thumbnails
-                        / season.path.name
-                        / (episode.path.name + ".jpg"),
+                        / (episode.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION),
                     )
         # * specials
         for special in series.specials:
@@ -436,8 +401,98 @@ class AddToIndex(Command):
             if not dry_run:
                 cls.generate_thumbnail(
                     special,
-                    thumbnails / (special.path.name + ".jpg"),
+                    thumbnails
+                    / (special.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION),
                 )
+
+        # select thumbnail for series (prioritize seasons/episodes)
+        if len(series.seasons) > 0:
+            series.thumbnail_id = series.seasons[0].episodes[0].thumbnail_id
+        else:
+            series.thumbnail_id = series.specials[0].thumbnail_id
+
+        # write to database
+        if not dry_run:
+            index_db = index / FluxConfig.INDEX_DB_FILE
+            with Transaction(index_db) as t:
+                # thumbnails first so that refs exist ..
+                for video in sum(
+                    (season.episodes for season in series.seasons),
+                    start=series.specials,
+                ):
+                    t.cursor.execute(
+                        "INSERT INTO thumbnails VALUES (?, ?)",
+                        (
+                            video.thumbnail_id,
+                            video.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION,
+                        ),
+                    )
+                # .. now remaining contents
+                t.cursor.execute(
+                    "INSERT INTO records VALUES (?, ?, ?, ?, ?)",
+                    (
+                        series.id,
+                        series.thumbnail_id,
+                        "series",
+                        series.name,
+                        series.description,
+                    ),
+                )
+                for season in series.seasons:
+                    t.cursor.execute(
+                        "INSERT INTO seasons VALUES (?, ?, ?)",
+                        (
+                            season.id,
+                            series.id,
+                            season.name,
+                        ),
+                    )
+                    for position, episode in enumerate(season.episodes):
+                        t.cursor.execute(
+                            "INSERT INTO videos VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (
+                                episode.id,
+                                series.id,
+                                season.id,
+                                episode.thumbnail_id,
+                                episode.name,
+                                "No description provided.",
+                                position,
+                            ),
+                        )
+                        t.cursor.execute(
+                            "INSERT INTO tracks VALUES (?, ?, ?, ?, ?)",
+                            (
+                                str(uuid4()),
+                                episode.id,
+                                str(episode.path),
+                                json.dumps(episode.metadata),
+                                1,
+                            ),
+                        )
+                for position, special in enumerate(series.specials):
+                    t.cursor.execute(
+                        "INSERT INTO videos VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            special.id,
+                            series.id,
+                            None,
+                            special.thumbnail_id,
+                            special.name,
+                            "No description provided.",
+                            position,
+                        ),
+                    )
+                    t.cursor.execute(
+                        "INSERT INTO tracks VALUES (?, ?, ?, ?, ?)",
+                        (
+                            str(uuid4()),
+                            special.id,
+                            str(special.path),
+                            json.dumps(special.metadata),
+                            1,
+                        ),
+                    )
 
     def run(self, args):
         # pylint: disable=redefined-outer-name
