@@ -51,6 +51,7 @@ def test_index_list_records(patch_config, tmp_series: Path, login):
     assert response.json["content"]["records"][0]["name"] == name
     assert response.json["content"]["records"][0]["description"] == description
     assert response.json["content"]["records"][0]["type"] == "series"
+    assert response.json["content"]["records"][0]["thumbnailId"] is not None
 
     # search filter
     assert (

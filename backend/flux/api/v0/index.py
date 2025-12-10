@@ -137,7 +137,7 @@ def register_api(app: Flask):
         ) as t:
             t.cursor.execute(
                 f"""
-                SELECT id, type, name, description
+                SELECT id, type, name, description, thumbnail_id
                 FROM records
                 {'WHERE' if filters else ''} {' AND '.join(filters)}
                 {range_filter}
@@ -146,7 +146,9 @@ def register_api(app: Flask):
             )
 
         records = [
-            dict(zip(("id", "type", "name", "description"), row))
+            dict(
+                zip(("id", "type", "name", "description", "thumbnailId"), row)
+            )
             for row in t.data
         ]
 

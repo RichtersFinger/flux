@@ -358,9 +358,6 @@ paths:
                       - $ref: '#/components/schemas/Record'
                       - type: object
                         properties:
-                          thumbnail:
-                            type: string
-                            description: thumbnail identifier
                           content:
                             type: object
                             description: record details
@@ -547,6 +544,9 @@ components:
         description:
           type: string
           description: record description
+        thumbnailId:
+          type: string
+          description: thumbnail identifier
       required:
         - id
         - type
