@@ -67,7 +67,11 @@ def register_api(app: Flask):
     """Sets up api endpoints."""
 
     @app.route("/api/v0/index/records", methods=["GET"])
-    def list_records():
+    @common.session_cookie_auth(True)
+    def list_records(
+        # pylint: disable=unused-argument
+        *args,
+    ):
         """List records in index."""
         # validate&parse request
         search = request.args.get("search")

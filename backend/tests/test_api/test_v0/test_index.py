@@ -10,11 +10,13 @@ from flux.app.app import app_factory
 
 
 # pylint: disable=unused-argument
-def test_index_list_records(patch_config, tmp_series: Path):
+def test_index_list_records(patch_config, tmp_series: Path, login):
     """Test listing records in index."""
     # setup (create index and app)
     cli(["index", "create", "-i", str(FluxConfig.INDEX_LOCATION)])
     client = app_factory().test_client()
+
+    login(client)
 
     response = client.get("/api/v0/index/records")
     assert response.status_code == 200

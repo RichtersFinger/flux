@@ -1,10 +1,5 @@
 """Test user API."""
 
-from pathlib import Path
-from uuid import uuid4
-
-import pytest
-
 from flux.db import Transaction
 from flux.config import FluxConfig
 from flux.cli import cli

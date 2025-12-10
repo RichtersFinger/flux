@@ -69,3 +69,19 @@ def tmp_series(fixtures: Path, tmp: Path) -> Path:
         p.parent.mkdir(exist_ok=True)
         copy(fixtures / "sample.mp4", p)
     return series
+
+
+@pytest.fixture(name="login")
+def _login():
+    def _(client):
+        assert client.post(
+            "/api/v0/user/register",
+            json={"content": {"username": "user0", "password": "password0"}},
+        ).json["meta"]["ok"]
+        assert client.post(
+            "/api/v0/user/session",
+            json={"content": {"username": "user0", "password": "password0"}},
+        ).json["meta"]["ok"]
+        assert client.get("/api/v0/user/session").json["meta"]["ok"]
+
+    return _
