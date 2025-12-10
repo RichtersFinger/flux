@@ -327,7 +327,7 @@ paths:
                       - records
                 required:
                   - meta
-  /api/v0/index/record:
+  /api/v0/index/record/{recordId}:
     get:
       summary: get record info
       description: Returns record information.
@@ -336,13 +336,13 @@ paths:
       security:
         - sessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/requestId'
         - name: recordId
-          in: query
+          in: path
           description: record identifier
           required: true
           schema:
             type: string
+        - $ref: '#/components/parameters/requestId'
       responses:
         '200':
           description: success
@@ -422,7 +422,7 @@ paths:
                                       description: thumbnail identifier
                 required:
                   - meta
-  /video:
+  /video/{videoId}:
     get:
       summary: stream data
       description: Returns (chunk of) video stream.
@@ -431,8 +431,8 @@ paths:
       security:
         - sessionCookieAuth: []
       parameters:
-        - name: id
-          in: query
+        - name: videoId
+          in: path
           description: content identifier
           required: true
           schema:
@@ -451,7 +451,7 @@ paths:
               schema:
                 type: string
                 format: binary
-  /thumbnail:
+  /thumbnail/{thumbnailId}:
     get:
       summary: download thumbnail
       description: Returns thumbnail.
@@ -460,8 +460,8 @@ paths:
       security:
         - sessionCookieAuth: []
       parameters:
-        - name: id
-          in: query
+        - name: thumbnailId
+          in: path
           description: content identifier
           required: true
           schema:
