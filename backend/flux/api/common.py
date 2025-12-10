@@ -35,7 +35,7 @@ def session_cookie_auth(delete_cookie_on_fail: bool = False):
 
     def decorator(route):
         @wraps(route)
-        def __():
+        def __(**kwargs):
             if FluxConfig.SESSION_COOKIE_NAME not in request.cookies:
                 raise UnauthorizedException("Missing session cookie.")
             session_id = request.cookies[FluxConfig.SESSION_COOKIE_NAME]
@@ -64,7 +64,7 @@ def session_cookie_auth(delete_cookie_on_fail: bool = False):
                 if delete_cookie_on_fail:
                     r.delete_cookie(FluxConfig.SESSION_COOKIE_NAME)
                 return r, 200
-            return route(session_id, t.data[0][0])
+            return route(session_id, t.data[0][0], **kwargs)
 
         return __
 

@@ -2,14 +2,43 @@
 
 import re
 
-from flask import Flask, Response, request
+from flask import Flask, Response, request, send_from_directory
 
 from flux.config import FluxConfig
-from .common import header_auth
+from flux.db import Transaction
+from flux import exceptions
+from .common import header_auth, session_cookie_auth
 
 
 def register_api(app: Flask):
     """Sets up api endpoints."""
+
+    @app.route("/thumbnail/<thumbnail_id>", methods=["GET"])
+    @session_cookie_auth()
+    def thumbnail(
+        # pylint: disable=unused-argument
+        *args,
+        thumbnail_id: str,
+    ):
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+        ) as t:
+            t.cursor.execute(
+                "SELECT path FROM thumbnails WHERE id=?", (thumbnail_id,)
+            )
+        if len(t.data) == 0:
+            raise exceptions.NotFoundException(
+                f"Unknown thumbnail id '{thumbnail_id}'."
+            )
+        if not (
+            FluxConfig.INDEX_LOCATION / FluxConfig.THUMBNAILS / t.data[0][0]
+        ).is_file():
+            raise exceptions.NotFoundException(
+                f"Thumbnail '{thumbnail_id}' does not exist."
+            )
+        return send_from_directory(
+            FluxConfig.INDEX_LOCATION / FluxConfig.THUMBNAILS, t.data[0][0]
+        )
 
     @app.route("/video", methods=["GET"])
     @header_auth(FluxConfig.PASSWORD)

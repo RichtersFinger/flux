@@ -474,6 +474,14 @@ paths:
               schema:
                 type: string
                 format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                required:
+                  - meta
 components:
   securitySchemes:
     sessionCookieAuth:
