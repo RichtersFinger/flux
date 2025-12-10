@@ -1,7 +1,8 @@
 """Index-API endpoints"""
 
-from typing import Optional
+from typing import Optional, Mapping
 import re
+from json import loads
 
 from flask import Flask, request, jsonify
 
@@ -63,6 +64,22 @@ def parse_range(range_: Optional[str]) -> Optional[tuple[int, int]]:
     return tuple(map(int, range_.split("-")))
 
 
+def parse_and_filter_track_metadata(
+    metadata: Optional[str | Mapping],
+) -> Optional[Mapping]:
+    """Parses and filters ffprobe-metadata."""
+    if metadata is None:
+        return None
+    if isinstance(metadata, str):
+        metadata = loads(metadata)
+    return {
+        "duration": metadata.get("format", {}).get("duration"),
+        "format_long_name": metadata.get("format", {}).get("format_long_name"),
+        "format_name": metadata.get("format", {}).get("format_name"),
+        "bit_rate": metadata.get("format", {}).get("bit_rate"),
+    }
+
+
 def register_api(app: Flask):
     """Sets up api endpoints."""
 
@@ -113,7 +130,7 @@ def register_api(app: Flask):
         # run queries
         # * total number of records
         with Transaction(
-            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
             t.cursor.execute(
                 f"""
@@ -133,7 +150,7 @@ def register_api(app: Flask):
             range_filter_args += (range_[1] - range_[0], range_[0])
 
         with Transaction(
-            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
             t.cursor.execute(
                 f"""
@@ -158,5 +175,131 @@ def register_api(app: Flask):
                     None, {"count": count, "records": records}
                 )
             ),
+            200,
+        )
+
+    @app.route("/api/v0/index/record/<record_id>", methods=["GET"])
+    @common.session_cookie_auth(True)
+    def get_record(
+        # pylint: disable=unused-argument
+        *args,
+        record_id: str,
+    ):
+        """List records in index."""
+        # run queries
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+        ) as t:
+            # * record
+            t.cursor.execute(
+                """
+                SELECT id, type, name, description, thumbnail_id
+                FROM records
+                WHERE id=?
+                """,
+                (record_id,),
+            )
+
+        if len(t.data) == 0:
+            raise exceptions.NotFoundException(
+                f"Unknown record '{record_id}'."
+            )
+        record = dict(
+            zip(
+                ("id", "type", "name", "description", "thumbnailId"),
+                t.data[0],
+            )
+        )
+
+        # * collect related data
+        record["content"] = {}
+        match record["type"]:
+            case "series":
+                with Transaction(
+                    FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE,
+                    readonly=True,
+                ) as t:
+                    # * seasons
+                    record["content"]["seasons"] = []
+                    t.cursor.execute(
+                        "SELECT id, name FROM seasons WHERE record_id=?",
+                        (record_id,),
+                    )
+                    for row in t.cursor.fetchall():
+                        season = dict(zip({"id", "name"}, row))
+                        record["content"]["seasons"].append(season)
+                        t.cursor.execute(
+                            """
+                            SELECT
+                                videos.id,
+                                videos.name,
+                                videos.description,
+                                videos.thumbnail_id,
+                                tracks.metadata_json
+                            FROM
+                                videos
+                                JOIN tracks ON videos.id = tracks.video_id
+                            WHERE videos.record_id=? AND videos.season_id=?
+                            ORDER BY videos.position
+                            """,
+                            (record_id, row[0]),
+                        )
+                        season["episodes"] = []
+                        for row_ in t.cursor.fetchall():
+                            episode = dict(
+                                zip(
+                                    (
+                                        "id",
+                                        "name",
+                                        "description",
+                                        "thumbnailId",
+                                        "metadata",
+                                    ),
+                                    row_,
+                                )
+                            )
+                            episode["metadata"] = (
+                                parse_and_filter_track_metadata(
+                                    episode["metadata"]
+                                )
+                            )
+                            season["episodes"].append(episode)
+                    # * specials
+                    record["content"]["specials"] = []
+                    t.cursor.execute(
+                        """
+                        SELECT
+                            videos.id,
+                            videos.name,
+                            videos.description,
+                            videos.thumbnail_id,
+                            tracks.metadata_json
+                        FROM
+                            videos
+                            JOIN tracks ON videos.id = tracks.video_id
+                        WHERE videos.record_id=? AND videos.season_id IS NULL
+                        ORDER BY videos.position
+                        """,
+                        (record_id,),
+                    )
+                    for row in t.cursor.fetchall():
+                        special = dict(
+                            zip(
+                                (
+                                    "id",
+                                    "name",
+                                    "description",
+                                    "thumbnailId",
+                                    "metadata",
+                                ),
+                                row,
+                            )
+                        )
+                        special["metadata"] = parse_and_filter_track_metadata(
+                            special["metadata"]
+                        )
+                        record["content"]["specials"].append(special)
+        return (
+            jsonify(common.wrap_response_json(None, record)),
             200,
         )

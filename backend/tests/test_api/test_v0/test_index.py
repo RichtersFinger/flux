@@ -47,11 +47,14 @@ def test_index_list_records(patch_config, tmp_series: Path, login):
     # repeat api-call
     response = client.get("/api/v0/index/records")
     assert response.status_code == 200
+    assert response.json["meta"]["ok"]
     assert response.json["content"]["count"] == 1
     assert response.json["content"]["records"][0]["name"] == name
     assert response.json["content"]["records"][0]["description"] == description
     assert response.json["content"]["records"][0]["type"] == "series"
     assert response.json["content"]["records"][0]["thumbnailId"] is not None
+    assert response.json["content"]["records"][0]["id"] is not None
+    record_id = response.json["content"]["records"][0]["id"]
 
     # search filter
     assert (
@@ -88,3 +91,42 @@ def test_index_list_records(patch_config, tmp_series: Path, login):
     response = client.get("/api/v0/index/records?range=1-2").json
     assert response["content"]["count"] == 1
     assert len(response["content"]["records"]) == 0
+
+    # get record
+    response = client.get(f"/api/v0/index/record/{record_id}")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    for key in ["id", "type", "name", "description", "thumbnailId", "content"]:
+        assert key in response.json["content"]
+        assert response.json["content"][key] is not None
+    assert isinstance(response.json["content"]["content"]["seasons"], list)
+    assert len(response.json["content"]["content"]["seasons"]) == 2
+    for season in response.json["content"]["content"]["seasons"]:
+        for key in ["id", "name", "episodes"]:
+            assert key in season
+            assert season is not None
+        assert isinstance(season["episodes"], list)
+        assert len(season["episodes"]) > 0
+        for episode in season["episodes"]:
+            for key in [
+                "id",
+                "name",
+                "description",
+                "metadata",
+                "thumbnailId",
+            ]:
+                assert key in episode
+                assert episode[key] is not None
+
+    assert isinstance(response.json["content"]["content"]["specials"], list)
+    assert len(response.json["content"]["content"]["specials"]) == 1
+    for special in response.json["content"]["content"]["specials"]:
+        for key in [
+            "id",
+            "name",
+            "description",
+            "metadata",
+            "thumbnailId",
+        ]:
+            assert key in special
+            assert special[key] is not None

@@ -387,17 +387,20 @@ paths:
                                         properties:
                                           id:
                                             type: string
-                                            description: episode identifier
+                                            description: video identifier
                                           name:
                                             type: string
-                                            description: episode name
+                                            description: video name
+                                          description:
+                                            type: string
+                                            description: video description
                                           metadata:
                                             type: object
                                             description: video/codec metadata
                                             additionalProperties: true
-                                          thumbnail:
+                                          thumbnailId:
                                             type: string
-                                            description: thumbnail identifier
+                                            description: video thumbnail identifier
                               specials:
                                 type: array
                                 description: |-
@@ -410,13 +413,16 @@ paths:
                                   properties:
                                     id:
                                       type: string
-                                      description: episode identifier
+                                      description: video identifier
                                     name:
                                       type: string
-                                      description: episode name
+                                      description: video name
+                                    description:
+                                      type: string
+                                      description: video description
                                     thumbnail:
                                       type: string
-                                      description: thumbnail identifier
+                                      description: video thumbnail identifier
                 required:
                   - meta
   /video/{videoId}:
