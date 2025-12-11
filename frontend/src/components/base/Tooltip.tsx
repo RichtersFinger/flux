@@ -39,10 +39,14 @@ export default function Tooltip({
       node.addEventListener("mouseenter", handleOnMouseEnter);
       node.addEventListener("mouseleave", handleOnMouseLeave);
     },
-    [setOpen, setVisible]
+    [setOpen]
   );
 
   // handle animated visibility via opacity
+  // the cascading render caused by setState inside useEffect is
+  // intentional: the opacity needs to be changed after the component
+  // has been rendered to achieve the fade-in effect
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setVisible(open), [open]);
 
   return (
@@ -52,7 +56,7 @@ export default function Tooltip({
       </div>
       {open && (
         <div
-          className={`absolute rounded bg-gray-800 text-gray-200 m-1 shadow-xl z-50 transition-opacity ${
+          className={`absolute rounded bg-gray-800 text-gray-200 m-1 shadow-xl z-50 transition-opacity duration-1000 ${
             PositionStyles[position]
           } ${visible ? "opacity-100" : "opacity-0"} ${className}`}
         >
