@@ -11,18 +11,19 @@ export default function Browse() {
       <div className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar">
         <Content
           title="Continue watching ..."
-          content={[{ id: "z", meta: { name: "My Favorite Show" } }]}
+          query={
+            "/api/v0/index/records?" +
+            new URLSearchParams({ range: "0-5" }).toString()
+          }
         />
+        <Content title="Watch next ..." query="" />
         <Content
-          title="Watch next ..."
-          content={[
-            { id: "a", meta: { name: "Another Show" } },
-            { id: "b", meta: { name: "Some Movie" } },
-            { id: "c", meta: { name: "Another Movie" } },
-          ]}
+          title="No content ..."
+          query={
+            "/api/v0/index/records?" +
+            new URLSearchParams({ range: "0-0" }).toString()
+          }
         />
-        <Content title="No content ..." content={[]} />
-        <Content title="Loading" />
       </div>
     </>
   );

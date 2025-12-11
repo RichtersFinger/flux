@@ -31,3 +31,16 @@ export interface SessionStore {
   userConfiguration: UserConfiguration;
   setUserConfiguration: (userConfiguration: Partial<UserConfiguration>) => void;
 }
+
+export interface RecordMetadata {
+  id: string;
+  type: "series" | "movie" | "collection";
+  name: string;
+  description?: string;
+  thumbnailId?: string;
+}
+
+export interface Records {
+  count: number;
+  records: RecordMetadata[];
+}
