@@ -52,7 +52,9 @@ export default function Content({ title, query }: ContentProps) {
       <h5 className="text-3xl font-bold text-gray-100">{title}</h5>
       <div className="grid grid-flow-row sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 p-2">
         {records ? (
-          records.records.map((item) => <RecordDisplay record={item} />)
+          records.records.map((item) => (
+            <RecordDisplay key={item.id} record={item} />
+          ))
         ) : (
           <RecordDisplay />
         )}
