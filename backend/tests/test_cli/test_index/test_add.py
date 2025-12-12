@@ -113,7 +113,6 @@ def test_index_add_movie(tmp_index: Path, tmp_movie: Path):
         t.cursor.execute("SELECT * FROM videos")
     assert len(t.data) == 1
     assert record_id in t.data[0]
-    assert "my movie" in t.data[0]
 
     # thumbnails
     assert (tmp_index / FluxConfig.THUMBNAILS).is_dir()

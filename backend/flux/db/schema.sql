@@ -66,8 +66,8 @@ CREATE TABLE videos (
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
     season_id TEXT REFERENCES seasons (id) ON DELETE CASCADE,
     thumbnail_id TEXT REFERENCES thumbnails (id) ON DELETE SET NULL,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
+    name TEXT,
+    description TEXT,
     position INTEGER DEFAULT 0
 );
 
