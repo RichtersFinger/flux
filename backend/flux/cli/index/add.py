@@ -52,6 +52,18 @@ class Series:
     thumbnail_id: Optional[str] = None
 
 
+@dataclass
+class Collection:
+    """Record class for a collection."""
+
+    path: Path
+    name: str
+    description: str
+    videos: list[VideoFile]
+    id: str = field(default_factory=lambda: str(uuid4()))
+    thumbnail_id: Optional[str] = None
+
+
 class AddToIndex(Command):
     """Subcommand for adding to index."""
 
@@ -618,6 +630,146 @@ class AddToIndex(Command):
                         ),
                     )
 
+    @classmethod
+    def process_collection(
+        # pylint: disable=redefined-outer-name
+        cls,
+        index: Path,
+        target: Path,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        *,
+        verbose: bool = False,
+        dry_run: bool = False,
+    ):
+        """
+        Add target to index (no batch).
+
+        Keyword arguments:
+        index -- index location
+        target -- target path
+        name -- name of the collection
+                (default None; uses directory name)
+        description -- description of the collection
+                       (default None; uses placeholder)
+        verbose -- whether to run in verbose mode
+                   (default False)
+        dry_run -- whether to run a simulation (automatically verbose)
+                   (default False)
+        """
+        if dry_run:
+            verbose = True
+
+        collection = Collection(
+            target.resolve(),
+            name or target.name,
+            description or "No description provided",
+            [],
+        )
+
+        if verbose:
+            print("Processing:")
+            print(cls.INDENTATION + f"Index location: {index}")
+            print(cls.INDENTATION + "Content type: collection")
+            print(cls.INDENTATION + f"Target location: {collection.path}")
+            print(cls.INDENTATION + f"Assigned name: {collection.name}")
+
+        # collect data from filesystem
+        # * specials
+        if verbose:
+            print(cls.INDENTATION + "Processing collection")
+        for file in filter(
+            lambda p: p.is_file(), collection.path.glob("**/*")
+        ):
+            video = cls.process_video_file(file, "video", verbose=verbose)
+            if video is not None:
+                collection.videos.append(video)
+
+        # check minimum requirements
+        # * at least one video
+        if len(collection.videos) < 1:
+            if verbose:
+                print(
+                    cls.INDENTATION
+                    + "Cannot process as collection: Target needs to contain "
+                    + "at least one video.",
+                    file=sys.stderr,
+                )
+            return
+
+        # generate thumbnails
+        # * general preparations
+        thumbnails = (index / FluxConfig.THUMBNAILS).resolve()
+        if verbose:
+            print(cls.INDENTATION + "Creating thumbnails")
+            print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
+        if not dry_run:
+            thumbnails.mkdir(parents=True)
+        # * specials
+        for video in collection.videos:
+            if verbose:
+                print(
+                    2 * cls.INDENTATION
+                    + f"Creating thumbnail for video '{video.name}'"
+                )
+            if not dry_run:
+                cls.generate_thumbnail(
+                    video,
+                    thumbnails
+                    / (video.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION),
+                )
+
+        # select thumbnail for collection
+        collection.thumbnail_id = collection.videos[0].thumbnail_id
+
+        # write to database
+        if not dry_run:
+            index_db = index / FluxConfig.INDEX_DB_FILE
+            with Transaction(index_db) as t:
+                # thumbnails first so that refs exist ..
+                for video in collection.videos:
+                    t.cursor.execute(
+                        "INSERT INTO thumbnails VALUES (?, ?)",
+                        (
+                            video.thumbnail_id,
+                            video.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION,
+                        ),
+                    )
+                # .. now remaining contents
+                t.cursor.execute(
+                    "INSERT INTO records VALUES (?, ?, ?, ?, ?)",
+                    (
+                        collection.id,
+                        collection.thumbnail_id,
+                        "collection",
+                        collection.name,
+                        collection.description,
+                    ),
+                )
+                for position, video in enumerate(collection.videos):
+                    t.cursor.execute(
+                        "INSERT INTO videos VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            video.id,
+                            collection.id,
+                            None,
+                            video.thumbnail_id,
+                            video.name,
+                            "No description provided.",
+                            position,
+                        ),
+                    )
+                    t.cursor.execute(
+                        "INSERT INTO tracks VALUES (?, ?, ?, ?, ?)",
+                        (
+                            str(uuid4()),
+                            video.id,
+                            str(video.path),
+                            json.dumps(video.metadata),
+                            1,
+                        ),
+                    )
+
     def run(self, args):
         # pylint: disable=redefined-outer-name
         verbose = self.verbose in args
@@ -660,6 +812,22 @@ class AddToIndex(Command):
                     sys.exit(1)
                 for t in args[self.target]:
                     self.process_movie(
+                        index,
+                        t.resolve(),
+                        args.get(self.name_, [None])[0],
+                        args.get(self.description, [None])[0],
+                        verbose=verbose,
+                        dry_run=dry_run,
+                    )
+            case "collection":
+                if self.batch in args:
+                    print(
+                        "Batch-mode not implemented yet",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                for t in args[self.target]:
+                    self.process_collection(
                         index,
                         t.resolve(),
                         args.get(self.name_, [None])[0],

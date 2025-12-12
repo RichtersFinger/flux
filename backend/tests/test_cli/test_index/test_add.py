@@ -123,6 +123,52 @@ def test_index_add_movie(tmp_index: Path, tmp_movie: Path):
     for row in t.data:
         assert (tmp_index / FluxConfig.THUMBNAILS / row[0]).is_file()
 
+
+def test_index_add_collection(tmp_index: Path, tmp_collection: Path):
+    """Test adding collection to index."""
+    cli(
+        [
+            "index",
+            "add",
+            "-v",
+            "-i",
+            str(tmp_index),
+            "--type",
+            "collection",
+            "--name",
+            "my collection",
+            "--description",
+            "my collection description",
+            str(tmp_collection),
+        ]
+    )
+
+    # records
+    with Transaction(tmp_index / FluxConfig.INDEX_DB_FILE) as t:
+        t.cursor.execute("SELECT * FROM records")
+    assert len(t.data) == 1
+    record_id = t.data[0][0]
+    assert "collection" in t.data[0]
+    assert "my collection" in t.data[0]
+    assert "my collection description" in t.data[0]
+
+    # videos
+    with Transaction(tmp_index / FluxConfig.INDEX_DB_FILE) as t:
+        t.cursor.execute("SELECT * FROM videos")
+    assert len(t.data) == 4
+    assert record_id in t.data[0]
+    for video in ["01", "02", "03", "04"]:
+        assert any(video in row for row in t.data)
+
+    # thumbnails
+    assert (tmp_index / FluxConfig.THUMBNAILS).is_dir()
+    with Transaction(tmp_index / FluxConfig.INDEX_DB_FILE) as t:
+        t.cursor.execute("SELECT path FROM thumbnails")
+    assert len(t.data) == 4
+    for row in t.data:
+        assert (tmp_index / FluxConfig.THUMBNAILS / row[0]).is_file()
+
+
 # TODO:
 # * test batch add
 # * test multiple args in single call

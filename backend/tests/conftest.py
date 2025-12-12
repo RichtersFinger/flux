@@ -85,6 +85,22 @@ def tmp_movie(fixtures: Path, cli_tmp_data: Path) -> Path:
     return movie
 
 
+@pytest.fixture(scope="session")
+def tmp_collection(fixtures: Path, cli_tmp_data: Path) -> Path:
+    """Generate fake collection and return path"""
+    collection = cli_tmp_data / "fake-collection"
+    collection.mkdir(exist_ok=False, parents=True)
+    for p in [
+        collection / "a" / "01.mp4",
+        collection / "a" / "02.mp4",
+        collection / "b" / "03.mp4",
+        collection / "04.mp4",
+    ]:
+        p.parent.mkdir(exist_ok=True)
+        copy(fixtures / "sample.mp4", p)
+    return collection
+
+
 @pytest.fixture(name="login")
 def _login():
     def _(client):
