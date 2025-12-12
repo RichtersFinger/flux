@@ -349,7 +349,7 @@ class AddToIndex(Command):
             print(cls.INDENTATION + "Creating thumbnails")
             print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
         if not dry_run:
-            thumbnails.mkdir(parents=True)
+            thumbnails.mkdir(parents=True, exist_ok=True)
         if verbose:
             print(
                 2 * cls.INDENTATION
@@ -507,7 +507,7 @@ class AddToIndex(Command):
             print(cls.INDENTATION + "Creating thumbnails")
             print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
         if not dry_run:
-            thumbnails.mkdir(parents=True)
+            thumbnails.mkdir(parents=True, exist_ok=True)
         # * seasons
         for season in series.seasons:
             if verbose:
@@ -704,7 +704,7 @@ class AddToIndex(Command):
             print(cls.INDENTATION + "Creating thumbnails")
             print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
         if not dry_run:
-            thumbnails.mkdir(parents=True)
+            thumbnails.mkdir(parents=True, exist_ok=True)
         # * specials
         for video in collection.videos:
             if verbose:
