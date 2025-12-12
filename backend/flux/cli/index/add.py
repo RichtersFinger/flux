@@ -26,6 +26,7 @@ class VideoFile:
     metadata: dict
     id: str = field(default_factory=lambda: str(uuid4()))
     thumbnail_id: str = field(default_factory=lambda: str(uuid4()))
+    description: str = field(default_factory=lambda: "No description provided")
 
 
 @dataclass
@@ -274,6 +275,128 @@ class AddToIndex(Command):
             )
 
     @classmethod
+    def process_movie(
+        # pylint: disable=redefined-outer-name
+        cls,
+        index: Path,
+        target: Path,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        *,
+        verbose: bool = False,
+        dry_run: bool = False,
+    ):
+        """
+        Add target to index (no batch).
+
+        Keyword arguments:
+        index -- index location
+        target -- target path
+        name -- name of the movie
+                (default None; uses file name)
+        description -- description of the movie
+                       (default None; uses placeholder)
+        verbose -- whether to run in verbose mode
+                   (default False)
+        dry_run -- whether to run a simulation (automatically verbose)
+                   (default False)
+        """
+        if dry_run:
+            verbose = True
+
+        movie = cls.process_video_file(target, "movie", verbose=verbose)
+
+        # check minimum requirements
+        # * target is a video
+        if movie is None:
+            if verbose:
+                print(
+                    cls.INDENTATION
+                    + "Cannot process as movie: Not a video file.",
+                    file=sys.stderr,
+                )
+            return
+
+        if name is not None:
+            movie.name = name
+
+        if description is not None:
+            movie.description = description
+
+        if verbose:
+            print("Processing:")
+            print(cls.INDENTATION + f"Index location: {index}")
+            print(cls.INDENTATION + "Content type: movie")
+            print(cls.INDENTATION + f"Target location: {movie.path}")
+            print(cls.INDENTATION + f"Assigned name: {name}")
+
+        # generate thumbnails
+        # * general preparations
+        thumbnails = (index / FluxConfig.THUMBNAILS).resolve()
+        if verbose:
+            print(cls.INDENTATION + "Creating thumbnails")
+            print(2 * cls.INDENTATION + f"Output location: {thumbnails}")
+        if not dry_run:
+            thumbnails.mkdir(parents=True)
+        if verbose:
+            print(
+                2 * cls.INDENTATION
+                + f"Creating thumbnail for movie '{movie.name}'"
+            )
+        if not dry_run:
+            cls.generate_thumbnail(
+                movie,
+                thumbnails
+                / (movie.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION),
+            )
+
+        # write to database
+        if not dry_run:
+            index_db = index / FluxConfig.INDEX_DB_FILE
+            with Transaction(index_db) as t:
+                # thumbnail first so that refs exist ..
+                t.cursor.execute(
+                    "INSERT INTO thumbnails VALUES (?, ?)",
+                    (
+                        movie.thumbnail_id,
+                        movie.thumbnail_id + DEFAULT_THUMBNAIL_EXTENSION,
+                    ),
+                )
+                # .. now movie
+                t.cursor.execute(
+                    "INSERT INTO records VALUES (?, ?, ?, ?, ?)",
+                    (
+                        movie.id,
+                        movie.thumbnail_id,
+                        "movie",
+                        movie.name,
+                        movie.description,
+                    ),
+                )
+                t.cursor.execute(
+                    "INSERT INTO videos VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        movie.id,
+                        movie.id,
+                        None,
+                        movie.thumbnail_id,
+                        movie.name,
+                        movie.description,
+                        0,
+                    ),
+                )
+                t.cursor.execute(
+                    "INSERT INTO tracks VALUES (?, ?, ?, ?, ?)",
+                    (
+                        str(uuid4()),
+                        movie.id,
+                        str(movie.path),
+                        json.dumps(movie.metadata),
+                        1,
+                    ),
+                )
+
+    @classmethod
     def process_series(
         # pylint: disable=redefined-outer-name
         cls,
@@ -358,8 +481,9 @@ class AddToIndex(Command):
         if len(series.specials) + len(series.seasons) < 1:
             if verbose:
                 print(
-                    "Cannot process as series: Target needs to contain at "
-                    + "least one season or special",
+                    cls.INDENTATION
+                    + "Cannot process as series: Target needs to contain at "
+                    + "least one season or special.",
                     file=sys.stderr,
                 )
             return
@@ -527,7 +651,22 @@ class AddToIndex(Command):
                         verbose=verbose,
                         dry_run=dry_run,
                     )
-
+            case "movie":
+                if self.batch in args:
+                    print(
+                        "Batch-mode not implemented yet",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                for t in args[self.target]:
+                    self.process_movie(
+                        index,
+                        t.resolve(),
+                        args.get(self.name_, [None])[0],
+                        args.get(self.description, [None])[0],
+                        verbose=verbose,
+                        dry_run=dry_run,
+                    )
             case _:
                 print(
                     f"Type '{args[self.type_][0]}' is currently not supported",

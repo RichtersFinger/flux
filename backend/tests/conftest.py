@@ -55,10 +55,16 @@ def _patch_config(tmp: Path, request):
     FluxConfig.INDEX_LOCATION = tmp / str(uuid4())
 
 
-@pytest.fixture()
-def tmp_series(fixtures: Path, tmp: Path) -> Path:
+@pytest.fixture(scope="session", name="cli_tmp_data")
+def _cli_tmp_data(tmp) -> Path:
+    """Temporary test sub-directory"""
+    return tmp / str(uuid4())
+
+
+@pytest.fixture(scope="session")
+def tmp_series(fixtures: Path, cli_tmp_data: Path) -> Path:
     """Generate fake series and return path"""
-    series = tmp / str(uuid4()) / "fake-series"
+    series = cli_tmp_data / "fake-series"
     series.mkdir(exist_ok=False, parents=True)
     for p in [
         series / "s1" / "e01.mp4",
@@ -69,6 +75,14 @@ def tmp_series(fixtures: Path, tmp: Path) -> Path:
         p.parent.mkdir(exist_ok=True)
         copy(fixtures / "sample.mp4", p)
     return series
+
+
+@pytest.fixture(scope="session")
+def tmp_movie(fixtures: Path, cli_tmp_data: Path) -> Path:
+    """Generate fake movie and return path"""
+    movie = cli_tmp_data / "fake-movie.mp4"
+    copy(fixtures / "sample.mp4", movie)
+    return movie
 
 
 @pytest.fixture(name="login")
