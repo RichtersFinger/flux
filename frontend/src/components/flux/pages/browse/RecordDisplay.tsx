@@ -20,7 +20,7 @@ export default function RecordDisplay({ record }: RecordDisplayProps) {
           {record.name}
         </h5>
       </div>
-      <div className="absolute w-full h-full left-0 top-0 z-20 bg-black transition-opacity opacity-0 hover:opacity-50">
+      <div className="absolute w-full h-full left-0 top-0 z-20 bg-black transition-opacity opacity-0 hover:opacity-70">
         <div className="absolute h-full w-full left-1 top-1 content-start">
           <p className="m-2 text-gray-100 text-lg line-clamp-4">
             {record.description}
