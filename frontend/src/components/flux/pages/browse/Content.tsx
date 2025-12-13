@@ -6,20 +6,28 @@ import { useToaster } from "../../../base/Toaster";
 
 interface ContentProps {
   title: string;
-  query: string;
+  url: string;
+  params?: URLSearchParams;
 }
 
-export default function Content({ title, query }: ContentProps) {
+export default function Content({ title, url, params }: ContentProps) {
   const { toast } = useToaster();
 
   const [records, setRecords] = useState<Records | undefined>(undefined);
 
   useEffect(() => {
-    if (query === "") return;
+    if (url === "") return;
 
     let discard = false;
 
-    pFetch(query)
+    pFetch(
+      url +
+        "?" +
+        new URLSearchParams({
+          ...Object.fromEntries(params ?? []),
+          range: "0-5",
+        }).toString()
+    )
       .then((response) => {
         if (!response.ok) {
           response.text().then((text) => console.error(text));
@@ -43,7 +51,7 @@ export default function Content({ title, query }: ContentProps) {
     return () => {
       discard = true;
     };
-  }, [query, setRecords, toast]);
+  }, [url, params, setRecords, toast]);
 
   if (records?.records?.length === 0) return null;
 

@@ -9,20 +9,21 @@ export default function Browse() {
     <>
       <Header />
       <div className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar">
+        <Content title="Continue watching ..." url="/api/v0/index/records" />
         <Content
-          title="Continue watching ..."
-          query={
-            "/api/v0/index/records?" +
-            new URLSearchParams({ range: "0-5" }).toString()
-          }
+          title="Series"
+          url="/api/v0/index/records"
+          params={new URLSearchParams({ type: "series" })}
         />
-        <Content title="Watch next ..." query="" />
         <Content
-          title="No content ..."
-          query={
-            "/api/v0/index/records?" +
-            new URLSearchParams({ range: "0-0" }).toString()
-          }
+          title="Movies"
+          url="/api/v0/index/records"
+          params={new URLSearchParams({ type: "movie" })}
+        />
+        <Content
+          title="Collections"
+          url="/api/v0/index/records"
+          params={new URLSearchParams({ type: "collection" })}
         />
       </div>
     </>
