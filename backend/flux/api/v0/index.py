@@ -14,9 +14,8 @@ from flux.api import common
 
 CONTENT_TYPES = [
     "series",
-    # TODO: not supported yet
-    # "movie",
-    # "collection"
+    "movie",
+    "collection",
 ]
 
 
