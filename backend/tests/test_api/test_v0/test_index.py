@@ -10,7 +10,7 @@ from flux.app.app import app_factory
 
 
 # pylint: disable=unused-argument
-def test_index_list_records(patch_config, tmp_series: Path, login):
+def test_index_list_records_series(patch_config, tmp_series: Path, login):
     """Test listing records in index."""
     # setup (create index and app)
     cli(["index", "create", "-i", str(FluxConfig.INDEX_LOCATION)])
@@ -130,3 +130,125 @@ def test_index_list_records(patch_config, tmp_series: Path, login):
         ]:
             assert key in special
             assert special[key] is not None
+
+
+# pylint: disable=unused-argument
+def test_index_list_records_movie(patch_config, tmp_movie: Path, login):
+    """Test listing records in index."""
+    # setup (create index and app)
+    cli(["index", "create", "-i", str(FluxConfig.INDEX_LOCATION)])
+    client = app_factory().test_client()
+
+    login(client)
+
+    # add test-movie
+    name = "test movie"
+    description = "test description"
+    cli(
+        [
+            "index",
+            "add",
+            "-i",
+            str(FluxConfig.INDEX_LOCATION),
+            "--type",
+            "movie",
+            "--name",
+            name,
+            "--description",
+            description,
+            str(tmp_movie),
+        ]
+    )
+
+    # list api-call
+    response = client.get("/api/v0/index/records")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    assert response.json["content"]["count"] == 1
+    assert response.json["content"]["records"][0]["name"] == name
+    assert response.json["content"]["records"][0]["description"] == description
+    assert response.json["content"]["records"][0]["type"] == "movie"
+    assert response.json["content"]["records"][0]["thumbnailId"] is not None
+    assert response.json["content"]["records"][0]["id"] is not None
+    record_id = response.json["content"]["records"][0]["id"]
+
+    # get record
+    response = client.get(f"/api/v0/index/record/{record_id}")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    for key in ["id", "type", "name", "description", "thumbnailId", "content"]:
+        assert key in response.json["content"]
+        assert response.json["content"][key] is not None
+    assert isinstance(response.json["content"]["content"], dict)
+    for key in [
+        "id",
+        "name",
+        "description",
+        "metadata",
+        "thumbnailId",
+    ]:
+        assert key in response.json["content"]["content"]
+        assert response.json["content"]["content"][key] is not None
+
+
+# pylint: disable=unused-argument
+def test_index_list_records_collection(
+    patch_config, tmp_collection: Path, login
+):
+    """Test listing records in index."""
+    # setup (create index and app)
+    cli(["index", "create", "-i", str(FluxConfig.INDEX_LOCATION)])
+    client = app_factory().test_client()
+
+    login(client)
+
+    # add test-collection
+    name = "test collection"
+    description = "test description"
+    cli(
+        [
+            "index",
+            "add",
+            "-i",
+            str(FluxConfig.INDEX_LOCATION),
+            "--type",
+            "collection",
+            "--name",
+            name,
+            "--description",
+            description,
+            str(tmp_collection),
+        ]
+    )
+
+    # list api-call
+    response = client.get("/api/v0/index/records")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    assert response.json["content"]["count"] == 1
+    assert response.json["content"]["records"][0]["name"] == name
+    assert response.json["content"]["records"][0]["description"] == description
+    assert response.json["content"]["records"][0]["type"] == "collection"
+    assert response.json["content"]["records"][0]["thumbnailId"] is not None
+    assert response.json["content"]["records"][0]["id"] is not None
+    record_id = response.json["content"]["records"][0]["id"]
+
+    # get record
+    response = client.get(f"/api/v0/index/record/{record_id}")
+    assert response.status_code == 200
+    assert response.json["meta"]["ok"]
+    for key in ["id", "type", "name", "description", "thumbnailId", "content"]:
+        assert key in response.json["content"]
+        assert response.json["content"][key] is not None
+    assert isinstance(response.json["content"]["content"], list)
+    assert len(response.json["content"]["content"]) == 4
+    for video in response.json["content"]["content"]:
+        for key in [
+            "id",
+            "name",
+            "description",
+            "metadata",
+            "thumbnailId",
+        ]:
+            assert key in video
+            assert video[key] is not None

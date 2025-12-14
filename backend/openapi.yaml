@@ -359,70 +359,38 @@ paths:
                       - type: object
                         properties:
                           content:
-                            type: object
-                            description: record details
-                            properties:
-                              seasons:
-                                type: array
-                                description: |-
-                                  array of seasons for this record
-
-                                  Only applies if record-type is 'series'.
+                            oneOf:
+                              - $ref: '#/components/schemas/VideoInfo'
+                              - type: object
+                                description: series details
+                                properties:
+                                  seasons:
+                                    type: array
+                                    description: array of seasons for this series
+                                    items:
+                                      type: object
+                                      description: seasion information
+                                      properties:
+                                        id:
+                                          type: string
+                                          description: season identifier
+                                        name:
+                                          type: string
+                                          description: season name
+                                        episodes:
+                                          type: array
+                                          description: array of seasons in this season
+                                          items:
+                                            $ref: '#/components/schemas/VideoInfo'
+                                  specials:
+                                    type: array
+                                    description: array of specials for this series
+                                    items:
+                                      $ref: '#/components/schemas/VideoInfo'
+                              - type: array
+                                description: array of videos for this collection
                                 items:
-                                  type: object
-                                  description: seasion information
-                                  properties:
-                                    id:
-                                      type: string
-                                      description: season identifier
-                                    name:
-                                      type: string
-                                      description: season name
-                                    episodes:
-                                      type: array
-                                      description: array of seasons in this season
-                                      items:
-                                        type: object
-                                        description: episode information
-                                        properties:
-                                          id:
-                                            type: string
-                                            description: video identifier
-                                          name:
-                                            type: string
-                                            description: video name
-                                          description:
-                                            type: string
-                                            description: video description
-                                          metadata:
-                                            type: object
-                                            description: video/codec metadata
-                                            additionalProperties: true
-                                          thumbnailId:
-                                            type: string
-                                            description: video thumbnail identifier
-                              specials:
-                                type: array
-                                description: |-
-                                  array of specials for this record
-
-                                  Only applies if record-type is 'series'.
-                                items:
-                                  type: object
-                                  description: special information
-                                  properties:
-                                    id:
-                                      type: string
-                                      description: video identifier
-                                    name:
-                                      type: string
-                                      description: video name
-                                    description:
-                                      type: string
-                                      description: video description
-                                    thumbnail:
-                                      type: string
-                                      description: video thumbnail identifier
+                                  $ref: '#/components/schemas/VideoInfo'
                 required:
                   - meta
   /video/{videoId}:
@@ -563,6 +531,26 @@ components:
         - series
         - movie
         - collection
+    VideoInfo:
+      type: object
+      description: video information
+      properties:
+        id:
+          type: string
+          description: video identifier
+        name:
+          type: string
+          description: video name
+        description:
+          type: string
+          description: video description
+        metadata:
+          type: object
+          description: video/codec metadata
+          additionalProperties: true
+        thumbnailId:
+          type: string
+          description: video thumbnail identifier
   responses:
     GenericResponseNoContent:
       description: success

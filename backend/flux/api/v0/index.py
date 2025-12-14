@@ -211,9 +211,50 @@ def register_api(app: Flask):
         )
 
         # * collect related data
-        record["content"] = {}
         match record["type"]:
+            case "movie":
+                with Transaction(
+                    FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE,
+                    readonly=True,
+                ) as t:
+                    t.cursor.execute(
+                        """
+                        SELECT
+                            videos.id,
+                            videos.thumbnail_id,
+                            tracks.metadata_json
+                        FROM
+                            videos
+                            JOIN tracks ON videos.id = tracks.video_id
+                        WHERE videos.record_id=?
+                        """,
+                        (record_id,),
+                    )
+                if len(t.data) != 1:
+                    raise ValueError(
+                        f"Missing or bad data for record '{record_id}'"
+                    )
+                record["content"] = dict(
+                    zip(
+                        (
+                            "id",
+                            "thumbnailId",
+                            "metadata",
+                            "name",
+                            "description",
+                        ),
+                        # the video-name/description is omitted in db
+                        # (use record instead)
+                        t.data[0] + (record["name"], record["description"]),
+                    )
+                )
+                record["content"]["metadata"] = (
+                    parse_and_filter_track_metadata(
+                        record["content"]["metadata"]
+                    )
+                )
             case "series":
+                record["content"] = {}
                 with Transaction(
                     FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE,
                     readonly=True,
@@ -298,6 +339,44 @@ def register_api(app: Flask):
                             special["metadata"]
                         )
                         record["content"]["specials"].append(special)
+            case "collection":
+                record["content"] = []
+                with Transaction(
+                    FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE,
+                    readonly=True,
+                ) as t:
+                    t.cursor.execute(
+                        """
+                        SELECT
+                            videos.id,
+                            videos.name,
+                            videos.description,
+                            videos.thumbnail_id,
+                            tracks.metadata_json
+                        FROM
+                            videos
+                            JOIN tracks ON videos.id = tracks.video_id
+                        WHERE videos.record_id=?
+                        """,
+                        (record_id,),
+                    )
+                for row in t.data:
+                    video = dict(
+                        zip(
+                            (
+                                "id",
+                                "name",
+                                "description",
+                                "thumbnailId",
+                                "metadata",
+                            ),
+                            row,
+                        )
+                    )
+                    video["metadata"] = parse_and_filter_track_metadata(
+                        video["metadata"]
+                    )
+                    record["content"].append(video)
         return (
             jsonify(common.wrap_response_json(None, record)),
             200,
