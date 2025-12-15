@@ -6,8 +6,9 @@ import { useLocation, useRouter } from "./hooks/Router";
 import Toaster, { useToaster } from "./components/base/Toaster";
 import { useSessionStore } from "./store";
 import Page from "./components/flux/Page";
-import Browse from "./components/flux/pages/browse/Browse";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
+import Browse from "./components/flux/pages/browse/Browse";
+import Watch from "./components/flux/pages/watch/Watch";
 import Navigate from "./components/base/Navigate";
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
         <Page>
           {{
             "/browse": <Browse />,
+            "/watch": <Watch />,
             "/login": loggedIn ? (
               <Navigate pathname="/browse" search="" />
             ) : (
