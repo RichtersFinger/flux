@@ -361,39 +361,110 @@ paths:
                           content:
                             oneOf:
                               - $ref: '#/components/schemas/VideoInfo'
-                              - type: object
-                                description: series details
-                                properties:
-                                  seasons:
-                                    type: array
-                                    description: array of seasons for this series
-                                    items:
-                                      type: object
-                                      description: seasion information
-                                      properties:
-                                        id:
-                                          type: string
-                                          description: season identifier
-                                        name:
-                                          type: string
-                                          description: season name
-                                        episodes:
-                                          type: array
-                                          description: array of seasons in this season
-                                          items:
-                                            $ref: '#/components/schemas/VideoInfo'
-                                  specials:
-                                    type: array
-                                    description: array of specials for this series
-                                    items:
-                                      $ref: '#/components/schemas/VideoInfo'
-                              - type: array
-                                description: array of videos for this collection
-                                items:
-                                  $ref: '#/components/schemas/VideoInfo'
+                              - $ref: '#/components/schemas/SeriesInfo'
+                              - $ref: '#/components/schemas/CollectionInfo'
                 required:
                   - meta
-  /video/{videoId}:
+  /api/v0/index/record/{videoId}:
+    get:
+      summary: get record info
+      description: Returns record information.
+      tags:
+        - index
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          description: video identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    allOf:
+                      - $ref: '#/components/schemas/Record'
+                      - type: object
+                        properties:
+                          content:
+                            oneOf:
+                              - $ref: '#/components/schemas/VideoInfo'
+                              - $ref: '#/components/schemas/SeriesInfo'
+                              - $ref: '#/components/schemas/CollectionInfo'
+                required:
+                  - meta
+  /api/v0/index/record/{recordId}/current-video:
+    get:
+      summary: get identifier of current video
+      description:
+        Returns video identifier of current video for a given record.
+      tags:
+        - index
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: recordId
+          in: path
+          description: record identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    $ref: '#/components/schemas/VideoInfo'
+                required:
+                  - meta
+  /api/v0/index/record/{videoId}/next-video:
+    get:
+      summary: get identifier of next video
+      description: Returns video identifier of video that is next in line.
+      tags:
+        - index
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          description: current video identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    $ref: '#/components/schemas/VideoInfo'
+                required:
+                  - meta
+  /video/{trackId}:
     get:
       summary: stream data
       description: Returns (chunk of) video stream.
@@ -402,9 +473,9 @@ paths:
       security:
         - sessionCookieAuth: []
       parameters:
-        - name: videoId
+        - name: trackId
           in: path
-          description: content identifier
+          description: track identifier
           required: true
           schema:
             type: string
@@ -551,6 +622,41 @@ components:
         thumbnailId:
           type: string
           description: video thumbnail identifier
+        tracks:
+          type: string
+          description: video identifier
+    SeriesInfo:
+      type: object
+      description: series details
+      properties:
+        seasons:
+          type: array
+          description: array of seasons for this series
+          items:
+            type: object
+            description: seasion information
+            properties:
+              id:
+                type: string
+                description: season identifier
+              name:
+                type: string
+                description: season name
+              episodes:
+                type: array
+                description: array of seasons in this season
+                items:
+                  $ref: '#/components/schemas/VideoInfo'
+        specials:
+          type: array
+          description: array of specials for this series
+          items:
+            $ref: '#/components/schemas/VideoInfo'
+    CollectionInfo:
+      type: array
+      description: array of videos for this collection
+      items:
+        $ref: '#/components/schemas/VideoInfo'
   responses:
     GenericResponseNoContent:
       description: success
