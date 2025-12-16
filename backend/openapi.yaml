@@ -431,7 +431,14 @@ paths:
                   meta:
                     $ref: '#/components/schemas/ResponseMd'
                   content:
-                    $ref: '#/components/schemas/VideoInfo'
+                    type: object
+                    properties:
+                      video:
+                        $ref: '#/components/schemas/VideoInfo'
+                      playback:
+                        type: object
+                        description: additional playback information
+                        additionalProperties: true
                 required:
                   - meta
   /api/v0/index/record/{videoId}/next-video:
