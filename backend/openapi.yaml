@@ -405,9 +405,9 @@ paths:
                   - meta
   /api/v0/index/record/{recordId}/current-video:
     get:
-      summary: get identifier of current video
+      summary: get info on current video
       description:
-        Returns video identifier of current video for a given record.
+        Returns information on current video for a given record.
       tags:
         - index
       security:
@@ -439,36 +439,6 @@ paths:
                         type: object
                         description: additional playback information
                         additionalProperties: true
-                required:
-                  - meta
-  /api/v0/index/record/{videoId}/next-video:
-    get:
-      summary: get identifier of next video
-      description: Returns video identifier of video that is next in line.
-      tags:
-        - index
-      security:
-        - sessionCookieAuth: []
-      parameters:
-        - name: videoId
-          in: path
-          description: current video identifier
-          required: true
-          schema:
-            type: string
-        - $ref: '#/components/parameters/requestId'
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  meta:
-                    $ref: '#/components/schemas/ResponseMd'
-                  content:
-                    $ref: '#/components/schemas/VideoInfo'
                 required:
                   - meta
   /video/{trackId}:
