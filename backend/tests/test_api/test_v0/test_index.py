@@ -141,6 +141,14 @@ def test_index_list_records_series(patch_config, tmp_series: Path, login):
         == response.json
     )
 
+    # get video by id
+    assert (
+        client.get(
+            f"/api/v0/index/video/{response.json['content']['content']['specials'][0]['id']}"
+        ).json["content"]
+        == response.json["content"]["content"]["specials"][0]
+    )
+
     # get current video
     response_current_video = client.get(
         f"/api/v0/index/record/{record_id}/current-video"

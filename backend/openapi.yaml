@@ -403,6 +403,36 @@ paths:
                               - $ref: '#/components/schemas/CollectionInfo'
                 required:
                   - meta
+  /api/v0/index/video/{videoId}:
+    get:
+      summary: get video info
+      description: Returns video information.
+      tags:
+        - index
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          description: video identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/ResponseMd'
+                  content:
+                    $ref: '#/components/schemas/VideoInfo'
+                required:
+                  - meta
   /api/v0/index/record/{recordId}/current-video:
     get:
       summary: get info on current video

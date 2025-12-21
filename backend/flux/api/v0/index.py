@@ -425,12 +425,61 @@ def register_api(app: Flask):
             200,
         )
 
+    @app.route("/api/v0/index/video/<video_id>", methods=["GET"])
+    @common.session_cookie_auth()
+    def get_video(
+        # pylint: disable=unused-argument
+        *args,
+        video_id: str,
+    ):
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+        ) as t:
+            t.cursor.execute(
+                """
+                SELECT
+                    videos.id,
+                    videos.name,
+                    videos.description,
+                    videos.thumbnail_id,
+                    tracks.id,
+                    tracks.metadata_json
+                FROM
+                    videos
+                    JOIN tracks ON videos.id = tracks.video_id
+                WHERE videos.id=?
+                """,
+                (video_id,),
+            )
+
+        if len(t.data) == 0:
+            raise exceptions.NotFoundException(f"Unknown video '{video_id}'.")
+
+        video = dict(
+            zip(
+                (
+                    "id",
+                    "name",
+                    "description",
+                    "thumbnailId",
+                    "trackId",
+                    "metadata",
+                ),
+                t.data[0],
+            )
+        )
+        video["metadata"] = parse_and_filter_track_metadata(video["metadata"])
+
+        return (
+            jsonify(common.wrap_response_json(None, video)),
+            200,
+        )
+
     @app.route(
         "/api/v0/index/record/<record_id>/current-video", methods=["GET"]
     )
     @common.session_cookie_auth()
     def get_current_video(
-        # pylint: disable=unused-argument
         _: str,
         username: str,
         record_id: str,
