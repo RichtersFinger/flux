@@ -16,11 +16,11 @@ export interface UserConfiguration {
   user?: {
     name: string;
     isAdmin: boolean;
-  }
+  };
   settings?: {
     volume: number;
     autoplay: boolean;
-  }
+  };
 }
 
 export interface SessionStore {
@@ -43,4 +43,28 @@ export interface RecordMetadata {
 export interface Records {
   count: number;
   records: RecordMetadata[];
+}
+
+export interface VideoInfo {
+  id: string;
+  name: string;
+  description: string;
+  metadata: any;
+  thumbnailId: string;
+  trackId: string;
+}
+
+export interface SeriesInfo {
+  seasons: {
+    id: string;
+    name: string;
+    episodes: VideoInfo[];
+  }[];
+  specials: VideoInfo[];
+}
+
+export type CollectionInfo = VideoInfo[];
+
+export interface RecordInfo extends RecordMetadata {
+  content: VideoInfo | SeriesInfo | CollectionInfo;
 }
