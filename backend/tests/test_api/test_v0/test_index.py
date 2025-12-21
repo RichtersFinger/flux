@@ -134,9 +134,23 @@ def test_index_list_records_series(patch_config, tmp_series: Path, login):
             assert special[key] is not None
 
     # get record but use video-id instead
-    assert client.get(
-        f"/api/v0/index/record/{response.json['content']['content']['specials'][0]['id']}"
-    ).json == response.json
+    assert (
+        client.get(
+            f"/api/v0/index/record/{response.json['content']['content']['specials'][0]['id']}"
+        ).json
+        == response.json
+    )
+
+    # get current video
+    response_current_video = client.get(
+        f"/api/v0/index/record/{record_id}/current-video"
+    )
+    assert response_current_video.json["meta"]["ok"]
+    assert "video" in response_current_video.json["content"]
+    assert (
+        response_current_video.json["content"]["video"]
+        == response.json["content"]["content"]["seasons"][0]["episodes"][0]
+    )
 
 
 # pylint: disable=unused-argument
@@ -197,6 +211,17 @@ def test_index_list_records_movie(patch_config, tmp_movie: Path, login):
     ]:
         assert key in response.json["content"]["content"]
         assert response.json["content"]["content"][key] is not None
+
+    # get current video
+    response_current_video = client.get(
+        f"/api/v0/index/record/{record_id}/current-video"
+    )
+    assert response_current_video.json["meta"]["ok"]
+    assert "video" in response_current_video.json["content"]
+    assert (
+        response_current_video.json["content"]["video"]
+        == response.json["content"]["content"]
+    )
 
 
 # pylint: disable=unused-argument
@@ -261,3 +286,14 @@ def test_index_list_records_collection(
         ]:
             assert key in video
             assert video[key] is not None
+
+    # get current video
+    response_current_video = client.get(
+        f"/api/v0/index/record/{record_id}/current-video"
+    )
+    assert response_current_video.json["meta"]["ok"]
+    assert "video" in response_current_video.json["content"]
+    assert (
+        response_current_video.json["content"]["video"]
+        == response.json["content"]["content"][0]
+    )
