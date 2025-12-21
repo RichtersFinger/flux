@@ -131,6 +131,11 @@ def test_index_list_records_series(patch_config, tmp_series: Path, login):
             assert key in special
             assert special[key] is not None
 
+    # get record but use video-id instead
+    assert client.get(
+        f"/api/v0/index/record/{response.json['content']['content']['specials'][0]['id']}"
+    ).json == response.json
+
 
 # pylint: disable=unused-argument
 def test_index_list_records_movie(patch_config, tmp_movie: Path, login):

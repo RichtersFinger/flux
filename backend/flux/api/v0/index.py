@@ -177,38 +177,61 @@ def register_api(app: Flask):
             200,
         )
 
-    @app.route("/api/v0/index/record/<record_id>", methods=["GET"])
+    @app.route("/api/v0/index/record/<id_>", methods=["GET"])
     @common.session_cookie_auth(True)
     def get_record(
         # pylint: disable=unused-argument
         *args,
-        record_id: str,
+        id_: str,
     ):
-        """List records in index."""
+        """Get detailed record-info."""
         # run queries
+        # * record: prioritize query with recordId
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
-            # * record
             t.cursor.execute(
                 """
                 SELECT id, type, name, description, thumbnail_id
                 FROM records
                 WHERE id=?
                 """,
-                (record_id,),
+                (id_,),
             )
+
+        # * if no matching recordId, try as videoId
+        if len(t.data) == 0:
+            with Transaction(
+                FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE,
+                readonly=True,
+            ) as t:
+                t.cursor.execute(
+                    """
+                    SELECT
+                        records.id,
+                        records.type,
+                        records.name,
+                        records.description,
+                        records.thumbnail_id
+                    FROM records
+                    JOIN videos ON records.id = videos.record_id
+                    WHERE videos.id = ?
+                    """,
+                    (id_,),
+                )
 
         if len(t.data) == 0:
             raise exceptions.NotFoundException(
-                f"Unknown record '{record_id}'."
+                f"Unknown record or video '{id_}'."
             )
+
         record = dict(
             zip(
                 ("id", "type", "name", "description", "thumbnailId"),
                 t.data[0],
             )
         )
+        id_ = record["id"]
 
         # * collect related data
         match record["type"]:
@@ -228,11 +251,11 @@ def register_api(app: Flask):
                             JOIN tracks ON videos.id = tracks.video_id
                         WHERE videos.record_id=?
                         """,
-                        (record_id,),
+                        (id_,),
                     )
                 if len(t.data) != 1:
                     raise ValueError(
-                        f"Missing or bad data for record '{record_id}'"
+                        f"Missing or bad data for record '{id_}'"
                     )
                 record["content"] = dict(
                     zip(
@@ -263,7 +286,7 @@ def register_api(app: Flask):
                     record["content"]["seasons"] = []
                     t.cursor.execute(
                         "SELECT id, name FROM seasons WHERE record_id=?",
-                        (record_id,),
+                        (id_,),
                     )
                     for row in t.cursor.fetchall():
                         season = dict(zip({"id", "name"}, row))
@@ -282,7 +305,7 @@ def register_api(app: Flask):
                             WHERE videos.record_id=? AND videos.season_id=?
                             ORDER BY videos.position
                             """,
-                            (record_id, row[0]),
+                            (id_, row[0]),
                         )
                         season["episodes"] = []
                         for row_ in t.cursor.fetchall():
@@ -320,7 +343,7 @@ def register_api(app: Flask):
                         WHERE videos.record_id=? AND videos.season_id IS NULL
                         ORDER BY videos.position
                         """,
-                        (record_id,),
+                        (id_,),
                     )
                     for row in t.cursor.fetchall():
                         special = dict(
@@ -358,7 +381,7 @@ def register_api(app: Flask):
                             JOIN tracks ON videos.id = tracks.video_id
                         WHERE videos.record_id=?
                         """,
-                        (record_id,),
+                        (id_,),
                     )
                 for row in t.data:
                     video = dict(
