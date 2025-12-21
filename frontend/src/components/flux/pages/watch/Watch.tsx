@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { useLocation } from "../../../../hooks/Router";
+import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { useToaster } from "../../../base/Toaster";
-import type { APIResponse, RecordInfo, VideoInfo } from "../../../../types";
+import type {
+  APIResponse,
+  CollectionInfo,
+  RecordInfo,
+  SeriesInfo,
+  VideoInfo,
+} from "../../../../types";
 
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
@@ -12,10 +18,59 @@ export default function Watch() {
     undefined
   );
 
-  const { toast } = useToaster();
+  const { navigate } = useRouter();
   const { search } = useLocation();
-  const videoId = search?.get("id");
+  const { toast } = useToaster();
+  const videoId = search?.get("id") ?? undefined;
   useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
+
+  // setup event listeners for hide and show
+  const setupVideoEvents = useCallback(
+    (node: HTMLVideoElement) => {
+      if (!node) return;
+      function handleOnVideoEnded() {
+        if (videoId && recordInfo && !node.loop) {
+          // generate list of ids in order
+          const videoIds: string[] = [];
+          switch (recordInfo.type) {
+            case "movie":
+              videoIds.push(videoId);
+              break;
+            case "series":
+              for (const season of (recordInfo.content as SeriesInfo).seasons)
+                videoIds.push.apply(
+                  videoIds,
+                  season.episodes.map((video) => video.id)
+                );
+              videoIds.push.apply(
+                videoIds,
+                (recordInfo.content as SeriesInfo).specials.map(
+                  (video) => video.id
+                )
+              );
+              break;
+            case "collection":
+              videoIds.push.apply(
+                videoIds,
+                (recordInfo.content as CollectionInfo).map((video) => video.id)
+              );
+              break;
+          }
+          // navigate to next video if available
+          navigate(
+            undefined,
+            new URLSearchParams({
+              id: videoIds[videoIds.indexOf(videoId) + 1] ?? videoId,
+            }),
+            false
+          );
+        }
+      }
+      node.addEventListener("ended", handleOnVideoEnded);
+      return () => node.removeEventListener("ended", handleOnVideoEnded);
+    },
+    [recordInfo]
+  );
 
   // get video-info
   useEffect(() => {
@@ -80,12 +135,14 @@ export default function Watch() {
   }, [videoId]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full bg-gray-950">
       {videoInfo?.trackId && (
         <video
+          ref={setupVideoEvents}
           className="absolute w-full h-full"
           src={`${BASE_URL}/video/${videoInfo.trackId}`}
           controls
+          autoPlay
         />
       )}
     </div>
