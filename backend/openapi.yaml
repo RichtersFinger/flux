@@ -629,9 +629,9 @@ components:
         thumbnailId:
           type: string
           description: video thumbnail identifier
-        tracks:
+        trackId:
           type: string
-          description: video identifier
+          description: track identifier
     SeriesInfo:
       type: object
       description: series details

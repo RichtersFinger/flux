@@ -112,6 +112,7 @@ def test_index_list_records_series(patch_config, tmp_series: Path, login):
                 "id",
                 "name",
                 "description",
+                "trackId",
                 "metadata",
                 "thumbnailId",
             ]:
@@ -125,6 +126,7 @@ def test_index_list_records_series(patch_config, tmp_series: Path, login):
             "id",
             "name",
             "description",
+            "trackId",
             "metadata",
             "thumbnailId",
         ]:
@@ -189,6 +191,7 @@ def test_index_list_records_movie(patch_config, tmp_movie: Path, login):
         "id",
         "name",
         "description",
+        "trackId",
         "metadata",
         "thumbnailId",
     ]:
@@ -252,6 +255,7 @@ def test_index_list_records_collection(
             "id",
             "name",
             "description",
+            "trackId",
             "metadata",
             "thumbnailId",
         ]:

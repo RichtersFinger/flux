@@ -245,6 +245,7 @@ def register_api(app: Flask):
                         SELECT
                             videos.id,
                             videos.thumbnail_id,
+                            tracks.id,
                             tracks.metadata_json
                         FROM
                             videos
@@ -262,6 +263,7 @@ def register_api(app: Flask):
                         (
                             "id",
                             "thumbnailId",
+                            "trackId",
                             "metadata",
                             "name",
                             "description",
@@ -298,6 +300,7 @@ def register_api(app: Flask):
                                 videos.name,
                                 videos.description,
                                 videos.thumbnail_id,
+                                tracks.id,
                                 tracks.metadata_json
                             FROM
                                 videos
@@ -316,6 +319,7 @@ def register_api(app: Flask):
                                         "name",
                                         "description",
                                         "thumbnailId",
+                                        "trackId",
                                         "metadata",
                                     ),
                                     row_,
@@ -336,6 +340,7 @@ def register_api(app: Flask):
                             videos.name,
                             videos.description,
                             videos.thumbnail_id,
+                            tracks.id,
                             tracks.metadata_json
                         FROM
                             videos
@@ -353,6 +358,7 @@ def register_api(app: Flask):
                                     "name",
                                     "description",
                                     "thumbnailId",
+                                    "trackId",
                                     "metadata",
                                 ),
                                 row,
@@ -375,6 +381,7 @@ def register_api(app: Flask):
                             videos.name,
                             videos.description,
                             videos.thumbnail_id,
+                            tracks.id,
                             tracks.metadata_json
                         FROM
                             videos
@@ -391,6 +398,7 @@ def register_api(app: Flask):
                                 "name",
                                 "description",
                                 "thumbnailId",
+                                "trackId",
                                 "metadata",
                             ),
                             row,
