@@ -58,8 +58,12 @@ CREATE TABLE records (
 CREATE TABLE seasons (
     id TEXT NOT NULL PRIMARY KEY,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    position INTEGER DEFAULT 0
 );
+
+CREATE UNIQUE INDEX unique_season_position
+ON seasons (record_id, position);
 
 CREATE TABLE videos (
     id TEXT NOT NULL PRIMARY KEY,
@@ -71,7 +75,7 @@ CREATE TABLE videos (
     position INTEGER DEFAULT 0
 );
 
-CREATE UNIQUE INDEX unique_position
+CREATE UNIQUE INDEX unique_video_position
 ON videos (record_id, season_id, position);
 
 -- this distinction from videos-table is made to prepare for future support

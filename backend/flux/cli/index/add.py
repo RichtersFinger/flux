@@ -574,13 +574,14 @@ class AddToIndex(Command):
                         series.description,
                     ),
                 )
-                for season in series.seasons:
+                for season_position, season in enumerate(series.seasons):
                     t.cursor.execute(
-                        "INSERT INTO seasons VALUES (?, ?, ?)",
+                        "INSERT INTO seasons VALUES (?, ?, ?, ?)",
                         (
                             season.id,
                             series.id,
                             season.name,
+                            season_position,
                         ),
                     )
                     for position, episode in enumerate(season.episodes):
