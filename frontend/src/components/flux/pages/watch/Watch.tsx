@@ -37,29 +37,31 @@ export default function Watch() {
       function handleOnVideoEnded() {
         if (videoId && recordInfo && !node.loop) {
           // generate list of ids in order
-          const videoIds: string[] = [];
+          let videoIds: string[] = [];
           switch (recordInfo.type) {
             case "movie":
               videoIds.push(videoId);
               break;
             case "series":
               for (const season of (recordInfo.content as SeriesInfo).seasons)
-                videoIds.push.apply(
-                  videoIds,
-                  season.episodes.map((video) => video.id)
-                );
-              videoIds.push.apply(
-                videoIds,
-                (recordInfo.content as SeriesInfo).specials.map(
+                videoIds = [
+                  ...videoIds,
+                  ...season.episodes.map((video) => video.id),
+                ];
+              videoIds = [
+                ...videoIds,
+                ...(recordInfo.content as SeriesInfo).specials.map(
                   (video) => video.id
-                )
-              );
+                ),
+              ];
               break;
             case "collection":
-              videoIds.push.apply(
-                videoIds,
-                (recordInfo.content as CollectionInfo).map((video) => video.id)
-              );
+              videoIds = [
+                ...videoIds,
+                ...(recordInfo.content as CollectionInfo).map(
+                  (video) => video.id
+                ),
+              ];
               break;
           }
           // navigate to next video if available
@@ -79,7 +81,7 @@ export default function Watch() {
         node.removeEventListener("error", handleOnVideoError);
       };
     },
-    [recordInfo]
+    [videoId, recordInfo, navigate]
   );
 
   // get video-info
