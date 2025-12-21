@@ -49,7 +49,7 @@ export interface VideoInfo {
   id: string;
   name: string;
   description: string;
-  metadata: any;
+  metadata: object;
   thumbnailId: string;
   trackId: string;
 }

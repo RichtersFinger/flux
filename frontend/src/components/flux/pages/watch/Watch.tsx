@@ -1,25 +1,21 @@
 import { useEffect, useState } from "react";
 
-import { useLocation, useRouter } from "../../../../hooks/Router";
+import { useLocation } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
-import Navigate from "../../../base/Navigate";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { useToaster } from "../../../base/Toaster";
 import type { APIResponse, RecordInfo, VideoInfo } from "../../../../types";
 
 export default function Watch() {
-  const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(
-    undefined
-  );
+  const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
     undefined
   );
 
-  const { navigate } = useRouter();
   const { toast } = useToaster();
   const { search } = useLocation();
   const videoId = search?.get("id");
-  useTitle(`flux | ${videoInfo?.name ?? videoId ?? "Watch"}`);
+  useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
 
   // get video-info
   useEffect(() => {
@@ -49,7 +45,7 @@ export default function Watch() {
         );
         console.error(error);
       });
-    setRecordInfo(undefined);
+    // eslint-disable-next-line
   }, [videoId]);
 
   // get record-info
@@ -80,14 +76,18 @@ export default function Watch() {
         );
         console.error(error);
       });
-    setRecordInfo(undefined);
+    // eslint-disable-next-line
   }, [videoId]);
 
   return (
     <div className="relative w-full h-full">
-      {
-        videoInfo?.trackId && <video className="absolute w-full h-full" src={`${BASE_URL}/video/${videoInfo.trackId}`} controls/>
-      }
+      {videoInfo?.trackId && (
+        <video
+          className="absolute w-full h-full"
+          src={`${BASE_URL}/video/${videoInfo.trackId}`}
+          controls
+        />
+      )}
     </div>
   );
 }
