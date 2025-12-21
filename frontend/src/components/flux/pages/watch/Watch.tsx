@@ -17,6 +17,7 @@ export default function Watch() {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
     undefined
   );
+  const [videoError, setVideoError] = useState<string | undefined>(undefined);
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -28,6 +29,11 @@ export default function Watch() {
   const setupVideoEvents = useCallback(
     (node: HTMLVideoElement) => {
       if (!node) return;
+      function handleOnVideoError() {
+        setVideoError(
+          "An unknown error occurred. This is most likely caused by a video format which does not support streaming."
+        );
+      }
       function handleOnVideoEnded() {
         if (videoId && recordInfo && !node.loop) {
           // generate list of ids in order
@@ -67,7 +73,11 @@ export default function Watch() {
         }
       }
       node.addEventListener("ended", handleOnVideoEnded);
-      return () => node.removeEventListener("ended", handleOnVideoEnded);
+      node.addEventListener("error", handleOnVideoError);
+      return () => {
+        node.removeEventListener("ended", handleOnVideoEnded);
+        node.removeEventListener("error", handleOnVideoError);
+      };
     },
     [recordInfo]
   );
@@ -145,6 +155,15 @@ export default function Watch() {
           autoPlay
         />
       )}
+      {videoError ? (
+        <div className="absolute left-1/2 top-1/2 -translate-1/2 space-y-2 text-white">
+          <p className="font-semibold">{videoError}</p>
+          <div>
+            <h5>Video metadata:</h5>
+            <pre>{JSON.stringify(videoInfo, null, 2)}</pre>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

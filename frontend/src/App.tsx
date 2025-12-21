@@ -59,7 +59,7 @@ export default function App() {
         <Page>
           {{
             "/browse": <Browse />,
-            "/watch": <Watch />,
+            "/watch": <Watch key={location.search?.get("id")} />,
             "/login": loggedIn ? (
               <Navigate pathname="/browse" search="" />
             ) : (
