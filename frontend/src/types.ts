@@ -19,6 +19,7 @@ export interface UserConfiguration {
   };
   settings?: {
     volume: number;
+    muted: boolean;
     autoplay: boolean;
   };
 }

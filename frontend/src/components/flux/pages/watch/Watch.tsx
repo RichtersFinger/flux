@@ -11,6 +11,7 @@ import type {
   SeriesInfo,
   VideoInfo,
 } from "../../../../types";
+import { useSessionStore } from "../../../../store";
 
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
@@ -18,6 +19,8 @@ export default function Watch() {
     undefined
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
+
+  const { userConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -35,7 +38,12 @@ export default function Watch() {
         );
       }
       function handleOnVideoEnded() {
-        if (videoId && recordInfo && !node.loop) {
+        if (
+          userConfiguration.settings?.autoplay &&
+          videoId &&
+          recordInfo &&
+          !node.loop
+        ) {
           // generate list of ids in order
           let videoIds: string[] = [];
           switch (recordInfo.type) {
@@ -82,6 +90,8 @@ export default function Watch() {
           previousTimeUpdate = Math.round(node.currentTime);
         }
       }
+      node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
+      node.muted = userConfiguration.settings?.muted ?? false;
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
@@ -91,7 +101,7 @@ export default function Watch() {
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
       };
     },
-    [videoId, recordInfo, navigate]
+    [userConfiguration.settings, videoId, recordInfo, navigate]
   );
 
   // get video-info
