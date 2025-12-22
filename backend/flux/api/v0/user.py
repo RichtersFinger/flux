@@ -217,7 +217,8 @@ def register_api(app: Flask):
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
         ) as t:
             t.cursor.execute(
-                "SELECT volume, autoplay FROM users WHERE name=?", (username,)
+                "SELECT volume, muted, autoplay FROM users WHERE name=?",
+                (username,),
             )
 
         if len(t.data) == 0:
@@ -233,7 +234,8 @@ def register_api(app: Flask):
                         "user": {"name": username, "isAdmin": False},
                         "settings": {
                             "volume": t.data[0][0],
-                            "autoplay": t.data[0][1] == 1,
+                            "muted": t.data[0][1] == 1,
+                            "autoplay": t.data[0][2] == 1,
                         },
                     },
                 )
@@ -269,6 +271,15 @@ def register_api(app: Flask):
             if not valid:
                 raise exceptions.BadRequestException(msg)
             cols["autoplay"] = 1 if json["content"]["autoplay"] else 0
+        if "muted" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [common.validate_boolean],
+                json["content"]["muted"],
+                name="content.muted",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
+            cols["muted"] = 1 if json["content"]["muted"] else 0
 
         if len(cols) == 0:
             return jsonify(common.wrap_response_json(None, None)), 200

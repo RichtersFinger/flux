@@ -229,12 +229,17 @@ paths:
                             minimum: 0
                             maximum: 100
                             example: 85
+                          muted:
+                            type: boolean
+                            description: whether player is muted
+                            example: true
                           autoplay:
                             type: boolean
                             description: default autoplay behavior
                             example: true
                         required:
                           - volume
+                          - muted
                           - autoplay
                     required:
                       - user
@@ -266,6 +271,10 @@ paths:
                       minimum: 0
                       maximum: 100
                       example: 85
+                    muted:
+                      type: boolean
+                      description: whether player is muted
+                      example: true
                     autoplay:
                       type: boolean
                       description: default autoplay behavior

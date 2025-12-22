@@ -59,12 +59,14 @@ def test_user_api_workflow(patch_config):
     assert response.json["meta"]["ok"]
     assert response.json["content"]["user"]["name"] == "user0"
     assert not response.json["content"]["settings"]["autoplay"]
+    assert not response.json["content"]["settings"]["muted"]
     assert client.put(
-        "/api/v0/user/configuration", json={"content": {"autoplay": True}}
+        "/api/v0/user/configuration",
+        json={"content": {"volume": 50, "autoplay": True, "muted": True}},
     ).json["meta"]["ok"]
     assert client.get("/api/v0/user/configuration").json["content"][
         "settings"
-    ]["autoplay"]
+    ] == {"volume": 50, "muted": True, "autoplay": True}
 
     # delete session
     # * logout

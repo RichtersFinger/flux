@@ -26,6 +26,7 @@ CREATE TABLE users (
     is_admin INTEGER DEFAULT 0,
     -- user settings
     volume INTEGER DEFAULT 100,
+    muted INTEGER DEFAULT 0,
     autoplay INTEGER DEFAULT 0
 );
 
