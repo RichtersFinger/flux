@@ -95,9 +95,12 @@ WHERE is_primary_track = 1;
 
 -- user playbacks
 CREATE TABLE playbacks (
-    id TEXT NOT NULL PRIMARY KEY,
     username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
     video_id TEXT NOT NULL REFERENCES videos (id) ON DELETE CASCADE,
     timestamp INTEGER
 );
+
+-- only one playback per user and record
+CREATE UNIQUE INDEX unique_record_playback
+ON playbacks (username, record_id);
