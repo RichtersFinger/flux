@@ -58,7 +58,9 @@ def _patch_config(tmp: Path, request):
 @pytest.fixture(scope="session", name="cli_tmp_data")
 def _cli_tmp_data(tmp) -> Path:
     """Temporary test sub-directory"""
-    return tmp / str(uuid4())
+    cli_tmp = tmp / str(uuid4())
+    cli_tmp.mkdir(exist_ok=True, parents=True)
+    return cli_tmp
 
 
 @pytest.fixture(scope="session")
@@ -81,6 +83,7 @@ def tmp_series(fixtures: Path, cli_tmp_data: Path) -> Path:
 def tmp_movie(fixtures: Path, cli_tmp_data: Path) -> Path:
     """Generate fake movie and return path"""
     movie = cli_tmp_data / "fake-movie.mp4"
+    print(movie)
     copy(fixtures / "sample.mp4", movie)
     return movie
 

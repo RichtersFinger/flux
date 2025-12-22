@@ -486,6 +486,7 @@ def register_api(app: Flask):
     ):
         """Get current video-info."""
         video = None
+        timestamp = 0
         # * check for ongoing playbacks
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
@@ -493,7 +494,7 @@ def register_api(app: Flask):
             # FIXME: also read progress on video
             t.cursor.execute(
                 """
-                SELECT video_id
+                SELECT video_id, timestamp
                 FROM playbacks
                 WHERE username=? AND record_id=?
                 """,
@@ -504,6 +505,7 @@ def register_api(app: Flask):
             )
             query = t.cursor.fetchall()
             if len(query) > 0:
+                timestamp = query[0][1]
                 t.cursor.execute(
                     """
                     SELECT
@@ -560,7 +562,8 @@ def register_api(app: Flask):
         return (
             jsonify(
                 common.wrap_response_json(
-                    None, {"video": video, "playback": {}}
+                    None,
+                    {"video": video, "playback": {"timestamp": timestamp}},
                 )
             ),
             200,

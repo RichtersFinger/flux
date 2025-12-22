@@ -14,6 +14,8 @@ tags:
     description: user API
   - name: index
     description: index API
+  - name: playback
+    description: playback API
   - name: static
     description: endpoints for static data
 paths:
@@ -468,9 +470,76 @@ paths:
                       playback:
                         type: object
                         description: additional playback information
-                        additionalProperties: true
+                        properties:
+                          timestamp:
+                            type: number
+                            description: playback progress in seconds
+                            minimum: 0
+                            example: 85
                 required:
                   - meta
+  /api/v0/playback/{recordId}:
+    post:
+      summary: create or update playback info
+      description:
+        Create or update video playback information for a given record.
+      tags:
+        - playback
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: recordId
+          in: path
+          description: record identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    videoId:
+                      type: string
+                      description: identifier for current video
+                    timestamp:
+                      type: number
+                      description: playback progress in seconds
+                      minimum: 0
+                      example: 85
+                  required:
+                    - videoId
+                    - timestamp
+              required:
+                - content
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericResponseNoContent'
+    delete:
+      summary: delete playback info
+      description:
+        Delete video playback information for a given record.
+      tags:
+        - playback
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - name: recordId
+          in: path
+          description: record identifier
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericResponseNoContent'
   /video/{trackId}:
     get:
       summary: stream data

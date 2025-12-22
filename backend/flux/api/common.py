@@ -144,6 +144,32 @@ def validate_integer(
     return True, ""
 
 
+def validate_number(
+    data,
+    *,
+    minimum: Optional[int] = None,
+    maximum: Optional[int] = None,
+    name=None,
+) -> tuple[bool, str]:
+    """
+    Returns tuple
+    * validity
+    * message (in case of invalidity)
+    """
+    if name is None:
+        name = ""
+    else:
+        name = f" '{name}'"
+
+    if not isinstance(data, int) and not isinstance(data, float):
+        return False, f"Bad type in field{name} (not a number)."
+    if minimum is not None and data < minimum:
+        return False, f"Value '{data}' too small for field{name}."
+    if maximum is not None and data > maximum:
+        return False, f"Value '{data}' too large for field{name}."
+    return True, ""
+
+
 def validate_boolean(
     data,
     *,

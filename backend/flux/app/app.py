@@ -209,6 +209,7 @@ def app_factory() -> Flask:
     api_v0.default.register_api(_app)
     api_v0.user.register_api(_app)
     api_v0.index.register_api(_app)
+    api_v0.playback.register_api(_app)
 
     @_app.route("/", defaults={"path": ""})
     @_app.route("/<path:path>")
