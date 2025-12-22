@@ -74,11 +74,21 @@ export default function Watch() {
           );
         }
       }
+      let previousTimeUpdate = 0;
+      const TIMEUPDATE_RATE = 5; // in seconds
+      function handleVideoTimeupdate() {
+        if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
+          console.log(previousTimeUpdate, node.currentTime);
+          previousTimeUpdate = Math.round(node.currentTime);
+        }
+      }
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
+      node.addEventListener("timeupdate", handleVideoTimeupdate);
       return () => {
         node.removeEventListener("ended", handleOnVideoEnded);
         node.removeEventListener("error", handleOnVideoError);
+        node.removeEventListener("timeupdate", handleVideoTimeupdate);
       };
     },
     [videoId, recordInfo, navigate]
