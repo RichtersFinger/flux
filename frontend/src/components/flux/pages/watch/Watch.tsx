@@ -191,7 +191,19 @@ export default function Watch() {
           className="z-0 absolute w-full h-full"
           src={`${BASE_URL}/video/${videoInfo.trackId}`}
           autoPlay
-          onClick={() => setPaused((state) => !state)}
+          onClick={() => {
+            const fullscreenState = document.fullscreenElement;
+            setTimeout(() => {
+              // only pause/unpause if this click did not affect the
+              // fullscreen-state (double click)
+              if (document.fullscreenElement === fullscreenState)
+                setPaused((state) => !state);
+            }, 200);
+          }}
+          onDoubleClick={() => {
+            if (document.fullscreenElement) document.exitFullscreen();
+            else document.documentElement.requestFullscreen();
+          }}
         />
       )}
       {videoError ? (
