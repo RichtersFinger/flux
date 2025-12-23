@@ -98,7 +98,7 @@ export default function Watch() {
       let previousTimeUpdate = 0;
       const TIMEUPDATE_RATE = 5; // in seconds
       function handleVideoTimeupdate() {
-        setCurrentTime(Math.round(node.currentTime));
+        setCurrentTime(node.currentTime);
         if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
           console.log(previousTimeUpdate, node.currentTime);
           previousTimeUpdate = Math.round(node.currentTime);
@@ -317,68 +317,89 @@ export default function Watch() {
       {!videoError ? (
         <div
           ref={setupToolbarEvents}
-          className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 flex flex-row items-center justify-between pt-4 pb-2 px-4 text-white select-none transition-opacity"
+          className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 select-none transition-opacity"
         >
-          <div className="h-full flex flex-row items-center space-x-10">
+          <div className="relative h-0 overflow-y-visible w-full -translate-y-1 hover:cursor-pointer">
+            <div className="absolute top-0 left-0 bg-gray-700 h-1 w-full" />
             <div
-              className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
-              onClick={() => setPaused((state) => !state)}
-            >
-              {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
-            </div>
-            <div className="">
-              <span className="">
-                {convertToHumanReadableTime(
-                  currentTime,
-                  (videoRef.current?.duration ?? 0) > 3600
-                )}
-                {" / "}
-                {convertToHumanReadableTime(
-                  videoRef.current?.duration ?? 0,
-                  (videoRef.current?.duration ?? 0) > 3600
-                )}
-              </span>
-            </div>
-            <div className="flex flex-row space-x-5">
-              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
-                <FiRotateCcw size={25} />
-              </div>
-              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
-                <FiRotateCw size={25} />
-              </div>
-            </div>
-            <div className="flex flex-col space-y-1 text-nowrap max-w-96">
-              <div className="block line-clamp-1 truncate">
-                <span className="font-bold">{recordInfo?.name}</span>
-              </div>
-              <div className="block line-clamp-1 truncate">
-                <span>{videoInfo?.name}</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-full flex flex-row items-center space-x-5">
-            <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
-              <FiVolume2 size={30} />
-              <input type="range"></input>
-            </div>
-            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
-              <IoPlaySkipBack size={25} />
-            </div>
-            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
-              <IoPlaySkipForward size={25} />
-            </div>
-            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
-              <FiMenu size={25} />
-            </div>
-            <div
-              className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
-              onClick={() => {
-                if (videoError) return;
-                if (document.fullscreenElement) document.exitFullscreen();
-                else document.documentElement.requestFullscreen();
+              className="absolute top-0 left-0 bg-blue-700 aspect-square w-2 hover:w-4 rounded-full -translate-[calc(50%-2px)] transition-all"
+              style={{
+                marginLeft: `${
+                  (currentTime / (videoRef.current?.duration ?? 0)) * 100
+                }%`,
               }}
-            >
-              <FiMaximize size={30} />
+            />
+            <div
+              className="absolute top-0 left-0 bg-blue-700 h-1 hover:h-2 transition-all"
+              style={{
+                width: `${
+                  (currentTime / (videoRef.current?.duration ?? 0)) * 100
+                }%`,
+              }}
+            />
+          </div>
+          <div className="flex flex-row items-center justify-between py-2 px-4 text-white">
+            <div className="h-full flex flex-row items-center space-x-10">
+              <div
+                className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+                onClick={() => setPaused((state) => !state)}
+              >
+                {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
+              </div>
+              <div className="">
+                <span className="">
+                  {convertToHumanReadableTime(
+                    currentTime,
+                    (videoRef.current?.duration ?? 0) > 3600
+                  )}
+                  {" / "}
+                  {convertToHumanReadableTime(
+                    videoRef.current?.duration ?? 0,
+                    (videoRef.current?.duration ?? 0) > 3600
+                  )}
+                </span>
+              </div>
+              <div className="flex flex-row space-x-5">
+                <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                  <FiRotateCcw size={25} />
+                </div>
+                <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                  <FiRotateCw size={25} />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-1 text-nowrap max-w-96">
+                <div className="block line-clamp-1 truncate">
+                  <span className="font-bold">{recordInfo?.name}</span>
+                </div>
+                <div className="block line-clamp-1 truncate">
+                  <span>{videoInfo?.name}</span>
+                </div>
+              </div>
+            </div>
+            <div className="h-full flex flex-row items-center space-x-5">
+              <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
+                <FiVolume2 size={30} />
+                <input type="range"></input>
+              </div>
+              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <IoPlaySkipBack size={25} />
+              </div>
+              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <IoPlaySkipForward size={25} />
+              </div>
+              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <FiMenu size={25} />
+              </div>
+              <div
+                className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+                onClick={() => {
+                  if (videoError) return;
+                  if (document.fullscreenElement) document.exitFullscreen();
+                  else document.documentElement.requestFullscreen();
+                }}
+              >
+                <FiMaximize size={30} />
+              </div>
             </div>
           </div>
         </div>
