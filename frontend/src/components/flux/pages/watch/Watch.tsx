@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { IoPlay, IoPause } from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
@@ -19,6 +20,7 @@ export default function Watch() {
     undefined
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
+  const [paused, setPaused] = useState<boolean | undefined>(undefined);
 
   const { userConfiguration } = useSessionStore();
 
@@ -28,10 +30,35 @@ export default function Watch() {
   const videoId = search?.get("id") ?? undefined;
   useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
 
+  // HTML video ref
+  const videoRef = useRef<HTMLVideoElement>(undefined);
+
+  // handle play/pause
+  useEffect(() => {
+    if (paused) videoRef.current?.pause();
+    else videoRef.current?.play();
+  }, [paused]);
+
   // setup event listeners for hide and show
   const setupVideoEvents = useCallback(
     (node: HTMLVideoElement) => {
       if (!node) return;
+      // setup ref for HTML-element
+      videoRef.current = node;
+
+      // apply configuration
+      let previousTimeUpdate = 0;
+      const TIMEUPDATE_RATE = 5; // in seconds
+      function handleVideoTimeupdate() {
+        if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
+          console.log(previousTimeUpdate, node.currentTime);
+          previousTimeUpdate = Math.round(node.currentTime);
+        }
+      }
+      node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
+      node.muted = userConfiguration.settings?.muted ?? false;
+
+      // setup event handlers
       function handleOnVideoError() {
         setVideoError(
           "An unknown error occurred. This is most likely caused by a video format which does not support streaming."
@@ -82,16 +109,6 @@ export default function Watch() {
           );
         }
       }
-      let previousTimeUpdate = 0;
-      const TIMEUPDATE_RATE = 5; // in seconds
-      function handleVideoTimeupdate() {
-        if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
-          console.log(previousTimeUpdate, node.currentTime);
-          previousTimeUpdate = Math.round(node.currentTime);
-        }
-      }
-      node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
-      node.muted = userConfiguration.settings?.muted ?? false;
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
@@ -171,14 +188,14 @@ export default function Watch() {
       {videoInfo?.trackId && (
         <video
           ref={setupVideoEvents}
-          className="absolute w-full h-full"
+          className="z-0 absolute w-full h-full"
           src={`${BASE_URL}/video/${videoInfo.trackId}`}
-          controls
           autoPlay
+          onClick={() => setPaused((state) => !state)}
         />
       )}
       {videoError ? (
-        <div className="absolute left-1/2 top-1/2 -translate-1/2 space-y-2 text-white">
+        <div className="z-0 absolute left-1/2 top-1/2 -translate-1/2 space-y-2 text-white">
           <p className="font-semibold">{videoError}</p>
           <div>
             <h5>Video metadata:</h5>
@@ -186,6 +203,32 @@ export default function Watch() {
           </div>
         </div>
       ) : null}
+      {paused !== undefined && (
+        <div
+          className="z-10 absolute left-1/2 top-1/2 -translate-1/2 text-white opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+          onClick={() => setPaused((state) => !state)}
+        >
+          {paused ? (
+            <div key="play">
+              <IoPlay size={40} />
+            </div>
+          ) : (
+            <div
+              key="pause"
+              className="transition-all"
+              ref={(node) => {
+                const timeout = setTimeout(() => {
+                  node?.classList.add("scale-200");
+                  node?.classList.add("opacity-0");
+                }, 100);
+                return () => clearTimeout(timeout);
+              }}
+            >
+              <IoPause size={40} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
