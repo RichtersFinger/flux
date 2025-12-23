@@ -34,6 +34,12 @@ export default function Watch() {
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
 
+  const hideToolbar = useRef<boolean>(true);
+
+  const pageRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(undefined);
+
   const { userConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
@@ -42,16 +48,33 @@ export default function Watch() {
   const videoId = search?.get("id") ?? undefined;
   useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
 
-  // HTML video ref
-  const videoRef = useRef<HTMLVideoElement>(undefined);
-
   // handle play/pause
   useEffect(() => {
     if (paused) videoRef.current?.pause();
     else videoRef.current?.play();
   }, [paused]);
 
-  // setup event listeners for hide and show
+  // setup event listeners on toolbar
+  const setupToolbarEvents = useCallback((node: HTMLDivElement) => {
+    toolbarRef.current = node;
+    if (!toolbarRef.current) return;
+
+    function handleMouseEnter() {
+      hideToolbar.current = false;
+    }
+    function handleMouseLeave() {
+      hideToolbar.current = true;
+    }
+
+    toolbarRef.current.addEventListener("mouseenter", handleMouseEnter);
+    toolbarRef.current.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      toolbarRef.current?.removeEventListener("mouseenter", handleMouseEnter);
+      toolbarRef.current?.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
+
+  // setup event listeners on video
   const setupVideoEvents = useCallback(
     (node: HTMLVideoElement) => {
       if (!node) return;
@@ -71,11 +94,26 @@ export default function Watch() {
       node.muted = userConfiguration.settings?.muted ?? false;
 
       // setup event handlers
+      // * toolbar fading
+      let toolbarFadeout: number | undefined;
+      function handleOnMouseMove() {
+        if (!toolbarRef.current || !pageRef.current) return;
+        clearTimeout(toolbarFadeout);
+        toolbarRef.current.classList.remove("opacity-0");
+        toolbarRef.current.classList.add("opacity-100");
+        toolbarFadeout = setTimeout(() => {
+          if (!toolbarRef.current || !hideToolbar.current) return;
+          toolbarRef.current.classList.remove("opacity-100");
+          toolbarRef.current.classList.add("opacity-0");
+        }, 2000);
+      }
+      // * error
       function handleOnVideoError() {
         setVideoError(
           "An unknown error occurred. This is most likely caused by a video format which does not support streaming."
         );
       }
+      // * video ended/start next
       function handleOnVideoEnded() {
         if (
           userConfiguration.settings?.autoplay &&
@@ -121,10 +159,15 @@ export default function Watch() {
           );
         }
       }
+      if (pageRef.current)
+        pageRef.current.addEventListener("mousemove", handleOnMouseMove);
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
       return () => {
+        if (pageRef.current)
+          pageRef.current.removeEventListener("mousemove", handleOnMouseMove);
+        clearTimeout(toolbarFadeout);
         node.removeEventListener("ended", handleOnVideoEnded);
         node.removeEventListener("error", handleOnVideoError);
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
@@ -196,7 +239,7 @@ export default function Watch() {
   }, [videoId]);
 
   return (
-    <div className="relative w-full h-full bg-gray-950">
+    <div ref={pageRef} className="relative w-full h-full bg-gray-950">
       {videoInfo?.trackId && (
         <video
           ref={setupVideoEvents}
@@ -258,7 +301,10 @@ export default function Watch() {
       )}
       {/* toolbar */}
       {!videoError ? (
-        <div className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 flex flex-row items-center justify-between pt-4 pb-2 px-4 text-white select-none">
+        <div
+          ref={setupToolbarEvents}
+          className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 flex flex-row items-center justify-between pt-4 pb-2 px-4 text-white select-none transition-opacity"
+        >
           <div className="h-full flex flex-row items-center space-x-10">
             <div
               className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
@@ -274,7 +320,7 @@ export default function Watch() {
                 <FiRotateCw size={25} />
               </div>
             </div>
-            <div className="flex flex-col space-y-2 text-nowrap max-w-96">
+            <div className="flex flex-col space-y-1 text-nowrap max-w-96">
               <div className="block line-clamp-1 truncate">
                 <span className="font-bold">{recordInfo?.name}</span>
               </div>
