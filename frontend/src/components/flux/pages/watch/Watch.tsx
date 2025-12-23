@@ -26,6 +26,18 @@ import type {
 } from "../../../../types";
 import { useSessionStore } from "../../../../store";
 
+function convertToHumanReadableTime(
+  seconds: number,
+  includeHours: boolean = true
+) {
+  const hoursSegment = includeHours ? `${Math.round(seconds / 3600)}:` : "";
+  return `${hoursSegment}${Math.round((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0")}:${Math.round(seconds % 60)
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
@@ -33,6 +45,7 @@ export default function Watch() {
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
+  const [currentTime, setCurrentTime] = useState<number>(0);
 
   const hideToolbar = useRef<boolean>(true);
 
@@ -85,6 +98,7 @@ export default function Watch() {
       let previousTimeUpdate = 0;
       const TIMEUPDATE_RATE = 5; // in seconds
       function handleVideoTimeupdate() {
+        setCurrentTime(Math.round(node.currentTime));
         if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
           console.log(previousTimeUpdate, node.currentTime);
           previousTimeUpdate = Math.round(node.currentTime);
@@ -311,6 +325,19 @@ export default function Watch() {
               onClick={() => setPaused((state) => !state)}
             >
               {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
+            </div>
+            <div className="">
+              <span className="">
+                {convertToHumanReadableTime(
+                  currentTime,
+                  (videoRef.current?.duration ?? 0) > 3600
+                )}
+                {" / "}
+                {convertToHumanReadableTime(
+                  videoRef.current?.duration ?? 0,
+                  (videoRef.current?.duration ?? 0) > 3600
+                )}
+              </span>
             </div>
             <div className="flex flex-row space-x-5">
               <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
