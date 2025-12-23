@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
@@ -16,6 +16,7 @@ import {
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
+import { throttle } from "../../../../util/events";
 import { useToaster } from "../../../base/Toaster";
 import type {
   APIResponse,
@@ -45,9 +46,13 @@ export default function Watch() {
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
-  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [mousedownOnCurrentTimeSlider, setMousedownOnCurrentTimeSlider] =
+    useState(false);
+  const [draggingCurrentTimeSlider, setDraggingCurrentTimeSlider] =
+    useState(false);
 
-  const hideToolbar = useRef<boolean>(true);
+  const hideToolbar = useRef(true);
 
   const pageRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -63,9 +68,28 @@ export default function Watch() {
 
   // handle play/pause
   useEffect(() => {
+    if (mousedownOnCurrentTimeSlider) {
+      videoRef.current?.pause();
+      return;
+    }
     if (paused) videoRef.current?.pause();
     else videoRef.current?.play();
-  }, [paused]);
+  }, [paused, mousedownOnCurrentTimeSlider]);
+
+  // handle seek
+  useEffect(() => {
+    if (mousedownOnCurrentTimeSlider || !videoRef.current) return;
+    videoRef.current.currentTime = currentTime;
+    // eslint-disable-next-line
+  }, [mousedownOnCurrentTimeSlider]);
+
+  // user seeking video position by dragging should be throttled to
+  // avoid excessive state updates/re-renders
+  const throttledSetCurrentTime = useMemo(() => {
+    return throttle((currentTime) => {
+      setCurrentTime(currentTime as number);
+    }, 16);
+  }, [setCurrentTime]);
 
   // setup event listeners on toolbar
   const setupToolbarEvents = useCallback((node: HTMLDivElement) => {
@@ -253,7 +277,30 @@ export default function Watch() {
   }, [videoId]);
 
   return (
-    <div ref={pageRef} className="relative w-full h-full bg-gray-950">
+    <div
+      ref={pageRef}
+      className="relative w-full h-full bg-gray-950"
+      onMouseMove={(e) => {
+        if (mousedownOnCurrentTimeSlider) {
+          setDraggingCurrentTimeSlider(true);
+          throttledSetCurrentTime(
+            Math.round(
+              (e.clientX / e.currentTarget.clientWidth) *
+                (videoRef.current?.duration ?? 0)
+            )
+          );
+        }
+      }}
+      onMouseUp={(e) => {
+        if (mousedownOnCurrentTimeSlider)
+          setCurrentTime(
+            (e.clientX / e.currentTarget.clientWidth) *
+              (videoRef.current?.duration ?? 0)
+          );
+        setMousedownOnCurrentTimeSlider(false);
+        setDraggingCurrentTimeSlider(false);
+      }}
+    >
       {videoInfo?.trackId && (
         <video
           ref={setupVideoEvents}
@@ -317,28 +364,41 @@ export default function Watch() {
       {!videoError ? (
         <div
           ref={setupToolbarEvents}
-          className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 select-none transition-opacity"
+          className="absolute bottom-0 left-0 h-20 w-screen z-20 bg-black/80 select-none transition-all"
         >
-          <div className="relative h-0 overflow-y-visible w-full -translate-y-1 hover:cursor-pointer">
-            <div className="absolute top-0 left-0 bg-gray-700 h-1 w-full" />
+          <div
+            className="relative h-0 overflow-y-visible w-full -translate-y-1/2 hover:cursor-pointer transition-all"
+            onMouseDown={(e) => {
+              setMousedownOnCurrentTimeSlider(true);
+              setCurrentTime(
+                (e.clientX / e.currentTarget.clientWidth) *
+                  (videoRef.current?.duration ?? 0)
+              );
+            }}
+          >
+            <div className="absolute top-0 left-0 bg-gray-700 h-2 w-full" />
             <div
-              className="absolute top-0 left-0 bg-blue-700 aspect-square w-2 hover:w-4 rounded-full -translate-[calc(50%-2px)] transition-all"
+              className={`absolute top-0 left-0 bg-blue-700 aspect-square w-4 hover:w-5 rounded-full -translate-x-1/2 -translate-y-1/4 ${
+                draggingCurrentTimeSlider ? "" : "transition-all"
+              }`}
               style={{
                 marginLeft: `${
-                  (currentTime / (videoRef.current?.duration ?? 0)) * 100
+                  (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
                 }%`,
               }}
             />
             <div
-              className="absolute top-0 left-0 bg-blue-700 h-1 hover:h-2 transition-all"
+              className={`absolute top-0 left-0 bg-blue-700 h-2 hover:h-2 ${
+                draggingCurrentTimeSlider ? "" : "transition-all"
+              }`}
               style={{
                 width: `${
-                  (currentTime / (videoRef.current?.duration ?? 0)) * 100
+                  (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
                 }%`,
               }}
             />
           </div>
-          <div className="flex flex-row items-center justify-between py-2 px-4 text-white">
+          <div className="flex flex-row items-center justify-between pb-2 pt-5 px-4 text-white">
             <div className="h-full flex flex-row items-center space-x-10">
               <div
                 className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
@@ -350,12 +410,12 @@ export default function Watch() {
                 <span className="">
                   {convertToHumanReadableTime(
                     currentTime,
-                    (videoRef.current?.duration ?? 0) > 3600
+                    (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
                   )}
                   {" / "}
                   {convertToHumanReadableTime(
-                    videoRef.current?.duration ?? 0,
-                    (videoRef.current?.duration ?? 0) > 3600
+                    videoRef.current?.duration ?? 0, // eslint-disable-line react-hooks/refs
+                    (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
                   )}
                 </span>
               </div>
