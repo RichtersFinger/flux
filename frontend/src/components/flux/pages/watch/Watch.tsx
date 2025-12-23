@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IoPlay, IoPause } from "react-icons/io5";
+import {
+  FiRotateCcw,
+  FiRotateCw,
+  FiVolume2,
+  FiMaximize,
+  FiMenu,
+} from "react-icons/fi";
+import {
+  IoPlay,
+  IoPause,
+  IoPlaySkipBack,
+  IoPlaySkipForward,
+} from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
@@ -192,6 +204,7 @@ export default function Watch() {
           src={`${BASE_URL}/video/${videoInfo.trackId}`}
           autoPlay
           onClick={() => {
+            if (videoError) return;
             const fullscreenState = document.fullscreenElement;
             setTimeout(() => {
               // only pause/unpause if this click did not affect the
@@ -201,6 +214,7 @@ export default function Watch() {
             }, 200);
           }}
           onDoubleClick={() => {
+            if (videoError) return;
             if (document.fullscreenElement) document.exitFullscreen();
             else document.documentElement.requestFullscreen();
           }}
@@ -215,6 +229,7 @@ export default function Watch() {
           </div>
         </div>
       ) : null}
+      {/* play/pause on video */}
       {paused !== undefined && (
         <div
           className="z-10 absolute left-1/2 top-1/2 -translate-1/2 text-white opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
@@ -241,6 +256,60 @@ export default function Watch() {
           )}
         </div>
       )}
+      {/* toolbar */}
+      {!videoError ? (
+        <div className="absolute bottom-0 left-0 h-toolbar w-screen z-20 bg-black/80 flex flex-row items-center justify-between pt-4 pb-2 px-4 text-white select-none">
+          <div className="h-full flex flex-row items-center space-x-10">
+            <div
+              className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+              onClick={() => setPaused((state) => !state)}
+            >
+              {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
+            </div>
+            <div className="flex flex-row space-x-5">
+              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <FiRotateCcw size={25} />
+              </div>
+              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <FiRotateCw size={25} />
+              </div>
+            </div>
+            <div className="flex flex-col space-y-2 text-nowrap max-w-96">
+              <div className="block line-clamp-1 truncate">
+                <span className="font-bold">{recordInfo?.name}</span>
+              </div>
+              <div className="block line-clamp-1 truncate">
+                <span>{videoInfo?.name}</span>
+              </div>
+            </div>
+          </div>
+          <div className="h-full flex flex-row items-center space-x-5">
+            <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
+              <FiVolume2 size={30} />
+              <input type="range"></input>
+            </div>
+            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <IoPlaySkipBack size={25} />
+            </div>
+            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <IoPlaySkipForward size={25} />
+            </div>
+            <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <FiMenu size={25} />
+            </div>
+            <div
+              className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+              onClick={() => {
+                if (videoError) return;
+                if (document.fullscreenElement) document.exitFullscreen();
+                else document.documentElement.requestFullscreen();
+              }}
+            >
+              <FiMaximize size={30} />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
