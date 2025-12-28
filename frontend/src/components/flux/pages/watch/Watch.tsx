@@ -129,8 +129,18 @@ export default function Watch() {
       const TIMEUPDATE_RATE = 5; // in seconds
       function handleVideoTimeupdate() {
         setCurrentTime(node.currentTime);
-        if (node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE) {
-          console.log(previousTimeUpdate, node.currentTime);
+        if (
+          recordInfo &&
+          videoId &&
+          node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE
+        ) {
+          pFetch(`/api/v0/playback/${recordInfo.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: { videoId: videoId, timestamp: node.currentTime },
+            }),
+          });
           previousTimeUpdate = Math.round(node.currentTime);
         }
       }
