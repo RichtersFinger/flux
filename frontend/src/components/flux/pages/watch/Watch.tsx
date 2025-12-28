@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  FiArrowLeft,
   FiRotateCcw,
   FiRotateCw,
   FiVolumeX,
@@ -60,7 +61,6 @@ export default function Watch() {
 
   const hideToolbar = useRef(true);
 
-  const pageRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(undefined);
 
@@ -141,7 +141,7 @@ export default function Watch() {
       // * toolbar fading
       let toolbarFadeout: number | undefined;
       function handleOnMouseMove() {
-        if (!toolbarRef.current || !pageRef.current) return;
+        if (!toolbarRef.current) return;
         clearTimeout(toolbarFadeout);
         toolbarRef.current.classList.remove("opacity-0");
         toolbarRef.current.classList.add("opacity-100");
@@ -205,15 +205,13 @@ export default function Watch() {
           );
         }
       }
-      if (pageRef.current)
-        pageRef.current.addEventListener("mousemove", handleOnMouseMove);
+      document.addEventListener("mousemove", handleOnMouseMove);
       handleOnMouseMove();
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
       return () => {
-        if (pageRef.current)
-          pageRef.current.removeEventListener("mousemove", handleOnMouseMove);
+        document.removeEventListener("mousemove", handleOnMouseMove);
         clearTimeout(toolbarFadeout);
         node.removeEventListener("ended", handleOnVideoEnded);
         node.removeEventListener("error", handleOnVideoError);
@@ -222,6 +220,31 @@ export default function Watch() {
     },
     [userConfiguration.settings, videoId, recordInfo, navigate]
   );
+
+  // setup event listeners on video
+  const setupBackButtonEvents = useCallback((node: HTMLDivElement) => {
+    if (!node) return;
+
+    // setup event handlers
+    // * toolbar fading
+    let buttonFadeout: number | undefined;
+    function handleOnMouseMove() {
+      console.log(node);
+      clearTimeout(buttonFadeout);
+      node.classList.remove("opacity-0");
+      node.classList.add("opacity-100");
+      buttonFadeout = setTimeout(() => {
+        node.classList.remove("opacity-100");
+        node.classList.add("opacity-0");
+      }, 2000);
+    }
+    document.addEventListener("mousemove", handleOnMouseMove);
+    handleOnMouseMove();
+    return () => {
+      document.removeEventListener("mousemove", handleOnMouseMove);
+      clearTimeout(buttonFadeout);
+    };
+  }, []);
 
   // get video-info
   useEffect(() => {
@@ -287,7 +310,6 @@ export default function Watch() {
 
   return (
     <div
-      ref={pageRef}
       className="relative w-full h-full bg-gray-950"
       onMouseMove={(e) => {
         if (mousedownOnCurrentTimeSlider) {
@@ -342,6 +364,20 @@ export default function Watch() {
           </div>
         </div>
       ) : null}
+      {/* back to browse */}
+      <div
+        ref={setupBackButtonEvents}
+        className="z-20 absolute left-3 top-3 text-white transition-opacity"
+      >
+        <div
+          className={DEFAULT_ICON_BUTTON_STYLE}
+          onClick={() => {
+            navigate("/browse", new URLSearchParams());
+          }}
+        >
+          <FiArrowLeft size={30} />
+        </div>
+      </div>
       {/* play/pause on video */}
       {paused !== undefined && (
         <div
