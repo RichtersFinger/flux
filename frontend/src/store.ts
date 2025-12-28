@@ -1,4 +1,4 @@
-import type { APIResponse, SessionStore } from "./types";
+import type { APIResponse, SessionStore, UserConfiguration } from "./types";
 import { formatAPIErrorMessage, pFetch } from "./util/api";
 import { useToaster } from "./components/base/Toaster";
 import { createShallowStore } from "./hooks/Store";
@@ -72,6 +72,63 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
       set((state) => ({
         userConfiguration: { ...state.userConfiguration, ...userConfiguration },
       }));
+    },
+    fetchUserConfiguration: () => {
+      pFetch("/api/v0/user/configuration")
+        .then((response) => {
+          if (!response.ok) {
+            response.text().then((text) => console.error(text));
+            throw new Error(response.statusText);
+          }
+          return response.json();
+        })
+        .then((json: APIResponse<UserConfiguration>) => {
+          if (json.meta.ok && json.content)
+            get().setUserConfiguration(json.content);
+          else toast(formatAPIErrorMessage(json.meta));
+        })
+        .catch((error) => {
+          toast(
+            formatAPIErrorMessage({
+              error: {
+                code: 0,
+                short: "Connection error",
+                long: error.message,
+              },
+            })
+          );
+          console.error(error);
+        });
+    },
+    putUserConfiguration: (settings) => {
+      pFetch("/api/v0/user/configuration", {
+        method: "PUT",
+        body: JSON.stringify({"content": settings}),
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            response.text().then((text) => console.error(text));
+            throw new Error(response.statusText);
+          }
+          return response.json();
+        })
+        .then((json: APIResponse<UserConfiguration>) => {
+          if (json.meta.ok) get().fetchUserConfiguration();
+          else toast(formatAPIErrorMessage(json.meta));
+        })
+        .catch((error) => {
+          toast(
+            formatAPIErrorMessage({
+              error: {
+                code: 0,
+                short: "Connection error",
+                long: error.message,
+              },
+            })
+          );
+          console.error(error);
+        });
     },
   };
 });

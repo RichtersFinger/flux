@@ -15,7 +15,7 @@ export default function App() {
   const location = useLocation();
   const router = useRouter();
   const { toast } = useToaster();
-  const { loggedIn, checkLogin, setUserConfiguration } = useSessionStore();
+  const { loggedIn, checkLogin, fetchUserConfiguration } = useSessionStore();
 
   // check for valid session
   useEffect(() => checkLogin(), [checkLogin]);
@@ -30,27 +30,8 @@ export default function App() {
   // load user-configuration on valid login
   useEffect(() => {
     if (!loggedIn) return;
-    pFetch("/api/v0/user/configuration")
-      .then((response) => {
-        if (!response.ok) {
-          response.text().then((text) => console.error(text));
-          throw new Error(response.statusText);
-        }
-        return response.json();
-      })
-      .then((json: APIResponse<UserConfiguration>) => {
-        if (json.meta.ok && json.content) setUserConfiguration(json.content);
-        else toast(formatAPIErrorMessage(json.meta));
-      })
-      .catch((error) => {
-        toast(
-          formatAPIErrorMessage({
-            error: { code: 0, short: "Connection error", long: error.message },
-          })
-        );
-        console.error(error);
-      });
-  }, [loggedIn, setUserConfiguration, toast]);
+    fetchUserConfiguration();
+  }, [loggedIn, fetchUserConfiguration, toast]);
 
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">

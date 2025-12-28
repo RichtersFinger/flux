@@ -12,16 +12,18 @@ export interface APIResponse<ContentType = unknown> {
   content?: ContentType;
 }
 
+export interface UserConfigurationSettings {
+  volume: number;
+  muted: boolean;
+  autoplay: boolean;
+}
+
 export interface UserConfiguration {
   user?: {
     name: string;
     isAdmin: boolean;
   };
-  settings?: {
-    volume: number;
-    muted: boolean;
-    autoplay: boolean;
-  };
+  settings?: UserConfigurationSettings;
 }
 
 export interface SessionStore {
@@ -31,6 +33,8 @@ export interface SessionStore {
   setLoggedIn: (loggedIn: boolean) => void;
   userConfiguration: UserConfiguration;
   setUserConfiguration: (userConfiguration: Partial<UserConfiguration>) => void;
+  fetchUserConfiguration: () => void;
+  putUserConfiguration: (settings: Partial<UserConfigurationSettings>) => void;
 }
 
 export interface RecordMetadata {
