@@ -42,6 +42,14 @@ def test_playback_post_delete(patch_config, tmp_movie: Path, login):
         "content"
     ]["id"]
 
+    # check continue-able records
+    assert (
+        client.get("/api/v0/index/records?continue=true").json["content"][
+            "count"
+        ]
+        == 0
+    )
+
     # initial post
     response = client.post(
         f"/api/v0/playback/{record_id}",
@@ -54,6 +62,11 @@ def test_playback_post_delete(patch_config, tmp_movie: Path, login):
         ]["playback"]["timestamp"]
         == 0
     )
+
+    # check continue-able records again
+    records = client.get("/api/v0/index/records?continue=true").json
+    assert records["content"]["count"] == 1
+    assert records["content"]["records"][0]["id"] == record_id
 
     # update
     response = client.post(

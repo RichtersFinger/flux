@@ -319,14 +319,15 @@ def register_api(app: Flask):
     @app.route("/api/v0/index/records", methods=["GET"])
     @common.session_cookie_auth()
     def list_records(
-        # pylint: disable=unused-argument
-        *args,
+        _: str,
+        username: str,
     ):
         """List records in index."""
         # validate&parse request
         search = request.args.get("search")
         type_ = request.args.get("type")
         range_ = request.args.get("range")
+        continue_ = request.args.get("continue", "false") == "true"
         if type_ is not None:
             valid, msg = common.run_validation(
                 [validate_content_type],
@@ -366,12 +367,23 @@ def register_api(app: Flask):
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
             t.cursor.execute(
-                f"""
-                SELECT COUNT(*)
-                FROM records
-                {'WHERE' if filters else ''} {' AND '.join(filters)}
-                """,
-                filter_args,
+                (
+                    f"""
+                    SELECT COUNT(*)
+                    FROM records
+                    {'WHERE' if filters else ''} {' AND '.join(filters)}
+                    JOIN
+                        playbacks ON records.id = playbacks.record_id
+                        WHERE playbacks.username=?
+                    """
+                    if continue_
+                    else f"""
+                    SELECT COUNT(*)
+                    FROM records
+                    {'WHERE' if filters else ''} {' AND '.join(filters)}
+                    """
+                ),
+                filter_args + ((username,) if continue_ else ()),
             )
         count = t.data[0][0]
 
@@ -386,13 +398,32 @@ def register_api(app: Flask):
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
             t.cursor.execute(
-                f"""
-                SELECT id, type, name, description, thumbnail_id
-                FROM records
-                {'WHERE' if filters else ''} {' AND '.join(filters)}
-                {range_filter}
-                """,
-                filter_args + range_filter_args,
+                (
+                    f"""
+                    SELECT
+                        records.id,
+                        records.type,
+                        records.name,
+                        records.description,
+                        records.thumbnail_id
+                    FROM records
+                    {'WHERE' if filters else ''} {' AND '.join(filters)}
+                    JOIN
+                        playbacks ON records.id = playbacks.record_id
+                        WHERE playbacks.username=?
+                    {range_filter}
+                    """
+                    if continue_
+                    else f"""
+                    SELECT id, type, name, description, thumbnail_id
+                    FROM records
+                    {'WHERE' if filters else ''} {' AND '.join(filters)}
+                    {range_filter}
+                """
+                ),
+                filter_args
+                + ((username,) if continue_ else ())
+                + range_filter_args,
             )
 
         records = [

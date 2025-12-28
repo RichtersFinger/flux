@@ -305,6 +305,16 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/RecordType'
+        - name: continue
+          in: query
+          description: request records that have been watched before
+          required: false
+          schema:
+            type: string
+            enum:
+              - 'true'
+              - 'false'
+            default: 'false'
         - name: range
           in: query
           description: request subset of records
