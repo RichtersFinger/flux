@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
+  FiVolumeX,
+  FiVolume,
+  FiVolume1,
   FiVolume2,
   FiMaximize,
   FiMenu,
@@ -39,6 +42,9 @@ function convertToHumanReadableTime(
     .padStart(2, "0")}`;
 }
 
+const DEFAULT_ICON_BUTTON_STYLE =
+  "opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all";
+
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
@@ -58,7 +64,7 @@ export default function Watch() {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(undefined);
 
-  const { userConfiguration } = useSessionStore();
+  const { userConfiguration, putUserConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -338,7 +344,7 @@ export default function Watch() {
       {/* play/pause on video */}
       {paused !== undefined && (
         <div
-          className="z-10 absolute left-1/2 top-1/2 -translate-1/2 text-white opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+          className={`z-10 absolute left-1/2 top-1/2 -translate-1/2 text-white ${DEFAULT_ICON_BUTTON_STYLE}`}
           onClick={() => setPaused((state) => !state)}
         >
           {paused ? (
@@ -403,7 +409,7 @@ export default function Watch() {
           <div className="flex flex-row items-center justify-between pb-2 pt-5 px-4 text-white">
             <div className="h-full flex flex-row items-center space-x-10">
               <div
-                className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+                className={DEFAULT_ICON_BUTTON_STYLE}
                 onClick={() => setPaused((state) => !state)}
               >
                 {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
@@ -422,10 +428,10 @@ export default function Watch() {
                 </span>
               </div>
               <div className="flex flex-row space-x-5">
-                <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <div className={DEFAULT_ICON_BUTTON_STYLE}>
                   <FiRotateCcw size={25} />
                 </div>
-                <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+                <div className={DEFAULT_ICON_BUTTON_STYLE}>
                   <FiRotateCw size={25} />
                 </div>
               </div>
@@ -440,20 +446,45 @@ export default function Watch() {
             </div>
             <div className="h-full flex flex-row items-center space-x-5">
               <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
-                <FiVolume2 size={30} />
-                <input type="range"></input>
+                <div
+                  onClick={() => {
+                    putUserConfiguration({
+                      muted: !userConfiguration.settings?.muted,
+                    });
+                  }}
+                >
+                  {userConfiguration.settings?.muted ? (
+                    <FiVolumeX size={30} />
+                  ) : (userConfiguration.settings?.volume ?? 0) < 33 ? (
+                    <FiVolume size={30} />
+                  ) : (userConfiguration.settings?.volume ?? 0) < 66 ? (
+                    <FiVolume1 size={30} />
+                  ) : (
+                    <FiVolume2 size={30} />
+                  )}
+                </div>
+                <input
+                  type="range"
+                  value={userConfiguration.settings?.volume ?? 0}
+                  onChange={(e) => {
+                    // TODO: fix dragging causes many API-requests
+                    putUserConfiguration({
+                      volume: Number(e.target.value),
+                    });
+                  }}
+                />
               </div>
-              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <div className={DEFAULT_ICON_BUTTON_STYLE}>
                 <IoPlaySkipBack size={25} />
               </div>
-              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <div className={DEFAULT_ICON_BUTTON_STYLE}>
                 <IoPlaySkipForward size={25} />
               </div>
-              <div className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all">
+              <div className={DEFAULT_ICON_BUTTON_STYLE}>
                 <FiMenu size={25} />
               </div>
               <div
-                className="opacity-50 hover:opacity-70 hover:cursor-pointer hover:scale-110 transition-all"
+                className={DEFAULT_ICON_BUTTON_STYLE}
                 onClick={() => {
                   if (videoError) return;
                   if (document.fullscreenElement) document.exitFullscreen();
