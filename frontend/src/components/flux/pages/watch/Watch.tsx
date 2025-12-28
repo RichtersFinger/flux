@@ -139,10 +139,12 @@ export default function Watch() {
         clearTimeout(toolbarFadeout);
         toolbarRef.current.classList.remove("opacity-0");
         toolbarRef.current.classList.add("opacity-100");
+        document.body.style.cursor = "";
         toolbarFadeout = setTimeout(() => {
           if (!toolbarRef.current || !hideToolbar.current) return;
           toolbarRef.current.classList.remove("opacity-100");
           toolbarRef.current.classList.add("opacity-0");
+          document.body.style.cursor = "none";
         }, 2000);
       }
       // * error
