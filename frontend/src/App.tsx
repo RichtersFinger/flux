@@ -16,7 +16,9 @@ export default function App() {
   const { loggedIn, checkLogin, fetchUserConfiguration } = useSessionStore();
 
   // reset potentially hidden cursor
-  document.body.style.cursor = "";
+  useEffect(() => {
+    document.body.style.cursor = "";
+  }, [location.pathname]);
 
   // check for valid session
   useEffect(() => checkLogin(), [checkLogin]);
