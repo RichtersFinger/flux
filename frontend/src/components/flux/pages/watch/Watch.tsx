@@ -207,6 +207,7 @@ export default function Watch() {
       }
       if (pageRef.current)
         pageRef.current.addEventListener("mousemove", handleOnMouseMove);
+      handleOnMouseMove();
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);

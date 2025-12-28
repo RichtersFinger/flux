@@ -15,6 +15,9 @@ export default function App() {
   const { toast } = useToaster();
   const { loggedIn, checkLogin, fetchUserConfiguration } = useSessionStore();
 
+  // reset potentially hidden cursor
+  document.body.style.cursor = "";
+
   // check for valid session
   useEffect(() => checkLogin(), [checkLogin]);
 
