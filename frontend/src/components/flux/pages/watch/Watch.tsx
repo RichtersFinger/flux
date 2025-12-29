@@ -32,9 +32,11 @@ import type {
 import { useSessionStore } from "../../../../store";
 
 function convertToHumanReadableTime(
-  seconds: number,
+  seconds?: number,
   includeHours: boolean = true
 ) {
+  if (seconds === undefined) return "-";
+  if (isNaN(seconds)) return "-";
   const hoursSegment = includeHours ? `${Math.round(seconds / 3600)}:` : "";
   return `${hoursSegment}${Math.round((seconds % 3600) / 60)
     .toString()
@@ -151,7 +153,7 @@ export default function Watch() {
       node.muted = userConfiguration.settings?.muted ?? false;
       node.currentTime = currentTime;
       if (search?.get("t")) {
-        navigate(undefined, new URLSearchParams({id: videoId ?? ""}))
+        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }));
       }
 
       // setup event handlers
@@ -468,15 +470,15 @@ export default function Watch() {
               >
                 {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
               </div>
-              <div className="">
-                <span className="">
+              <div>
+                <span>
                   {convertToHumanReadableTime(
                     currentTime,
                     (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
                   )}
                   {" / "}
                   {convertToHumanReadableTime(
-                    videoRef.current?.duration ?? 0, // eslint-disable-line react-hooks/refs
+                    videoRef.current?.duration, // eslint-disable-line react-hooks/refs
                     (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
                   )}
                 </span>
