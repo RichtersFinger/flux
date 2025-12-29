@@ -53,7 +53,6 @@ export default function Watch() {
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
-  const [currentTime, setCurrentTime] = useState(0);
   const [mousedownOnCurrentTimeSlider, setMousedownOnCurrentTimeSlider] =
     useState(false);
   const [draggingCurrentTimeSlider, setDraggingCurrentTimeSlider] =
@@ -71,6 +70,10 @@ export default function Watch() {
   const { toast } = useToaster();
   const videoId = search?.get("id") ?? undefined;
   useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
+
+  const [currentTime, setCurrentTime] = useState(
+    Number(search?.get("t") ?? "0")
+  );
 
   // handle play/pause
   useEffect(() => {
@@ -146,6 +149,10 @@ export default function Watch() {
       }
       node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
       node.muted = userConfiguration.settings?.muted ?? false;
+      node.currentTime = currentTime;
+      if (search?.get("t")) {
+        navigate(undefined, new URLSearchParams({id: videoId ?? ""}))
+      }
 
       // setup event handlers
       // * toolbar fading
@@ -228,6 +235,7 @@ export default function Watch() {
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
       };
     },
+    // eslint-disable-next-line
     [userConfiguration.settings, videoId, recordInfo, navigate]
   );
 
@@ -239,7 +247,6 @@ export default function Watch() {
     // * toolbar fading
     let buttonFadeout: number | undefined;
     function handleOnMouseMove() {
-      console.log(node);
       clearTimeout(buttonFadeout);
       node.classList.remove("opacity-0");
       node.classList.add("opacity-100");

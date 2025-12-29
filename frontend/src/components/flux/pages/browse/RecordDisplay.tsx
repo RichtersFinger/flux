@@ -25,11 +25,24 @@ export default function RecordDisplay({ record }: RecordDisplayProps) {
             }
             return response.json();
           })
-          .then((json: APIResponse<{video: VideoInfo}>) => {
-            if (json.meta.ok && json.content)
-              navigate("/watch", new URLSearchParams({ id: json.content.video.id }));
-            else toast(formatAPIErrorMessage(json.meta));
-          })
+          .then(
+            (
+              json: APIResponse<{
+                video: VideoInfo;
+                playback?: { timestamp?: number };
+              }>
+            ) => {
+              if (json.meta.ok && json.content)
+                navigate(
+                  "/watch",
+                  new URLSearchParams({
+                    id: json.content.video.id,
+                    t: (json.content.playback?.timestamp ?? 0).toString(),
+                  })
+                );
+              else toast(formatAPIErrorMessage(json.meta));
+            }
+          )
           .catch((error) => {
             toast(
               formatAPIErrorMessage({
