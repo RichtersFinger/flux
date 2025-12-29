@@ -151,9 +151,9 @@ export default function Watch() {
       }
       node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
       node.muted = userConfiguration.settings?.muted ?? false;
-      node.currentTime = currentTime;
       if (search?.get("t")) {
-        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }));
+        node.currentTime = currentTime;
+        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }), false);
       }
 
       // setup event handlers
