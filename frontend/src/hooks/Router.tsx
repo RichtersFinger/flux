@@ -38,19 +38,23 @@ const locationStore: LocationStore = {
   navigate(pathname, search, useHistory = true) {
     // update store
     if (pathname !== undefined) locationStore.pathname = pathname;
-    if (search !== undefined) {
+    if (search !== undefined)
       locationStore.search = new URLSearchParams(search);
-    }
 
     // update location
-    if (useHistory) {
-      const query = locationStore.search?.toString() ?? "";
+    const query = locationStore.search?.toString() ?? "";
+    if (useHistory)
       window.history.pushState(
-        {},
+        null,
         "",
         locationStore.pathname + (query === "" ? "" : `?${query}`)
       );
-    }
+    else
+      window.history.replaceState(
+        null,
+        "",
+        locationStore.pathname + (query === "" ? "" : `?${query}`)
+      );
 
     // notify subscribers
     if (pathname !== undefined)
