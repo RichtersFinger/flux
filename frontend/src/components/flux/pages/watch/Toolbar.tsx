@@ -9,12 +9,7 @@ import {
   FiMaximize,
   FiMenu,
 } from "react-icons/fi";
-import {
-  IoPlay,
-  IoPause,
-  IoPlaySkipBack,
-  IoPlaySkipForward,
-} from "react-icons/io5";
+import { IoPlay, IoPause } from "react-icons/io5";
 
 import { BASE_URL } from "../../../../util/api";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
@@ -219,12 +214,6 @@ export default function Toolbar({
                 });
               }}
             />
-          </div>
-          <div className={DEFAULT_ICON_BUTTON_STYLE}>
-            <IoPlaySkipBack size={25} />
-          </div>
-          <div className={DEFAULT_ICON_BUTTON_STYLE}>
-            <IoPlaySkipForward size={25} />
           </div>
           {recordInfo.type === "collection" ? (
             <ContextMenu
