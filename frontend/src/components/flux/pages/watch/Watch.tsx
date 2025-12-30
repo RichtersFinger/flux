@@ -101,7 +101,10 @@ export default function Watch() {
       }
       node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
       node.muted = userConfiguration.settings?.muted ?? false;
-      if (search?.get("t")) node.currentTime = Number(search.get("t"));
+      if (search?.get("t")) {
+        node.currentTime = Number(search.get("t"));
+        navigate(undefined, new URLSearchParams({id: videoId ?? ""}))
+      }
 
       // setup event handlers
       // * toolbar fading
