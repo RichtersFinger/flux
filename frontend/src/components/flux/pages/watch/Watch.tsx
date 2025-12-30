@@ -87,7 +87,7 @@ export default function Watch() {
         if (
           recordInfo &&
           videoId &&
-          node.currentTime > previousTimeUpdate + TIMEUPDATE_RATE
+          Math.abs(node.currentTime - previousTimeUpdate) > TIMEUPDATE_RATE
         ) {
           pFetch(`/api/v0/playback/${recordInfo.id}`, {
             method: "POST",
