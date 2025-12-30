@@ -103,7 +103,7 @@ export default function Watch() {
       node.muted = userConfiguration.settings?.muted ?? false;
       if (search?.get("t")) {
         node.currentTime = Number(search.get("t"));
-        navigate(undefined, new URLSearchParams({id: videoId ?? ""}))
+        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }));
       }
 
       // setup event handlers
@@ -278,7 +278,9 @@ export default function Watch() {
 
   return (
     <div
-      className="relative w-full h-full bg-gray-950"
+      className={`relative w-full h-full ${
+        videoError ? "bg-gray-950" : "bg-black"
+      }`}
       onMouseMove={(e) => {
         if (mousedownOnCurrentTimeSlider) {
           setDraggingCurrentTimeSlider(true);
