@@ -152,21 +152,25 @@ export default function Toolbar({
           </div>
           <div className="flex flex-row space-x-5">
             <div
-              className={DEFAULT_ICON_BUTTON_STYLE}
+              className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
               onClick={() => {
                 if (!videoRef.current) return;
                 videoRef.current.currentTime -= 5;
               }}
             >
+              <span className="absolute text-xs -translate-3/4">5s</span>
               <FiRotateCcw size={25} />
             </div>
             <div
-              className={DEFAULT_ICON_BUTTON_STYLE}
+              className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
               onClick={() => {
                 if (!videoRef.current) return;
                 videoRef.current.currentTime += 5;
               }}
             >
+              <span className="absolute text-xs -translate-y-3/4 right-0 translate-x-3/4">
+                5s
+              </span>
               <FiRotateCw size={25} />
             </div>
           </div>
