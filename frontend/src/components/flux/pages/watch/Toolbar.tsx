@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
@@ -15,9 +16,12 @@ import {
   IoPlaySkipForward,
 } from "react-icons/io5";
 
+import { BASE_URL } from "../../../../util/api";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
-import type { RecordInfo, VideoInfo } from "../../../../types";
+import type { CollectionInfo, RecordInfo, VideoInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
+import ContextMenu from "../../../base/ContextMenu";
+import { useRouter } from "../../../../hooks/Router";
 
 /**
  * Converts a time in seconds to a human-readable format.
@@ -70,6 +74,9 @@ export default function Toolbar({
   setMousedownOnCurrentTimeSlider,
   draggingCurrentTimeSlider,
 }: ToolbarProps) {
+  const [openNavigationMenu, setOpenNavigationMenu] = useState(false);
+
+  const { navigate } = useRouter();
   const { userConfiguration, putUserConfiguration } = useSessionStore();
 
   // setup event listeners on toolbar
@@ -219,9 +226,54 @@ export default function Toolbar({
           <div className={DEFAULT_ICON_BUTTON_STYLE}>
             <IoPlaySkipForward size={25} />
           </div>
-          <div className={DEFAULT_ICON_BUTTON_STYLE}>
-            <FiMenu size={25} />
-          </div>
+          {recordInfo.type === "collection" ? (
+            <ContextMenu
+              className="min-w-96"
+              open={openNavigationMenu}
+              position="tl"
+              items={(recordInfo.content as CollectionInfo).map((video) => ({
+                id: video.id,
+                content: (
+                  <div
+                    className={`flex flex-row space-x-2 items-center p-1 ${
+                      video.id === videoInfo.id
+                        ? "border-2 border-gray-500"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (video.id === videoInfo.id) return;
+                      navigate(
+                        undefined,
+                        new URLSearchParams({ id: video.id })
+                      );
+                    }}
+                  >
+                    <img
+                      className="w-24 aspect-video"
+                      src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+                    />
+
+                    <div className="flex flex-col space-y-1 text-nowrap max-w-72">
+                      <div className="block line-clamp-1 truncate">
+                        <span className="font-bold">{video.name}</span>
+                      </div>
+                      <div className="block line-clamp-1 truncate">
+                        <span>{video.description}</span>
+                      </div>
+                    </div>
+                  </div>
+                ),
+              }))}
+              onDismiss={() => setOpenNavigationMenu(false)}
+            >
+              <div
+                className={DEFAULT_ICON_BUTTON_STYLE}
+                onClick={() => setOpenNavigationMenu((state) => !state)}
+              >
+                <FiMenu size={25} />
+              </div>
+            </ContextMenu>
+          ) : null}
           <div
             className={DEFAULT_ICON_BUTTON_STYLE}
             onClick={() => {
