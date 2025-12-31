@@ -15,8 +15,8 @@ import { BASE_URL } from "../../../../util/api";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import type { CollectionInfo, RecordInfo, VideoInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
-import ContextMenu from "../../../base/ContextMenu";
 import { useRouter } from "../../../../hooks/Router";
+import BaseOverlay from "../../../base/BaseOverlay";
 
 /**
  * Converts a time in seconds to a human-readable format.
@@ -223,43 +223,44 @@ export default function Toolbar({
             />
           </div>
           {recordInfo.type === "collection" ? (
-            <ContextMenu
-              className="min-w-96"
+            <BaseOverlay
               open={openNavigationMenu}
-              position="tl"
-              items={(recordInfo.content as CollectionInfo).map((video) => ({
-                id: video.id,
-                content: (
-                  <div
-                    className={`flex flex-row space-x-2 items-center p-1 ${
-                      video.id === videoInfo.id
-                        ? "border-2 border-gray-500"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (video.id === videoInfo.id) return;
-                      navigate(
-                        undefined,
-                        new URLSearchParams({ id: video.id })
-                      );
-                    }}
-                  >
-                    <img
-                      className="w-24 aspect-video"
-                      src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
-                    />
-
-                    <div className="flex flex-col space-y-1 text-nowrap max-w-72">
-                      <div className="block line-clamp-1 truncate">
-                        <span className="font-bold">{video.name}</span>
+              content={
+                openNavigationMenu && (
+                  <div className="w-96 max-h-[80vh] px-2 py-2 absolute overflow-y-auto overflow-x-clip show-dark-scrollbar space-y-2 rounded-xl bg-gray-900 text-gray-200 shadow-xl text-nowrap select-none flex flex-col m-1 right-0 -translate-y-full -top-2">
+                    {(recordInfo.content as CollectionInfo).map((video) => (
+                      <div
+                        key={video.id}
+                        className={`flex flex-row space-x-2 items-center rounded p-2 ${
+                          video.id === videoInfo.id
+                            ? "border-2 border-gray-500"
+                            : "hover:cursor-pointer hover:bg-gray-800"
+                        }`}
+                        onClick={() => {
+                          if (video.id === videoInfo.id) return;
+                          navigate(
+                            undefined,
+                            new URLSearchParams({ id: video.id })
+                          );
+                        }}
+                      >
+                        <img
+                          className="w-24 aspect-video"
+                          src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+                        />
+                        <div className="flex flex-col space-y-1 max-w-72 overflow-hidden">
+                          <div className="font-bold truncate">
+                            <span>{video.name}</span>
+                          </div>
+                          <div className="text-gray-400 truncate">
+                            <span>{video.description}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="block line-clamp-1 truncate">
-                        <span>{video.description}</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ),
-              }))}
+                )
+              }
               onDismiss={() => setOpenNavigationMenu(false)}
             >
               <div
@@ -268,7 +269,7 @@ export default function Toolbar({
               >
                 <FiMenu size={25} />
               </div>
-            </ContextMenu>
+            </BaseOverlay>
           ) : null}
           <div
             className={DEFAULT_ICON_BUTTON_STYLE}
