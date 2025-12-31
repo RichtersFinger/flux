@@ -11,7 +11,7 @@ export default function Avatar({
 }: AvatarProps) {
   return (
     <div
-      className={`relative aspect-square w-12 bg-gray-500 border-gray-200 border-2 text-gray-200 text-3xl rounded-full select-none hover:cursor-pointer ${className}`}
+      className={`relative aspect-square w-12 bg-gray-800 border-gray-500 border-2 text-gray-200 text-3xl rounded-full select-none hover:cursor-pointer ${className}`}
       onClick={onClick}
     >
       <div className="relative w-full h-full flex flex-row items-center justify-center font-semibold">
