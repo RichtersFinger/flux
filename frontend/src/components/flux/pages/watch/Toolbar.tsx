@@ -48,6 +48,7 @@ interface ToolbarProps {
   setPaused: React.Dispatch<React.SetStateAction<boolean | undefined>>;
   currentTime: number;
   setCurrentTime: React.Dispatch<React.SetStateAction<number>>;
+  playbackRate: number;
   mousedownOnCurrentTimeSlider: boolean;
   setMousedownOnCurrentTimeSlider: React.Dispatch<
     React.SetStateAction<boolean>
@@ -66,6 +67,7 @@ export default function Toolbar({
   setPaused,
   currentTime,
   setCurrentTime,
+  playbackRate,
   setMousedownOnCurrentTimeSlider,
   draggingCurrentTimeSlider,
 }: ToolbarProps) {
@@ -134,10 +136,15 @@ export default function Toolbar({
       <div className="flex flex-row items-center justify-between pb-2 pt-5 px-4 text-white">
         <div className="h-full flex flex-row items-center space-x-10">
           <div
-            className={DEFAULT_ICON_BUTTON_STYLE}
+            className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
             onClick={() => setPaused((state) => !state)}
           >
             {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
+            {Math.abs(playbackRate - 1.0) > 0.05 && (
+              <span className="absolute right-0 bottom-0 text-xs translate-3/4">
+                {playbackRate.toPrecision(2)}x
+              </span>
+            )}
           </div>
           <div>
             <span>

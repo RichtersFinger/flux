@@ -84,6 +84,7 @@ export default function Watch() {
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
   const [mousedownOnCurrentTimeSlider, setMousedownOnCurrentTimeSlider] =
     useState(false);
   const [draggingCurrentTimeSlider, setDraggingCurrentTimeSlider] =
@@ -119,6 +120,12 @@ export default function Watch() {
     if (paused) videoRef.current?.pause();
     else videoRef.current?.play();
   }, [paused, mousedownOnCurrentTimeSlider]);
+
+  // handle change in playback rate
+  useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = playbackRate;
+  }, [playbackRate]);
 
   // handle seek
   useEffect(() => {
@@ -430,6 +437,7 @@ export default function Watch() {
             setPaused,
             currentTime,
             setCurrentTime,
+            playbackRate,
             mousedownOnCurrentTimeSlider,
             setMousedownOnCurrentTimeSlider,
             draggingCurrentTimeSlider,
@@ -498,10 +506,8 @@ export default function Watch() {
                     <span>Slower</span>
                   </div>
                 ),
-                onClick: () => {
-                  if (!videoRef.current) return;
-                  videoRef.current.playbackRate -= 0.1;
-                },
+                disabled: playbackRate < 0.45,
+                onClick: () => setPlaybackRate((state) => state - 0.2),
               },
               {
                 id: "Faster",
@@ -511,10 +517,8 @@ export default function Watch() {
                     <span>Faster</span>
                   </div>
                 ),
-                onClick: () => {
-                  if (!videoRef.current) return;
-                  videoRef.current.playbackRate += 0.1;
-                },
+                disabled: playbackRate > 1.95,
+                onClick: () => setPlaybackRate((state) => state + 0.2),
               },
             ]}
           ></ContextMenu>
