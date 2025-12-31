@@ -448,7 +448,7 @@ export default function Watch() {
       {/* context menu */}
       {openContextMenu && (
         <div
-          className="absolute w-32"
+          className="z-20 absolute w-32"
           style={{
             left: contextMenuPosition[0],
             top: contextMenuPosition[1],
