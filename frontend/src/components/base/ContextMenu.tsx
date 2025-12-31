@@ -41,10 +41,10 @@ export default function ContextMenu({
         open &&
         (items?.length ?? 0 > 0) && (
           <div
-            className={`w-full absolute rounded bg-gray-800 border-gray-400 text-gray-200 border-2 shadow-xl text-nowrap select-none flex flex-col m-1 ${PositionStyles[position]} ${className}`}
+            className={`w-full absolute overflow-clip rounded-xl bg-gray-900 text-gray-200 shadow-xl text-nowrap select-none flex flex-col m-1 ${PositionStyles[position]} ${className}`}
           >
             {title ? (
-              <div className="px-3 py-2 mb-0 bg-gray-400 text-gray-900">
+              <div className="px-5 py-3 mb-0 bg-gray-500 text-gray-950">
                 {title}
               </div>
             ) : null}
@@ -52,14 +52,14 @@ export default function ContextMenu({
               item.disabled ? (
                 <div
                   key={item.id}
-                  className="w-full truncate px-3 py-2 hover:cursor-not-allowed bg-gray-600 text-gray-400"
+                  className="w-full truncate px-5 py-3 hover:cursor-not-allowed bg-gray-600 text-gray-400"
                 >
                   {item.content}
                 </div>
               ) : (
                 <div
                   key={item.id}
-                  className="w-full truncate px-3 py-2 hover:cursor-pointer hover:bg-gray-300 hover:text-gray-800"
+                  className="w-full truncate px-5 py-3 transition-colors hover:cursor-pointer hover:bg-gray-800"
                   onClick={item.onClick}
                 >
                   {item.content}
@@ -74,3 +74,26 @@ export default function ContextMenu({
     </BaseOverlay>
   );
 }
+
+interface ContextMenuBasicProps {
+  className?: string;
+  icon?: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+function ContextMenuBasicItem({
+  className = "",
+  icon,
+  children,
+}: ContextMenuBasicProps) {
+  return (
+    <div
+      className={`w-full inline-flex items-center ${className}`}
+    >
+      {icon? <div className="w-5 mr-5 overflow-clip">{icon}</div> : null}
+      <span className="text-nowrap truncate">{children}</span>
+    </div>
+  );
+}
+
+ContextMenu.BasicItem = ContextMenuBasicItem;

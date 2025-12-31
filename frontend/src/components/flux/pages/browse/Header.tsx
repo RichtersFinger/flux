@@ -30,28 +30,25 @@ export default function Header() {
         className="min-w-48"
         open={openMenu}
         title={
-          <div className="flex flex-row space-x-2 items-center">
-            <FiUser size={20} />
-            <span>{userConfiguration.user?.name}</span>
-          </div>
+          <ContextMenu.BasicItem icon={<FiUser size={20} />}>
+            {userConfiguration.user?.name}
+          </ContextMenu.BasicItem>
         }
         items={[
           {
             id: "settings",
             content: (
-              <div className="flex flex-row space-x-2 items-center">
-                <FiSettings size={20} />
-                <span>Settings</span>
-              </div>
+              <ContextMenu.BasicItem icon={<FiSettings size={20} />}>
+                Settings
+              </ContextMenu.BasicItem>
             ),
           },
           {
             id: "logout",
             content: (
-              <div className="flex flex-row space-x-2 items-center">
-                <FiLogOut size={20} />
-                <span>Logout</span>
-              </div>
+              <ContextMenu.BasicItem icon={<FiLogOut size={20} />}>
+                Logout
+              </ContextMenu.BasicItem>
             ),
             onClick: logout,
           },

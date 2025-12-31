@@ -448,7 +448,7 @@ export default function Watch() {
       {/* context menu */}
       {openContextMenu && (
         <div
-          className="z-20 absolute w-32"
+          className="z-20 absolute w-54"
           style={{
             left: contextMenuPosition[0],
             top: contextMenuPosition[1],
@@ -463,10 +463,11 @@ export default function Watch() {
                     {
                       id: "previous",
                       content: (
-                        <div className="flex flex-row space-x-2 items-center">
-                          <IoPlaySkipBack size={20} />
-                          <span>Previous</span>
-                        </div>
+                        <ContextMenu.BasicItem
+                          icon={<IoPlaySkipBack size={20} />}
+                        >
+                          Previous
+                        </ContextMenu.BasicItem>
                       ),
                       onClick: () => {
                         navigate(
@@ -481,10 +482,11 @@ export default function Watch() {
                     {
                       id: "next",
                       content: (
-                        <div className="flex flex-row space-x-2 items-center">
-                          <IoPlaySkipForward size={20} />
-                          <span>Next</span>
-                        </div>
+                        <ContextMenu.BasicItem
+                          icon={<IoPlaySkipForward size={20} />}
+                        >
+                          Next
+                        </ContextMenu.BasicItem>
                       ),
                       onClick: () => {
                         navigate(
@@ -501,10 +503,9 @@ export default function Watch() {
               {
                 id: "slower",
                 content: (
-                  <div className="flex flex-row space-x-2 items-center">
-                    <IoPlayBack size={20} />
-                    <span>Slower</span>
-                  </div>
+                  <ContextMenu.BasicItem icon={<IoPlayBack size={20} />}>
+                    Slower
+                  </ContextMenu.BasicItem>
                 ),
                 disabled: playbackRate < 0.45,
                 onClick: () => setPlaybackRate((state) => state - 0.2),
@@ -512,10 +513,9 @@ export default function Watch() {
               {
                 id: "Faster",
                 content: (
-                  <div className="flex flex-row space-x-2 items-center">
-                    <IoPlayForward size={20} />
-                    <span>Faster</span>
-                  </div>
+                  <ContextMenu.BasicItem icon={<IoPlayForward size={20} />}>
+                    Faster
+                  </ContextMenu.BasicItem>
                 ),
                 disabled: playbackRate > 1.95,
                 onClick: () => setPlaybackRate((state) => state + 0.2),
