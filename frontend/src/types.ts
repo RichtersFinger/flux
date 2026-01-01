@@ -59,12 +59,14 @@ export interface VideoInfo {
   trackId: string;
 }
 
+export interface SeasonInfo {
+  id: string;
+  name: string;
+  episodes: VideoInfo[];
+}
+
 export interface SeriesInfo {
-  seasons: {
-    id: string;
-    name: string;
-    episodes: VideoInfo[];
-  }[];
+  seasons: SeasonInfo[];
   specials: VideoInfo[];
 }
 

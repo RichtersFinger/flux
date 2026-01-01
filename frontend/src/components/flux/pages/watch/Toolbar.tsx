@@ -11,9 +11,15 @@ import {
 import { IoPlay, IoPause } from "react-icons/io5";
 
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
-import type { CollectionInfo, RecordInfo, VideoInfo } from "../../../../types";
+import type {
+  CollectionInfo,
+  RecordInfo,
+  SeriesInfo,
+  VideoInfo,
+} from "../../../../types";
 import { useSessionStore } from "../../../../store";
 import VideoSelectionForCollection from "./VideoSelectionForCollection";
+import VideoSelectionForSeries from "./VideoSelectionForSeries";
 
 /**
  * Converts a time in seconds to a human-readable format.
@@ -223,6 +229,14 @@ export default function Toolbar({
               open={openNavigationMenu}
               setOpen={setOpenNavigationMenu}
               collectionInfo={recordInfo.content as CollectionInfo}
+              videoInfo={videoInfo}
+            />
+          ) : null}
+          {recordInfo.type === "series" ? (
+            <VideoSelectionForSeries
+              open={openNavigationMenu}
+              setOpen={setOpenNavigationMenu}
+              seriesInfo={recordInfo.content as SeriesInfo}
               videoInfo={videoInfo}
             />
           ) : null}
