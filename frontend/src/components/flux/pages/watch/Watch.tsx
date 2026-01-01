@@ -149,11 +149,29 @@ export default function Watch() {
       // setup ref for HTML-element
       videoRef.current = node;
 
+      // re-renders of toolbar can be optimized by limiting the rate at
+      // which the currentTime is updated
+      const throttledSetCurrentTime1 = throttle(() => {
+        setCurrentTime(node.currentTime);
+      }, 1000);
+      const throttledSetCurrentTime5 = throttle(() => {
+        setCurrentTime(node.currentTime);
+      }, 5000);
+      let videoTimeupdateInitialized = false;
       // apply configuration
       let previousTimeUpdate = 0;
       const TIMEUPDATE_RATE = 5; // in seconds
       function handleVideoTimeupdate() {
-        setCurrentTime(node.currentTime);
+        // on first call, always update
+        if (!videoTimeupdateInitialized) {
+          setCurrentTime(node.currentTime);
+          videoTimeupdateInitialized = true;
+        }
+        // later, use throttled updates depending on whether toolbar is
+        // visible
+        if (toolbarRef.current?.classList.contains("opacity-100"))
+          throttledSetCurrentTime1();
+        else throttledSetCurrentTime5();
         if (
           recordInfo &&
           videoId &&
