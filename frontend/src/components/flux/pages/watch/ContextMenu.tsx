@@ -11,6 +11,9 @@ import { useSessionStore } from "../../../../store";
 import { useRouter } from "../../../../hooks/Router";
 import BaseContextMenu from "../../../base/ContextMenu";
 import { getNextVideo, getPreviousVideo } from "./videoNavigation";
+import { useRef } from "react";
+
+const PLAYBACK_RATE_INCREMENT = 0.2;
 
 interface ContextMenuProps {
   contextMenuPosition: number[];
@@ -30,8 +33,23 @@ export default function ContextMenu({
   playbackRate,
   setPlaybackRate,
 }: ContextMenuProps) {
+  const decreasePlaybackSpeedIndicator = useRef<HTMLDivElement>(null);
+  const increasePlaybackSpeedIndicator = useRef<HTMLDivElement>(null);
+
   const { navigate } = useRouter();
   const { userConfiguration, putUserConfiguration } = useSessionStore();
+
+  function animatePlaybackSpeedIndicator(
+    element: HTMLDivElement & { _animation?: Animation }
+  ) {
+    if (element._animation) element._animation.cancel();
+    element._animation = element.animate(
+      [{ transform: "scale(1.75)" }, { transform: "scale(1.0)" }],
+      {
+        duration: 150,
+      }
+    );
+  }
 
   return (
     <div
@@ -90,22 +108,58 @@ export default function ContextMenu({
           {
             id: "slower",
             content: (
-              <BaseContextMenu.BasicItem icon={<IoPlayBack size={20} />}>
+              <BaseContextMenu.BasicItem
+                icon={
+                  <div ref={decreasePlaybackSpeedIndicator}>
+                    <IoPlayBack size={20} />
+                  </div>
+                }
+              >
                 Slower
               </BaseContextMenu.BasicItem>
             ),
             disabled: playbackRate < 0.45,
-            onClick: () => setPlaybackRate((state) => state - 0.2),
+            onClick: () => {
+              setPlaybackRate(
+                (state) =>
+                  Math.round(
+                    (state - PLAYBACK_RATE_INCREMENT) /
+                      PLAYBACK_RATE_INCREMENT
+                  ) * PLAYBACK_RATE_INCREMENT
+              );
+              if (decreasePlaybackSpeedIndicator.current)
+                animatePlaybackSpeedIndicator(
+                  decreasePlaybackSpeedIndicator.current
+                );
+            },
           },
           {
             id: "faster",
             content: (
-              <BaseContextMenu.BasicItem icon={<IoPlayForward size={20} />}>
+              <BaseContextMenu.BasicItem
+                icon={
+                  <div ref={increasePlaybackSpeedIndicator}>
+                    <IoPlayForward size={20} />
+                  </div>
+                }
+              >
                 Faster
               </BaseContextMenu.BasicItem>
             ),
             disabled: playbackRate > 1.95,
-            onClick: () => setPlaybackRate((state) => state + 0.2),
+            onClick: () => {
+              setPlaybackRate(
+                (state) =>
+                  Math.round(
+                    (state + PLAYBACK_RATE_INCREMENT) /
+                      PLAYBACK_RATE_INCREMENT
+                  ) * PLAYBACK_RATE_INCREMENT
+              );
+              if (increasePlaybackSpeedIndicator.current)
+                animatePlaybackSpeedIndicator(
+                  increasePlaybackSpeedIndicator.current
+                );
+            },
           },
           {
             id: "autoplay-toggle",
