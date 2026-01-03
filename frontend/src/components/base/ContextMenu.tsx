@@ -44,7 +44,7 @@ export default function ContextMenu({
             className={`w-full absolute overflow-clip rounded-xl bg-gray-900 text-gray-200 shadow-xl text-nowrap select-none flex flex-col m-1 ${PositionStyles[position]} ${className}`}
           >
             {title ? (
-              <div className="px-5 py-3 mb-0 bg-gray-500 text-gray-950">
+              <div className="flex flex-row items-center px-5 py-3 mb-0 bg-gray-500 text-gray-950">
                 {title}
               </div>
             ) : null}
@@ -52,14 +52,14 @@ export default function ContextMenu({
               item.disabled ? (
                 <div
                   key={item.id}
-                  className="w-full truncate px-5 py-3 hover:cursor-not-allowed bg-gray-600 text-gray-400"
+                  className="flex flex-row items-center w-full truncate px-5 py-3 hover:cursor-not-allowed bg-gray-600 text-gray-400"
                 >
                   {item.content}
                 </div>
               ) : (
                 <div
                   key={item.id}
-                  className="w-full truncate px-5 py-3 transition-colors hover:cursor-pointer hover:bg-gray-800"
+                  className="flex flex-row items-center w-full truncate px-5 py-3 transition-colors hover:cursor-pointer hover:bg-gray-800"
                   onClick={item.onClick}
                 >
                   {item.content}
