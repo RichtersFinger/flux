@@ -398,12 +398,12 @@ export default function Watch() {
         nextVideoId && (
           <div
             className={`z-20 absolute right-3 top-3 text-white transition-opacity ${
-              currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300)
+              currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) // eslint-disable-line react-hooks/refs
                 ? "opacity-100"
                 : "opacity-0"
             }`}
           >
-            {currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) ? (
+            {currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) ? ( // eslint-disable-line react-hooks/refs
               <div
                 className={`${DEFAULT_ICON_BUTTON_STYLE} flex flex-row items-center space-x-2`}
                 onClick={() => {
