@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiCheck } from "react-icons/fi";
 import {
   IoPlay,
   IoPause,
@@ -99,7 +99,7 @@ export default function Watch() {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const { userConfiguration } = useSessionStore();
+  const { userConfiguration, putUserConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -232,6 +232,9 @@ export default function Watch() {
             }),
             false
           );
+        } else {
+          setPaused(true);
+          setCurrentTime(videoRef.current?.duration ?? 0);
         }
       }
       document.addEventListener("mousemove", handleOnMouseMove);
@@ -529,7 +532,7 @@ export default function Watch() {
                 onClick: () => setPlaybackRate((state) => state - 0.2),
               },
               {
-                id: "Faster",
+                id: "faster",
                 content: (
                   <ContextMenu.BasicItem icon={<IoPlayForward size={20} />}>
                     Faster
@@ -537,6 +540,30 @@ export default function Watch() {
                 ),
                 disabled: playbackRate > 1.95,
                 onClick: () => setPlaybackRate((state) => state + 0.2),
+              },
+              {
+                id: "autoplay-toggle",
+                content: (
+                  <ContextMenu.BasicItem
+                    icon={
+                      userConfiguration.settings?.autoplay ? (
+                        <FiCheck size={20} />
+                      ) : (
+                        <div className="h-5 w-5" />
+                      )
+                    }
+                  >
+                    {userConfiguration.settings?.autoplay
+                      ? "Autoplay enabled"
+                      : "Autoplay disabled"}
+                  </ContextMenu.BasicItem>
+                ),
+                onClick: () => {
+                  putUserConfiguration({
+                    autoplay: !userConfiguration.settings?.autoplay,
+                  });
+                  setOpenContextMenu(false);
+                },
               },
             ]}
           ></ContextMenu>
