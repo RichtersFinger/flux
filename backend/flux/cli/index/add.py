@@ -455,7 +455,10 @@ class AddToIndex(Command):
 
         # collect data from filesystem
         # * seasons
-        for directory in filter(lambda p: p.is_dir(), series.path.glob("*")):
+        for directory in sorted(
+            filter(lambda p: p.is_dir(), series.path.glob("*")),
+            key=lambda p: p.name,
+        ):
             season = Season(directory, directory.name, [])
             if verbose:
                 print(
@@ -464,7 +467,10 @@ class AddToIndex(Command):
                 )
 
             # * episodes
-            for file in filter(lambda p: p.is_file(), season.path.glob("*")):
+            for file in sorted(
+                filter(lambda p: p.is_file(), season.path.glob("*")),
+                key=lambda p: p.name,
+            ):
                 episode = cls.process_video_file(
                     file, "episode", verbose=verbose
                 )
@@ -483,7 +489,10 @@ class AddToIndex(Command):
         # * specials
         if verbose:
             print(cls.INDENTATION + "Processing specials")
-        for file in filter(lambda p: p.is_file(), series.path.glob("*")):
+        for file in sorted(
+            filter(lambda p: p.is_file(), series.path.glob("*")),
+            key=lambda p: p.name,
+        ):
             special = cls.process_video_file(file, "special", verbose=verbose)
             if special is not None:
                 series.specials.append(special)
@@ -679,8 +688,9 @@ class AddToIndex(Command):
         # * specials
         if verbose:
             print(cls.INDENTATION + "Processing collection")
-        for file in filter(
-            lambda p: p.is_file(), collection.path.glob("**/*")
+        for file in sorted(
+            filter(lambda p: p.is_file(), collection.path.glob("**/*")),
+            key=str,
         ):
             video = cls.process_video_file(file, "video", verbose=verbose)
             if video is not None:
