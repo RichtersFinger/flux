@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
-import { IoPlay, IoPause } from "react-icons/io5";
+import { IoPlay, IoPause, IoPlaySkipForward } from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
@@ -44,6 +44,13 @@ export default function Watch() {
   const { toast } = useToaster();
   const videoId = search?.get("id") ?? undefined;
   useTitle(`flux | ${recordInfo?.name ?? videoId ?? "Watch"}`);
+
+  const nextVideoId = useMemo(() => {
+    if (!recordInfo || !videoId) return;
+    const nextVideoId = getNextVideo(recordInfo, videoId);
+    if (nextVideoId === videoId) return;
+    return nextVideoId;
+  }, [recordInfo, videoId]);
 
   const [currentTime, setCurrentTime] = useState(
     Number(search?.get("t") ?? "0")
@@ -384,6 +391,31 @@ export default function Watch() {
           )}
         </div>
       )}
+      {/* next in line-button */}
+      {!userConfiguration.settings?.autoplay &&
+        recordInfo &&
+        videoInfo &&
+        nextVideoId && (
+          <div
+            className={`z-20 absolute right-3 top-3 text-white transition-opacity ${
+              currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300)
+                ? "opacity-100"
+                : "opacity-0"
+            }`}
+          >
+            {currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) ? (
+              <div
+                className={`${DEFAULT_ICON_BUTTON_STYLE} flex flex-row items-center space-x-2`}
+                onClick={() => {
+                  navigateToVideo(recordInfo.id, nextVideoId);
+                }}
+              >
+                <span className="text-lg font-semibold">Next</span>
+                <IoPlaySkipForward size={30} />
+              </div>
+            ) : null}
+          </div>
+        )}
       {/* toolbar */}
       {recordInfo && videoInfo ? (
         <Toolbar
