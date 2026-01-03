@@ -443,7 +443,7 @@ export default function Watch() {
         </div>
       )}
       {/* toolbar */}
-      {!videoError && recordInfo && videoInfo ? (
+      {recordInfo && videoInfo ? (
         <Toolbar
           {...{
             recordInfo,
