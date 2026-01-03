@@ -90,7 +90,7 @@ function ContextMenuBasicItem({
     <div
       className={`w-full inline-flex items-center ${className}`}
     >
-      {icon? <div className="w-5 mr-5 overflow-clip">{icon}</div> : null}
+      {icon? <div className="w-5 h-5 mr-5">{icon}</div> : null}
       <span className="text-nowrap truncate">{children}</span>
     </div>
   );
