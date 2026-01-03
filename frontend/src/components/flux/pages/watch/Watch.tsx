@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiArrowLeft, FiCheck } from "react-icons/fi";
-import {
-  IoPlay,
-  IoPause,
-  IoPlaySkipBack,
-  IoPlaySkipForward,
-  IoPlayBack,
-  IoPlayForward,
-} from "react-icons/io5";
+import { FiArrowLeft } from "react-icons/fi";
+import { IoPlay, IoPause } from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
@@ -15,67 +8,11 @@ import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { throttle } from "../../../../util/events";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import { useToaster } from "../../../base/Toaster";
-import type {
-  APIResponse,
-  CollectionInfo,
-  RecordInfo,
-  SeriesInfo,
-  VideoInfo,
-} from "../../../../types";
+import type { APIResponse, RecordInfo, VideoInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
+import { getNextVideo } from "./videoNavigation";
 import Toolbar from "./Toolbar";
-import ContextMenu from "../../../base/ContextMenu";
-
-/**
- * Generates an array of video IDs from given record info (in logical order).
- * @param recordInfo record information
- * @returns array containing video identifiers
- */
-function getVideoIdsForRecord(recordInfo: RecordInfo) {
-  let videoIds: string[] = [];
-  switch (recordInfo.type) {
-    case "movie":
-      videoIds.push((recordInfo.content as VideoInfo).id);
-      break;
-    case "series":
-      for (const season of (recordInfo.content as SeriesInfo).seasons)
-        videoIds = [...videoIds, ...season.episodes.map((video) => video.id)];
-      videoIds = [
-        ...videoIds,
-        ...(recordInfo.content as SeriesInfo).specials.map((video) => video.id),
-      ];
-      break;
-    case "collection":
-      videoIds = [
-        ...videoIds,
-        ...(recordInfo.content as CollectionInfo).map((video) => video.id),
-      ];
-      break;
-  }
-  return videoIds;
-}
-
-/**
- * Returns ID of previous video (in logical order).
- * @param recordInfo record information
- * @param videoId current video ID
- * @returns Identifier of video that is previous to current videoId.
- */
-function getPreviousVideo(recordInfo: RecordInfo, videoId: string) {
-  const videoIds = getVideoIdsForRecord(recordInfo);
-  return videoIds[videoIds.indexOf(videoId) - 1] ?? videoId;
-}
-
-/**
- * Returns ID of next video (in logical order).
- * @param recordInfo record information
- * @param videoId current video ID
- * @returns Identifier of video that is next in line.
- */
-function getNextVideo(recordInfo: RecordInfo, videoId: string) {
-  const videoIds = getVideoIdsForRecord(recordInfo);
-  return videoIds[videoIds.indexOf(videoId) + 1] ?? videoId;
-}
+import ContextMenu from "./ContextMenu";
 
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
@@ -99,7 +36,7 @@ export default function Watch() {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const { userConfiguration, putUserConfiguration } = useSessionStore();
+  const { userConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -467,107 +404,16 @@ export default function Watch() {
         />
       ) : null}
       {/* context menu */}
-      {openContextMenu && (
-        <div
-          className="z-20 absolute w-54"
-          style={{
-            left: contextMenuPosition[0],
-            top: contextMenuPosition[1],
-          }}
-        >
-          <ContextMenu
-            open
-            onDismiss={() => setOpenContextMenu(false)}
-            items={[
-              ...(recordInfo && recordInfo.type !== "movie"
-                ? [
-                    {
-                      id: "previous",
-                      content: (
-                        <ContextMenu.BasicItem
-                          icon={<IoPlaySkipBack size={20} />}
-                        >
-                          Previous
-                        </ContextMenu.BasicItem>
-                      ),
-                      onClick: () => {
-                        navigate(
-                          undefined,
-                          new URLSearchParams({
-                            id: getPreviousVideo(recordInfo, videoId ?? ""),
-                          })
-                        );
-                        setOpenContextMenu(false);
-                      },
-                    },
-                    {
-                      id: "next",
-                      content: (
-                        <ContextMenu.BasicItem
-                          icon={<IoPlaySkipForward size={20} />}
-                        >
-                          Next
-                        </ContextMenu.BasicItem>
-                      ),
-                      onClick: () => {
-                        navigate(
-                          undefined,
-                          new URLSearchParams({
-                            id: getNextVideo(recordInfo, videoId ?? ""),
-                          })
-                        );
-                        setOpenContextMenu(false);
-                      },
-                    },
-                  ]
-                : []),
-              {
-                id: "slower",
-                content: (
-                  <ContextMenu.BasicItem icon={<IoPlayBack size={20} />}>
-                    Slower
-                  </ContextMenu.BasicItem>
-                ),
-                disabled: playbackRate < 0.45,
-                onClick: () => setPlaybackRate((state) => state - 0.2),
-              },
-              {
-                id: "faster",
-                content: (
-                  <ContextMenu.BasicItem icon={<IoPlayForward size={20} />}>
-                    Faster
-                  </ContextMenu.BasicItem>
-                ),
-                disabled: playbackRate > 1.95,
-                onClick: () => setPlaybackRate((state) => state + 0.2),
-              },
-              {
-                id: "autoplay-toggle",
-                content: (
-                  <ContextMenu.BasicItem
-                    icon={
-                      userConfiguration.settings?.autoplay ? (
-                        <FiCheck size={20} />
-                      ) : (
-                        <div className="h-5 w-5" />
-                      )
-                    }
-                  >
-                    {userConfiguration.settings?.autoplay
-                      ? "Autoplay enabled"
-                      : "Autoplay disabled"}
-                  </ContextMenu.BasicItem>
-                ),
-                onClick: () => {
-                  putUserConfiguration({
-                    autoplay: !userConfiguration.settings?.autoplay,
-                  });
-                  setOpenContextMenu(false);
-                },
-              },
-            ]}
-          ></ContextMenu>
-        </div>
+      {videoId && recordInfo && openContextMenu && (
+        <ContextMenu
+          open={openContextMenu}
+          close={() => setOpenContextMenu(false)}
+          contextMenuPosition={contextMenuPosition}
+          playbackRate={playbackRate}
+          setPlaybackRate={setPlaybackRate}
+          recordInfo={recordInfo}
+          videoId={videoId}
+        />
       )}
     </div>
   );
