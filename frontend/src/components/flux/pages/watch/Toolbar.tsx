@@ -190,7 +190,7 @@ export default function Toolbar({
               <span className="font-bold">{recordInfo?.name}</span>
             </div>
             <div className="block line-clamp-1 truncate">
-              <span>{videoInfo?.name}</span>
+              <span>{videoInfo?.name ?? "\u200b"}</span>
             </div>
           </div>
         </div>
