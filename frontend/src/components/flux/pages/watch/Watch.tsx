@@ -10,7 +10,7 @@ import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import { useToaster } from "../../../base/Toaster";
 import type { APIResponse, RecordInfo, VideoInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
-import { getNextVideo } from "./videoNavigation";
+import { getNextVideo, useNavigateToVideo } from "./videoNavigation";
 import Toolbar from "./Toolbar";
 import ContextMenu from "./ContextMenu";
 
@@ -39,6 +39,7 @@ export default function Watch() {
   const { userConfiguration } = useSessionStore();
 
   const { navigate } = useRouter();
+  const navigateToVideo = useNavigateToVideo();
   const { search } = useLocation();
   const { toast } = useToaster();
   const videoId = search?.get("id") ?? undefined;
@@ -128,7 +129,7 @@ export default function Watch() {
       node.muted = userConfiguration.settings?.muted ?? false;
       if (search?.get("t")) {
         node.currentTime = Number(search.get("t"));
-        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }));
+        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }), false);
       }
 
       // setup event handlers
@@ -162,13 +163,7 @@ export default function Watch() {
           !node.loop
         ) {
           // navigate to next video if available
-          navigate(
-            undefined,
-            new URLSearchParams({
-              id: getNextVideo(recordInfo, videoId),
-            }),
-            false
-          );
+          navigateToVideo(recordInfo.id, getNextVideo(recordInfo, videoId));
         } else {
           setPaused(true);
           setCurrentTime(videoRef.current?.duration ?? 0);
@@ -187,7 +182,14 @@ export default function Watch() {
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
       };
     },
-    [search, userConfiguration.settings, videoId, recordInfo, navigate]
+    [
+      search,
+      userConfiguration.settings,
+      videoId,
+      recordInfo,
+      navigate,
+      navigateToVideo,
+    ]
   );
 
   // setup event listeners on video

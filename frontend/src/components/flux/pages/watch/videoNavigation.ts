@@ -1,9 +1,12 @@
+import { useCallback } from "react";
+import { useRouter } from "../../../../hooks/Router";
 import type {
   CollectionInfo,
   RecordInfo,
   SeriesInfo,
   VideoInfo,
 } from "../../../../types";
+import { pFetch } from "../../../../util/api";
 
 /**
  * Generates an array of video IDs from given record info (in logical order).
@@ -54,4 +57,26 @@ export function getPreviousVideo(recordInfo: RecordInfo, videoId: string) {
 export function getNextVideo(recordInfo: RecordInfo, videoId: string) {
   const videoIds = getVideoIdsForRecord(recordInfo);
   return videoIds[videoIds.indexOf(videoId) + 1] ?? videoId;
+}
+
+/**
+ * Custom hook for navigation (includes playback update).
+ * @returns hook to call for navigation
+ */
+export function useNavigateToVideo() {
+  const { navigate } = useRouter();
+
+  return useCallback(
+    (recordId: string, nextVideoId: string) => {
+      pFetch(`/api/v0/playback/${recordId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: { videoId: nextVideoId, timestamp: 0 },
+        }),
+      });
+      navigate(undefined, new URLSearchParams({ id: nextVideoId }), false);
+    },
+    [navigate]
+  );
 }

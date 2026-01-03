@@ -1,11 +1,11 @@
 import { FiMenu, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
-import { useRouter } from "../../../../hooks/Router";
 import type { SeasonInfo, SeriesInfo, VideoInfo } from "../../../../types";
 import { BASE_URL } from "../../../../util/api";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import BaseOverlay from "../../../base/BaseOverlay";
 import { useMemo, useState } from "react";
+import { useNavigateToVideo } from "./videoNavigation";
 
 function getSeasonIndex(seasonsAndSpecials: SeasonInfo[], videoId: string) {
   for (const [seasonIndex, season] of seasonsAndSpecials.entries()) {
@@ -19,6 +19,7 @@ function getSeasonIndex(seasonsAndSpecials: SeasonInfo[], videoId: string) {
 interface VideoSelectionForSeriesProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  recordId: string;
   seriesInfo: SeriesInfo;
   videoInfo: VideoInfo;
 }
@@ -26,6 +27,7 @@ interface VideoSelectionForSeriesProps {
 export default function VideoSelectionForSeries({
   open,
   setOpen,
+  recordId,
   seriesInfo,
   videoInfo,
 }: VideoSelectionForSeriesProps) {
@@ -51,7 +53,7 @@ export default function VideoSelectionForSeries({
 
   const [season, setSeason] = useState(initialSeasonIndex);
 
-  const { navigate } = useRouter();
+  const navigateToVideo = useNavigateToVideo();
 
   return (
     <BaseOverlay
@@ -99,7 +101,7 @@ export default function VideoSelectionForSeries({
                   }`}
                   onClick={() => {
                     if (video.id === videoInfo.id) return;
-                    navigate(undefined, new URLSearchParams({ id: video.id }));
+                    navigateToVideo(recordId, video.id);
                   }}
                 >
                   <img

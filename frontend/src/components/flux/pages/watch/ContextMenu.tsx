@@ -8,9 +8,12 @@ import {
 
 import type { RecordInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
-import { useRouter } from "../../../../hooks/Router";
 import BaseContextMenu from "../../../base/ContextMenu";
-import { getNextVideo, getPreviousVideo } from "./videoNavigation";
+import {
+  getNextVideo,
+  getPreviousVideo,
+  useNavigateToVideo,
+} from "./videoNavigation";
 import { useRef } from "react";
 
 const PLAYBACK_RATE_INCREMENT = 0.2;
@@ -36,7 +39,7 @@ export default function ContextMenu({
   const decreasePlaybackSpeedIndicator = useRef<HTMLDivElement>(null);
   const increasePlaybackSpeedIndicator = useRef<HTMLDivElement>(null);
 
-  const { navigate } = useRouter();
+  const navigateToVideo = useNavigateToVideo();
   const { userConfiguration, putUserConfiguration } = useSessionStore();
 
   function animatePlaybackSpeedIndicator(
@@ -75,11 +78,9 @@ export default function ContextMenu({
                     </BaseContextMenu.BasicItem>
                   ),
                   onClick: () => {
-                    navigate(
-                      undefined,
-                      new URLSearchParams({
-                        id: getPreviousVideo(recordInfo, videoId ?? ""),
-                      })
+                    navigateToVideo(
+                      recordInfo.id,
+                      getPreviousVideo(recordInfo, videoId ?? "")
                     );
                     close();
                   },
@@ -94,11 +95,9 @@ export default function ContextMenu({
                     </BaseContextMenu.BasicItem>
                   ),
                   onClick: () => {
-                    navigate(
-                      undefined,
-                      new URLSearchParams({
-                        id: getNextVideo(recordInfo, videoId ?? ""),
-                      })
+                    navigateToVideo(
+                      recordInfo.id,
+                      getNextVideo(recordInfo, videoId ?? "")
                     );
                     close();
                   },
@@ -123,8 +122,7 @@ export default function ContextMenu({
               setPlaybackRate(
                 (state) =>
                   Math.round(
-                    (state - PLAYBACK_RATE_INCREMENT) /
-                      PLAYBACK_RATE_INCREMENT
+                    (state - PLAYBACK_RATE_INCREMENT) / PLAYBACK_RATE_INCREMENT
                   ) * PLAYBACK_RATE_INCREMENT
               );
               if (decreasePlaybackSpeedIndicator.current)
@@ -151,8 +149,7 @@ export default function ContextMenu({
               setPlaybackRate(
                 (state) =>
                   Math.round(
-                    (state + PLAYBACK_RATE_INCREMENT) /
-                      PLAYBACK_RATE_INCREMENT
+                    (state + PLAYBACK_RATE_INCREMENT) / PLAYBACK_RATE_INCREMENT
                   ) * PLAYBACK_RATE_INCREMENT
               );
               if (increasePlaybackSpeedIndicator.current)

@@ -1,14 +1,15 @@
 import { FiMenu } from "react-icons/fi";
 
-import { useRouter } from "../../../../hooks/Router";
 import type { CollectionInfo, VideoInfo } from "../../../../types";
 import { BASE_URL } from "../../../../util/api";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import BaseOverlay from "../../../base/BaseOverlay";
+import { useNavigateToVideo } from "./videoNavigation";
 
 interface VideoSelectionForCollectionProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  recordId: string;
   collectionInfo: CollectionInfo;
   videoInfo: VideoInfo;
 }
@@ -16,10 +17,11 @@ interface VideoSelectionForCollectionProps {
 export default function VideoSelectionForCollection({
   open,
   setOpen,
+  recordId,
   collectionInfo,
   videoInfo,
 }: VideoSelectionForCollectionProps) {
-  const { navigate } = useRouter();
+  const navigateToVideo = useNavigateToVideo();
 
   return (
     <BaseOverlay
@@ -37,7 +39,7 @@ export default function VideoSelectionForCollection({
                 }`}
                 onClick={() => {
                   if (video.id === videoInfo.id) return;
-                  navigate(undefined, new URLSearchParams({ id: video.id }));
+                  navigateToVideo(recordId, video.id);
                 }}
               >
                 <img

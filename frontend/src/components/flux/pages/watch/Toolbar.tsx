@@ -228,6 +228,7 @@ export default function Toolbar({
             <VideoSelectionForCollection
               open={openNavigationMenu}
               setOpen={setOpenNavigationMenu}
+              recordId={recordInfo.id}
               collectionInfo={recordInfo.content as CollectionInfo}
               videoInfo={videoInfo}
             />
@@ -236,6 +237,7 @@ export default function Toolbar({
             <VideoSelectionForSeries
               open={openNavigationMenu}
               setOpen={setOpenNavigationMenu}
+              recordId={recordInfo.id}
               seriesInfo={recordInfo.content as SeriesInfo}
               videoInfo={videoInfo}
             />
