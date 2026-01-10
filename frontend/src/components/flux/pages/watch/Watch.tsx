@@ -352,6 +352,7 @@ export default function Watch() {
         <div
           className={DEFAULT_ICON_BUTTON_STYLE}
           onClick={() => {
+            if (document.fullscreenElement) document.exitFullscreen();
             navigate("/browse", new URLSearchParams());
           }}
         >
