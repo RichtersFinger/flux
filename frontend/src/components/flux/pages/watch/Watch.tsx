@@ -102,6 +102,11 @@ export default function Watch() {
     }
   }, [uiHidden]);
 
+  // trigger to hide ui after video has been changed
+  useEffect(() => {
+    if (videoLoaded) document.dispatchEvent(new Event("mousemove"));
+  }, [videoLoaded]);
+
   // user seeking video position by dragging should be throttled to
   // avoid excessive state updates/re-renders
   const throttledSetCurrentTime = useMemo(() => {
@@ -173,7 +178,9 @@ export default function Watch() {
       }
       // * toolbar fading
       let toolbarFadeout: number | undefined;
+      // console.log("videocallbacks");
       function handleOnMouseMove() {
+        // console.log("move", toolbarRef.current);
         if (!toolbarRef.current) return;
         clearTimeout(toolbarFadeout);
         setUiHidden(false);
