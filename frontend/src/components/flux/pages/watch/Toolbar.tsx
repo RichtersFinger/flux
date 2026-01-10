@@ -45,7 +45,7 @@ interface ToolbarProps {
   recordInfo: RecordInfo;
   videoInfo: VideoInfo;
   toolbarRef: React.RefObject<HTMLDivElement | null>;
-  hideToolbar: React.RefObject<boolean>;
+  shouldHideUi: React.RefObject<boolean>;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   paused: boolean | undefined;
   setPaused: React.Dispatch<React.SetStateAction<boolean | undefined>>;
@@ -64,7 +64,7 @@ export default function Toolbar({
   recordInfo,
   videoInfo,
   toolbarRef,
-  hideToolbar,
+  shouldHideUi,
   videoRef,
   paused,
   setPaused,
@@ -84,10 +84,10 @@ export default function Toolbar({
     if (!toolbarRef.current) return;
 
     function handleMouseEnter() {
-      hideToolbar.current = false;
+      shouldHideUi.current = false;
     }
     function handleMouseLeave() {
-      hideToolbar.current = true;
+      shouldHideUi.current = true;
     }
 
     toolbarRef.current.addEventListener("mouseenter", handleMouseEnter);
@@ -101,7 +101,7 @@ export default function Toolbar({
   return (
     <div
       ref={setupToolbarEvents}
-      className="absolute bottom-0 left-0 h-20 w-screen z-20 bg-black/80 select-none transition-all"
+      className="absolute bottom-0 left-0 h-20 w-screen z-20 bg-black/80 select-none"
     >
       <div
         className="relative h-0 overflow-y-visible w-full -translate-y-1/2 hover:cursor-pointer transition-all"

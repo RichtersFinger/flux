@@ -4,6 +4,7 @@ import { IoPlay, IoPause, IoPlaySkipForward } from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useTitle } from "../../../../hooks/Title";
+import { hideElement, showElement } from "../../../../util/animations";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { throttle } from "../../../../util/events";
 import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
@@ -31,9 +32,11 @@ export default function Watch() {
     0, 0,
   ]);
 
-  const hideToolbar = useRef(true);
+  const shouldHideUi = useRef(true);
+  const [uiHidden, setUiHidden] = useState<boolean>(false);
 
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const backToBrowseRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { userConfiguration } = useSessionStore();
@@ -79,6 +82,25 @@ export default function Watch() {
     // eslint-disable-next-line
   }, [mousedownOnCurrentTimeSlider]);
 
+  // handle hidden ui
+  useEffect(() => {
+    let anim;
+    if (uiHidden) {
+      anim = hideElement;
+      document.body.style.cursor = "none";
+    }
+    else {
+      anim = showElement;
+      document.body.style.cursor = "";
+    }
+    if (toolbarRef.current) {
+      anim(toolbarRef.current);
+    }
+    if (backToBrowseRef.current) {
+      anim(backToBrowseRef.current);
+    }
+  }, [uiHidden]);
+
   // user seeking video position by dragging should be throttled to
   // avoid excessive state updates/re-renders
   const throttledSetCurrentTime = useMemo(() => {
@@ -114,8 +136,7 @@ export default function Watch() {
         }
         // later, use throttled updates depending on whether toolbar is
         // visible
-        if (toolbarRef.current?.classList.contains("opacity-100"))
-          throttledSetCurrentTime1();
+        if (!uiHidden) throttledSetCurrentTime1();
         else throttledSetCurrentTime5();
         if (
           recordInfo &&
@@ -145,14 +166,10 @@ export default function Watch() {
       function handleOnMouseMove() {
         if (!toolbarRef.current) return;
         clearTimeout(toolbarFadeout);
-        toolbarRef.current.classList.remove("opacity-0");
-        toolbarRef.current.classList.add("opacity-100");
-        document.body.style.cursor = "";
+        setUiHidden(false);
         toolbarFadeout = setTimeout(() => {
-          if (!toolbarRef.current || !hideToolbar.current) return;
-          toolbarRef.current.classList.remove("opacity-100");
-          toolbarRef.current.classList.add("opacity-0");
-          document.body.style.cursor = "none";
+          if (!toolbarRef.current || !shouldHideUi.current) return;
+          setUiHidden(true);
         }, 2000);
       }
       // * error
@@ -189,6 +206,7 @@ export default function Watch() {
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
       };
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       search,
       userConfiguration.settings,
@@ -198,30 +216,6 @@ export default function Watch() {
       navigateToVideo,
     ]
   );
-
-  // setup event listeners on video
-  const setupBackButtonEvents = useCallback((node: HTMLDivElement) => {
-    if (!node) return;
-
-    // setup event handlers
-    // * toolbar fading
-    let buttonFadeout: number | undefined;
-    function handleOnMouseMove() {
-      clearTimeout(buttonFadeout);
-      node.classList.remove("opacity-0");
-      node.classList.add("opacity-100");
-      buttonFadeout = setTimeout(() => {
-        node.classList.remove("opacity-100");
-        node.classList.add("opacity-0");
-      }, 2000);
-    }
-    document.addEventListener("mousemove", handleOnMouseMove);
-    handleOnMouseMove();
-    return () => {
-      document.removeEventListener("mousemove", handleOnMouseMove);
-      clearTimeout(buttonFadeout);
-    };
-  }, []);
 
   // get video-info
   useEffect(() => {
@@ -352,7 +346,7 @@ export default function Watch() {
       ) : null}
       {/* back to browse */}
       <div
-        ref={setupBackButtonEvents}
+        ref={backToBrowseRef}
         className="z-20 absolute left-3 top-3 text-white transition-opacity"
       >
         <div
@@ -398,12 +392,12 @@ export default function Watch() {
         nextVideoId && (
           <div
             className={`z-20 absolute right-3 top-3 text-white transition-opacity ${
-              currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) // eslint-disable-line react-hooks/refs
+              currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300)
                 ? "opacity-100"
                 : "opacity-0"
             }`}
           >
-            {currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) ? ( // eslint-disable-line react-hooks/refs
+            {currentTime + 10 >= (videoRef.current?.duration ?? 10 ** 300) ? (
               <div
                 className={`${DEFAULT_ICON_BUTTON_STYLE} flex flex-row items-center space-x-2`}
                 onClick={() => {
@@ -423,7 +417,7 @@ export default function Watch() {
             recordInfo,
             videoInfo,
             toolbarRef,
-            hideToolbar,
+            shouldHideUi,
             videoRef,
             paused,
             setPaused,
