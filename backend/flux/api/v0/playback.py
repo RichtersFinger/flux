@@ -1,5 +1,8 @@
 """Playback-API endpoints"""
 
+from math import floor
+from time import time
+
 from flask import Flask, request, jsonify
 
 from flux.db import Transaction
@@ -60,14 +63,17 @@ def register_api(app: Flask):
             t.cursor.execute(
                 """
                 INSERT OR REPLACE
-                INTO playbacks (username, record_id, video_id, timestamp)
-                VALUES (?, ?, ?, ?)
+                INTO playbacks (
+                    username, record_id, video_id, timestamp, changed
+                )
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 (
                     username,
                     record_id,
                     json["content"]["videoId"],
                     json["content"]["timestamp"],
+                    floor(time()),
                 ),
             )
 

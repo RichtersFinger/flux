@@ -99,7 +99,8 @@ CREATE TABLE playbacks (
     username TEXT NOT NULL REFERENCES users (name) ON DELETE CASCADE,
     record_id TEXT NOT NULL REFERENCES records (id) ON DELETE CASCADE,
     video_id TEXT NOT NULL REFERENCES videos (id) ON DELETE CASCADE,
-    timestamp INTEGER
+    timestamp INTEGER,
+    changed INTEGER
 );
 
 -- only one playback per user and record

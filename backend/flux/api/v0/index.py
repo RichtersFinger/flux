@@ -394,6 +394,9 @@ def register_api(app: Flask):
             range_filter += "LIMIT ? OFFSET ?"
             range_filter_args += (range_[1] - range_[0], range_[0])
 
+        # * order
+        order_by = "playbacks.changed DESC" if continue_ else "records.id"
+
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
@@ -411,6 +414,7 @@ def register_api(app: Flask):
                     JOIN
                         playbacks ON records.id = playbacks.record_id
                         WHERE playbacks.username=?
+                    ORDER BY {order_by}
                     {range_filter}
                     """
                     if continue_
@@ -419,7 +423,7 @@ def register_api(app: Flask):
                     FROM records
                     {'WHERE' if filters else ''} {' AND '.join(filters)}
                     {range_filter}
-                """
+                    """
                 ),
                 filter_args
                 + ((username,) if continue_ else ())
@@ -522,7 +526,6 @@ def register_api(app: Flask):
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
         ) as t:
-            # FIXME: also read progress on video
             t.cursor.execute(
                 """
                 SELECT video_id, timestamp
