@@ -41,6 +41,191 @@ function convertToHumanReadableTime(
     .padStart(2, "0")}`;
 }
 
+function ToolbarProgressBar({
+  videoRef,
+  currentTime,
+  setCurrentTime,
+  setMousedownOnCurrentTimeSlider,
+  draggingCurrentTimeSlider,
+}: Pick<
+  ToolbarProps,
+  | "videoRef"
+  | "currentTime"
+  | "setCurrentTime"
+  | "setMousedownOnCurrentTimeSlider"
+  | "draggingCurrentTimeSlider"
+>) {
+  return (
+    <div
+      className="relative h-0 overflow-y-visible w-full -translate-y-1/2 hover:cursor-pointer transition-all"
+      onMouseDown={(e) => {
+        setMousedownOnCurrentTimeSlider(true);
+        setCurrentTime(
+          (e.clientX / e.currentTarget.clientWidth) *
+            (videoRef.current?.duration ?? 0)
+        );
+      }}
+    >
+      <div className="absolute top-0 left-0 bg-gray-700 h-2 w-full" />
+      <div
+        className={`absolute top-0 left-0 bg-blue-700 aspect-square w-4 hover:w-5 rounded-full -translate-x-1/2 -translate-y-1/4 ${
+          draggingCurrentTimeSlider ? "" : "transition-all"
+        }`}
+        style={{
+          marginLeft: `${
+            (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
+          }%`,
+        }}
+      />
+      <div
+        className={`absolute top-0 left-0 bg-blue-700 h-2 hover:h-2 ${
+          draggingCurrentTimeSlider ? "" : "transition-all"
+        }`}
+        style={{
+          width: `${
+            (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
+          }%`,
+        }}
+      />
+    </div>
+  );
+}
+
+function ToolbarProgressText({
+  videoRef,
+  currentTime,
+}: Pick<ToolbarProps, "videoRef" | "currentTime">) {
+  return (
+    <div>
+      <span>
+        {convertToHumanReadableTime(
+          currentTime,
+          (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
+        )}
+        {" / "}
+        {convertToHumanReadableTime(
+          videoRef.current?.duration, // eslint-disable-line react-hooks/refs
+          (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
+        )}
+      </span>
+    </div>
+  );
+}
+
+function ToolbarPlayPauseButton({
+  paused,
+  setPaused,
+  playbackRate,
+}: Pick<ToolbarProps, "paused" | "setPaused" | "playbackRate">) {
+  return (
+    <div
+      className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
+      onClick={() => setPaused((state) => !state)}
+    >
+      {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
+      {Math.abs(playbackRate - 1.0) > 0.05 && (
+        <span className="absolute right-0 bottom-0 text-xs translate-3/4">
+          {playbackRate.toPrecision(2)}x
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ToolbarSkipBackAhead({ videoRef }: Pick<ToolbarProps, "videoRef">) {
+  return (
+    <div className="flex flex-row space-x-5">
+      <div
+        className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
+        onClick={() => {
+          if (!videoRef.current) return;
+          videoRef.current.currentTime -= 5;
+        }}
+      >
+        <span className="absolute text-xs -translate-3/4">5s</span>
+        <FiRotateCcw size={25} />
+      </div>
+      <div
+        className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
+        onClick={() => {
+          if (!videoRef.current) return;
+          videoRef.current.currentTime += 5;
+        }}
+      >
+        <span className="absolute text-xs -translate-y-3/4 right-0 translate-x-3/4">
+          5s
+        </span>
+        <FiRotateCw size={25} />
+      </div>
+    </div>
+  );
+}
+
+function ToolbarVideoInfo({
+  recordInfo,
+  videoInfo,
+}: Pick<ToolbarProps, "recordInfo" | "videoInfo">) {
+  return (
+    <div className="flex flex-col space-y-1 text-nowrap max-w-96">
+      <div className="block line-clamp-1 truncate">
+        <span className="font-bold">{recordInfo?.name}</span>
+      </div>
+      <div className="block line-clamp-1 truncate">
+        <span>{videoInfo?.name ?? "\u200b"}</span>
+      </div>
+    </div>
+  );
+}
+
+function ToolbarVolumeControl() {
+  const { userConfiguration, putUserConfiguration } = useSessionStore();
+  return (
+    <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
+      <div
+        onClick={() => {
+          putUserConfiguration({
+            muted: !userConfiguration.settings?.muted,
+          });
+        }}
+      >
+        {userConfiguration.settings?.muted ? (
+          <FiVolumeX size={30} />
+        ) : (userConfiguration.settings?.volume ?? 0) < 33 ? (
+          <FiVolume size={30} />
+        ) : (userConfiguration.settings?.volume ?? 0) < 66 ? (
+          <FiVolume1 size={30} />
+        ) : (
+          <FiVolume2 size={30} />
+        )}
+      </div>
+      <input
+        type="range"
+        value={userConfiguration.settings?.volume ?? 0}
+        onChange={(e) => {
+          // TODO: fix dragging causes many API-requests
+          putUserConfiguration({
+            volume: Number(e.target.value),
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+function ToolbarFullscreenButton() {
+  return (
+    <div
+      className={DEFAULT_ICON_BUTTON_STYLE}
+      onClick={() => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      }}
+    >
+      <FiMaximize size={30} />
+    </div>
+  );
+}
+
 interface ToolbarProps {
   recordInfo: RecordInfo;
   videoInfo: VideoInfo;
@@ -75,9 +260,6 @@ export default function Toolbar({
   draggingCurrentTimeSlider,
 }: ToolbarProps) {
   const [openNavigationMenu, setOpenNavigationMenu] = useState(false);
-
-  const { userConfiguration, putUserConfiguration } = useSessionStore();
-
   // setup event listeners on toolbar
   function setupToolbarEvents(node: HTMLDivElement) {
     toolbarRef.current = node;
@@ -103,127 +285,24 @@ export default function Toolbar({
       ref={setupToolbarEvents}
       className="absolute bottom-0 left-0 h-20 w-screen z-20 bg-black/80 select-none"
     >
-      <div
-        className="relative h-0 overflow-y-visible w-full -translate-y-1/2 hover:cursor-pointer transition-all"
-        onMouseDown={(e) => {
-          setMousedownOnCurrentTimeSlider(true);
-          setCurrentTime(
-            (e.clientX / e.currentTarget.clientWidth) *
-              (videoRef.current?.duration ?? 0)
-          );
+      <ToolbarProgressBar
+        {...{
+          setMousedownOnCurrentTimeSlider,
+          setCurrentTime,
+          draggingCurrentTimeSlider,
+          currentTime,
+          videoRef,
         }}
-      >
-        <div className="absolute top-0 left-0 bg-gray-700 h-2 w-full" />
-        <div
-          className={`absolute top-0 left-0 bg-blue-700 aspect-square w-4 hover:w-5 rounded-full -translate-x-1/2 -translate-y-1/4 ${
-            draggingCurrentTimeSlider ? "" : "transition-all"
-          }`}
-          style={{
-            marginLeft: `${
-              (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
-            }%`,
-          }}
-        />
-        <div
-          className={`absolute top-0 left-0 bg-blue-700 h-2 hover:h-2 ${
-            draggingCurrentTimeSlider ? "" : "transition-all"
-          }`}
-          style={{
-            width: `${
-              (currentTime / (videoRef.current?.duration ?? 0)) * 100 // eslint-disable-line react-hooks/refs
-            }%`,
-          }}
-        />
-      </div>
+      />
       <div className="flex flex-row items-center justify-between pb-2 pt-5 px-4 text-white">
         <div className="h-full flex flex-row items-center space-x-10">
-          <div
-            className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
-            onClick={() => setPaused((state) => !state)}
-          >
-            {paused ? <IoPlay size={30} /> : <IoPause size={30} />}
-            {Math.abs(playbackRate - 1.0) > 0.05 && (
-              <span className="absolute right-0 bottom-0 text-xs translate-3/4">
-                {playbackRate.toPrecision(2)}x
-              </span>
-            )}
-          </div>
-          <div>
-            <span>
-              {convertToHumanReadableTime(
-                currentTime,
-                (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
-              )}
-              {" / "}
-              {convertToHumanReadableTime(
-                videoRef.current?.duration, // eslint-disable-line react-hooks/refs
-                (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
-              )}
-            </span>
-          </div>
-          <div className="flex flex-row space-x-5">
-            <div
-              className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
-              onClick={() => {
-                if (!videoRef.current) return;
-                videoRef.current.currentTime -= 5;
-              }}
-            >
-              <span className="absolute text-xs -translate-3/4">5s</span>
-              <FiRotateCcw size={25} />
-            </div>
-            <div
-              className={`${DEFAULT_ICON_BUTTON_STYLE} relative`}
-              onClick={() => {
-                if (!videoRef.current) return;
-                videoRef.current.currentTime += 5;
-              }}
-            >
-              <span className="absolute text-xs -translate-y-3/4 right-0 translate-x-3/4">
-                5s
-              </span>
-              <FiRotateCw size={25} />
-            </div>
-          </div>
-          <div className="flex flex-col space-y-1 text-nowrap max-w-96">
-            <div className="block line-clamp-1 truncate">
-              <span className="font-bold">{recordInfo?.name}</span>
-            </div>
-            <div className="block line-clamp-1 truncate">
-              <span>{videoInfo?.name ?? "\u200b"}</span>
-            </div>
-          </div>
+          <ToolbarPlayPauseButton {...{ paused, setPaused, playbackRate }} />
+          <ToolbarProgressText {...{ videoRef, currentTime }} />
+          <ToolbarSkipBackAhead {...{ videoRef }} />
+          <ToolbarVideoInfo {...{ recordInfo, videoInfo }} />
         </div>
         <div className="h-full flex flex-row items-center space-x-5">
-          <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
-            <div
-              onClick={() => {
-                putUserConfiguration({
-                  muted: !userConfiguration.settings?.muted,
-                });
-              }}
-            >
-              {userConfiguration.settings?.muted ? (
-                <FiVolumeX size={30} />
-              ) : (userConfiguration.settings?.volume ?? 0) < 33 ? (
-                <FiVolume size={30} />
-              ) : (userConfiguration.settings?.volume ?? 0) < 66 ? (
-                <FiVolume1 size={30} />
-              ) : (
-                <FiVolume2 size={30} />
-              )}
-            </div>
-            <input
-              type="range"
-              value={userConfiguration.settings?.volume ?? 0}
-              onChange={(e) => {
-                // TODO: fix dragging causes many API-requests
-                putUserConfiguration({
-                  volume: Number(e.target.value),
-                });
-              }}
-            />
-          </div>
+          <ToolbarVolumeControl />
           {recordInfo.type === "collection" ? (
             <VideoSelectionForCollection
               open={openNavigationMenu}
@@ -242,15 +321,7 @@ export default function Toolbar({
               videoInfo={videoInfo}
             />
           ) : null}
-          <div
-            className={DEFAULT_ICON_BUTTON_STYLE}
-            onClick={() => {
-              if (document.fullscreenElement) document.exitFullscreen();
-              else document.documentElement.requestFullscreen();
-            }}
-          >
-            <FiMaximize size={30} />
-          </div>
+          <ToolbarFullscreenButton />
         </div>
       </div>
     </div>
