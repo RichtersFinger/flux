@@ -33,10 +33,10 @@ function convertToHumanReadableTime(
 ) {
   if (seconds === undefined) return "-";
   if (isNaN(seconds)) return "-";
-  const hoursSegment = includeHours ? `${Math.round(seconds / 3600)}:` : "";
-  return `${hoursSegment}${Math.round((seconds % 3600) / 60)
+  const hoursSegment = includeHours ? `${Math.floor(seconds / 3600)}:` : "";
+  return `${hoursSegment}${Math.floor((seconds % 3600) / 60)
     .toString()
-    .padStart(2, "0")}:${Math.round(seconds % 60)
+    .padStart(2, "0")}:${Math.floor(seconds % 60)
     .toString()
     .padStart(2, "0")}`;
 }
