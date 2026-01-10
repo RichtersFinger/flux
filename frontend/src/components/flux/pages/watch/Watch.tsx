@@ -11,6 +11,7 @@ import { DEFAULT_ICON_BUTTON_STYLE } from "../../../../util/styles";
 import { useToaster } from "../../../base/Toaster";
 import type { APIResponse, RecordInfo, VideoInfo } from "../../../../types";
 import { useSessionStore } from "../../../../store";
+import Spinner from "../../../base/Spinner";
 import { getNextVideo, useNavigateToVideo } from "./videoNavigation";
 import Toolbar from "./Toolbar";
 import ContextMenu from "./ContextMenu";
@@ -21,6 +22,7 @@ export default function Watch() {
     undefined
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [mousedownOnCurrentTimeSlider, setMousedownOnCurrentTimeSlider] =
@@ -88,8 +90,7 @@ export default function Watch() {
     if (uiHidden) {
       anim = hideElement;
       document.body.style.cursor = "none";
-    }
-    else {
+    } else {
       anim = showElement;
       document.body.style.cursor = "";
     }
@@ -155,12 +156,21 @@ export default function Watch() {
       }
       node.volume = (userConfiguration.settings?.volume ?? 100) / 100;
       node.muted = userConfiguration.settings?.muted ?? false;
-      if (search?.get("t")) {
-        node.currentTime = Number(search.get("t"));
-        navigate(undefined, new URLSearchParams({ id: videoId ?? "" }), false);
-      }
 
       // setup event handlers
+      // * video loaded
+      function handleOnLoad() {
+        if (search?.get("t")) {
+          node.currentTime = Number(search.get("t"));
+          navigate(
+            undefined,
+            new URLSearchParams({ id: videoId ?? "" }),
+            false
+          );
+        }
+        node.play();
+        setVideoLoaded(true);
+      }
       // * toolbar fading
       let toolbarFadeout: number | undefined;
       function handleOnMouseMove() {
@@ -193,12 +203,14 @@ export default function Watch() {
           setCurrentTime(videoRef.current?.duration ?? 0);
         }
       }
+      node.addEventListener("loadeddata", handleOnLoad);
       document.addEventListener("mousemove", handleOnMouseMove);
       handleOnMouseMove();
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
       return () => {
+        node.removeEventListener("loadeddata", handleOnLoad);
         document.removeEventListener("mousemove", handleOnMouseMove);
         clearTimeout(toolbarFadeout);
         node.removeEventListener("ended", handleOnVideoEnded);
@@ -310,7 +322,6 @@ export default function Watch() {
           ref={setupVideoEvents}
           className="z-0 absolute w-full h-full"
           src={`${BASE_URL}/video/${videoInfo.trackId}`}
-          autoPlay
           onClick={() => {
             if (videoError) return;
             const fullscreenState = document.fullscreenElement;
@@ -335,6 +346,13 @@ export default function Watch() {
           }}
         />
       )}
+      <div
+        className={`z-10 absolute left-1/2 top-1/2 -translate-1/2 flex flex-row items-center pointer-events-none transition-opacity duration-500 ${
+          videoLoaded || videoError ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <Spinner size="lg" />
+      </div>
       {videoError ? (
         <div className="z-0 absolute left-1/2 top-1/2 -translate-1/2 space-y-2 text-white">
           <p className="font-semibold">{videoError}</p>
@@ -412,7 +430,7 @@ export default function Watch() {
           </div>
         )}
       {/* toolbar */}
-      {recordInfo && videoInfo ? (
+      {recordInfo && videoInfo && (videoLoaded || videoError) ? (
         <Toolbar
           {...{
             recordInfo,
