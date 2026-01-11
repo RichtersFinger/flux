@@ -6,9 +6,16 @@ import PlaceholderBox from "../../../base/PlaceholderBox";
 
 interface RecordDisplayProps {
   record?: RecordMetadata;
+  options?: {
+    id: string;
+    node: React.ReactNode;
+    getOnClick: (
+      record: RecordMetadata
+    ) => React.MouseEventHandler<HTMLDivElement>;
+  }[];
 }
 
-export default function RecordDisplay({ record }: RecordDisplayProps) {
+export default function RecordDisplay({ record, options }: RecordDisplayProps) {
   const { navigate } = useRouter();
   const { toast } = useToaster();
 
@@ -65,9 +72,9 @@ export default function RecordDisplay({ record }: RecordDisplayProps) {
           {record.name}
         </h5>
       </div>
-      <div className="absolute w-full h-full left-0 top-0 z-20 bg-black transition-opacity opacity-0 hover:opacity-70">
+      <div className="absolute w-full h-full left-0 top-0 z-20 bg-[rgba(0,0,0,0.7)] transition-opacity opacity-0 hover:opacity-100">
         <div className="absolute h-full w-full left-1 top-1 content-start">
-          <p className="m-2 text-gray-100 text-lg line-clamp-4">
+          <p className="m-2 mr-10 text-gray-500 text-lg line-clamp-4">
             {record.description}
           </p>
         </div>
@@ -75,6 +82,17 @@ export default function RecordDisplay({ record }: RecordDisplayProps) {
           <h5 className="m-2 text-gray-100 font-semibold text-xl truncate">
             {record.name}
           </h5>
+        </div>
+        <div className="absolute right-2 top-2 h-full w-6 flex flex-col space-y-3 items-center justify-start text-gray-100">
+          {options?.map((item) => (
+            <div
+              key={item.id}
+              className="opacity-70 hover:opacity-100 hover:scale-125 transition-all"
+              onClick={item.getOnClick(record)}
+            >
+              {item.node}
+            </div>
+          ))}
         </div>
       </div>
     </div>

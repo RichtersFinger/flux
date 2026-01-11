@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
 
-import type { APIResponse, Records } from "../../../../types";
+import type { APIResponse, RecordMetadata, Records } from "../../../../types";
 import { formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { useToaster } from "../../../base/Toaster";
 import Spinner from "../../../base/Spinner";
@@ -13,9 +13,16 @@ interface ContentProps {
   title: string;
   url: string;
   params?: URLSearchParams;
+  options?: {
+    id: string;
+    node: React.ReactNode;
+    getOnClick: (
+      record: RecordMetadata
+    ) => React.MouseEventHandler<HTMLDivElement>;
+  }[];
 }
 
-export default function Content({ title, url, params }: ContentProps) {
+export default function Content({ title, url, params, options }: ContentProps) {
   const { toast } = useToaster();
 
   const [range, setRange] = useState(RANGE_INCREMENT);
@@ -82,7 +89,7 @@ export default function Content({ title, url, params }: ContentProps) {
       <div className="grid grid-flow-row sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 p-2">
         {records ? (
           records.records.map((item) => (
-            <RecordDisplay key={item.id} record={item} />
+            <RecordDisplay key={item.id} record={item} options={options} />
           ))
         ) : (
           <RecordDisplay />
