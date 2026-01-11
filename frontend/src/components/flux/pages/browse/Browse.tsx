@@ -1,13 +1,23 @@
+import { useState } from "react";
 import { FiEdit3, FiTrash } from "react-icons/fi";
 
+import type { APIResponse, RecordMetadata } from "../../../../types";
+import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
+import { useToaster } from "../../../base/Toaster";
 import { useSessionStore } from "../../../../store";
 import { useTitle } from "../../../../hooks/Title";
+import Modal from "../../../base/Modal";
 import Content from "./Content";
 import Header from "./Header";
-import type { RecordMetadata } from "../../../../types";
+import Button from "../../../base/Button";
 
 export default function Browse() {
+  const [continueContentKey, setContinueContentKey] = useState(0);
+  const [deleteRecord, setDeleteRecord] = useState<RecordMetadata | undefined>(
+    undefined
+  );
   useTitle("flux | Browse");
+  const { toast } = useToaster();
   const { userConfiguration } = useSessionStore();
 
   const adminEditOption = userConfiguration.user?.isAdmin
@@ -28,9 +38,82 @@ export default function Browse() {
 
   return (
     <>
+      {deleteRecord ? (
+        <Modal
+          header={
+            <h5 className="text-lg font-bold">{`Remove '${deleteRecord.name}'?`}</h5>
+          }
+          body={
+            <div className="py-2 flex flex-col items-start">
+              <p>
+                Do you really want to clear the progress on the following
+                record?
+              </p>
+              <div className="w-full flex flex-row items-start m-4 space-x-2">
+                <div className="w-64 rounded-xl border-gray-700 border-2 aspect-video overflow-clip">
+                  <img
+                    src={`${BASE_URL}/thumbnail/${deleteRecord.thumbnailId}`}
+                  />
+                </div>
+                <div className="h-32 max-w-96">
+                  <h5 className="text-gray-100 font-semibold text-xl  truncate">
+                    {deleteRecord.name}
+                  </h5>
+                  <div className="w-full">
+                    <p className="text-gray-500 line-clamp-5">
+                      {deleteRecord.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          footer={
+            <div className="w-full flex flex-row items-center justify-between">
+              <Button onClick={() => setDeleteRecord(undefined)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  pFetch(`/api/v0/playback/${deleteRecord.id}`, {
+                    method: "DELETE",
+                  })
+                    .then((response) => {
+                      if (!response.ok) {
+                        response.text().then((text) => console.error(text));
+                        throw new Error(response.statusText);
+                      }
+                      return response.json();
+                    })
+                    .then((json: APIResponse) => {
+                      if (json.meta.ok) {
+                        setDeleteRecord(undefined);
+                        setContinueContentKey(Date.now());
+                      } else toast(formatAPIErrorMessage(json.meta));
+                    })
+                    .catch((error) => {
+                      toast(
+                        formatAPIErrorMessage({
+                          error: {
+                            code: 0,
+                            short: "Connection error",
+                            long: error.message,
+                          },
+                        })
+                      );
+                      console.error(error);
+                    });
+                }}
+              >
+                Confirm
+              </Button>
+            </div>
+          }
+          onDismiss={() => setDeleteRecord(undefined)}
+        />
+      ) : null}
       <Header />
       <div className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar">
         <Content
+          key={continueContentKey}
           title="Continue watching ..."
           url="/api/v0/index/records"
           params={new URLSearchParams({ continue: "true" })}
@@ -43,7 +126,7 @@ export default function Browse() {
                 return (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log(record);
+                  setDeleteRecord(record);
                 };
               },
             },
