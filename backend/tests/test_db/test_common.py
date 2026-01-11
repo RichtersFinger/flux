@@ -59,6 +59,37 @@ def test_transaction_rollback(tmp: Path):
     assert len(t.data) == 0
 
 
+def test_foreign_keys(tmp: Path):
+    """Test foreign-key support via `Transaction`s."""
+    db = tmp / str(uuid4())
+    # create two tables with reference from b to a
+    with Transaction(db) as t:
+        t.cursor.execute("CREATE TABLE a (id TEXT PRIMARY KEY)")
+        t.cursor.execute(
+            """
+            CREATE TABLE b (
+                id TEXT PRIMARY KEY,
+                ida TEXT NOT NULL REFERENCES a (id) ON DELETE CASCADE
+            )"""
+        )
+        t.cursor.execute("INSERT INTO a VALUES ('ida')")
+        t.cursor.execute("INSERT INTO b VALUES ('idb', 'ida')")
+
+    # check initial condition
+    with Transaction(db) as t:
+        t.cursor.execute("SELECT id FROM b WHERE ida = 'ida'")
+    assert len(t.data) == 1
+
+    # delete
+    with Transaction(db) as t:
+        t.cursor.execute("DELETE FROM a")
+
+    # validate cascade
+    with Transaction(db) as t:
+        t.cursor.execute("SELECT * FROM b")
+    assert len(t.data) == 0
+
+
 def test_schema(tmp: Path):
     """Test simple `Transaction`s."""
     db = tmp / str(uuid4())

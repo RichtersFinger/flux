@@ -18,10 +18,11 @@ class Transaction:
     def __enter__(self):
         self.connection = sqlite3.connect(
             f"file:{self.path.resolve()}{'?mode=ro' if self.readonly else ''}",
-            autocommit=False,
+            autocommit=True,
             uri=True,
         )
-        self.connection.execute("PRAGMA foreign_keys = 1")
+        self.connection.execute("PRAGMA foreign_keys = ON")
+        self.connection.autocommit = False
         self.cursor = self.connection.cursor()
         return self
 
