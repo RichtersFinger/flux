@@ -179,7 +179,11 @@ def register_api(app: Flask):
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
         ) as t:
             t.cursor.execute(
-                "SELECT volume, muted, autoplay FROM users WHERE name=?",
+                """
+                SELECT is_admin, volume, muted, autoplay
+                FROM users
+                WHERE name=?
+                """,
                 (username,),
             )
 
@@ -193,11 +197,14 @@ def register_api(app: Flask):
                 common.wrap_response_json(
                     None,
                     {
-                        "user": {"name": username, "isAdmin": False},
+                        "user": {
+                            "name": username,
+                            "isAdmin": t.data[0][0] == 1,
+                        },
                         "settings": {
-                            "volume": t.data[0][0],
-                            "muted": t.data[0][1] == 1,
-                            "autoplay": t.data[0][2] == 1,
+                            "volume": t.data[0][1],
+                            "muted": t.data[0][2] == 1,
+                            "autoplay": t.data[0][3] == 1,
                         },
                     },
                 )
