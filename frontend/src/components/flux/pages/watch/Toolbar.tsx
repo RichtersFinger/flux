@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
@@ -20,6 +20,8 @@ import type {
 import { useSessionStore } from "../../../../store";
 import VideoSelectionForCollection from "./VideoSelectionForCollection";
 import VideoSelectionForSeries from "./VideoSelectionForSeries";
+import RangeInput from "../../../base/RangeInput";
+import { throttle } from "../../../../util/events";
 
 /**
  * Converts a time in seconds to a human-readable format.
@@ -177,11 +179,14 @@ function ToolbarVideoInfo({
   );
 }
 
-function ToolbarVolumeControl() {
+function ToolbarVolumeControl({ videoRef }: Pick<ToolbarProps, "videoRef">) {
   const { userConfiguration, putUserConfiguration } = useSessionStore();
+  const [volume, setVolume] = useState(userConfiguration.settings?.volume);
+
   return (
-    <div className="h-full opacity-50 hover:opacity-70 hover:cursor-pointer transition-all flex flex-row items-center space-x-2">
+    <div className="h-full opacity-50 hover:opacity-70 transition-all flex flex-row items-center space-x-2">
       <div
+        className="hover:cursor-pointer"
         onClick={() => {
           putUserConfiguration({
             muted: !userConfiguration.settings?.muted,
@@ -190,24 +195,24 @@ function ToolbarVolumeControl() {
       >
         {userConfiguration.settings?.muted ? (
           <FiVolumeX size={30} />
-        ) : (userConfiguration.settings?.volume ?? 0) < 33 ? (
+        ) : (volume ?? 0) < 33 ? (
           <FiVolume size={30} />
-        ) : (userConfiguration.settings?.volume ?? 0) < 66 ? (
+        ) : (volume ?? 0) < 66 ? (
           <FiVolume1 size={30} />
         ) : (
           <FiVolume2 size={30} />
         )}
       </div>
-      <input
-        type="range"
-        value={userConfiguration.settings?.volume ?? 0}
-        onChange={(e) => {
-          // TODO: fix dragging causes many API-requests
-          putUserConfiguration({
-            volume: Number(e.target.value),
-          });
-        }}
-      />
+      <div className="w-32">
+        <RangeInput
+          value={volume}
+          onChange={(volume) => {
+            setVolume(volume);
+            if (videoRef.current) videoRef.current.volume = volume / 100;
+          }}
+          onCommit={(volume) => putUserConfiguration({ volume })}
+        />
+      </div>
     </div>
   );
 }
@@ -302,7 +307,7 @@ export default function Toolbar({
           <ToolbarVideoInfo {...{ recordInfo, videoInfo }} />
         </div>
         <div className="h-full flex flex-row items-center space-x-5">
-          <ToolbarVolumeControl />
+          <ToolbarVolumeControl {...{ videoRef }} />
           {recordInfo.type === "collection" ? (
             <VideoSelectionForCollection
               open={openNavigationMenu}
