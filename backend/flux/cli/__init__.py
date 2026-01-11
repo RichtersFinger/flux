@@ -5,13 +5,15 @@ from importlib.metadata import version
 from befehl import Option, Cli
 
 from .index import Index
+from .user import User
 from .run import Run
 
 
 class FluxCli(Cli):
     """CLI for `flux`."""
 
-    index = Index("index", helptext="create or update a flux-index")
+    index = Index("index", helptext="manage a flux-index")
+    user = User("user", helptext="manage users")
     run_ = Run("run", helptext="run flux app")
     version = Option(("-v", "--version"), helptext="prints library version")
 

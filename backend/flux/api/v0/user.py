@@ -2,52 +2,14 @@
 
 import sys
 from uuid import uuid4
-from hashlib import sha512
-import re
 
 from flask import Flask, request, jsonify
 
 from flux.db import Transaction
 from flux.config import FluxConfig
 from flux import exceptions
+from flux.cli.user.common import validate_username, hash_password
 from flux.api import common
-
-
-def validate_username(
-    # pylint: disable=unused-argument
-    username: str,
-    *,
-    name=None,
-) -> tuple[bool, str]:
-    """
-    Returns tuple
-    * validity
-    * message (in case of invalidity)
-    """
-    if len(username) < 4:
-        return False, f"Username '{username}' too short."
-    if not re.fullmatch(r"[a-z]", username[0]):
-        return False, "Username must start with a lower case letter."
-    if not re.fullmatch(r"[a-z0-9\.@_-]+", username):
-        return (
-            False,
-            f"Username '{username}' contains invalid characters (allowed "
-            + "characters are a-z, 0-9, ., @, _, and -).",
-        )
-    with Transaction(
-        FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
-    ) as t:
-        t.cursor.execute(
-            "SELECT COUNT(*) FROM users WHERE name=?", (username,)
-        )
-    if t.data[0][0] > 0:
-        return False, f"Username '{username}' already in use."
-    return True, ""
-
-
-def hash_password(password: str, salt: str) -> str:
-    """Returns hashed password."""
-    return sha512((salt + password).encode(encoding="utf-8")).hexdigest()
 
 
 def register_api(app: Flask):
