@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
@@ -181,6 +181,26 @@ function ToolbarVideoInfo({
 function ToolbarVolumeControl({ videoRef }: Pick<ToolbarProps, "videoRef">) {
   const { userConfiguration, putUserConfiguration } = useSessionStore();
   const [volume, setVolume] = useState(userConfiguration.settings?.volume);
+  const putVolumeRef = useRef(0);
+
+  // handle volume control via wheel-input
+  useEffect(() => {
+    function handleScroll(e: WheelEvent) {
+      const newVolume = Math.max(
+        0,
+        Math.min(100, (volume ?? 0) - 20 * Math.sign(e.deltaY))
+      );
+      setVolume(newVolume);
+      if (videoRef.current) videoRef.current.volume = newVolume / 100;
+      clearTimeout(putVolumeRef.current);
+      putVolumeRef.current = setTimeout(
+        () => putUserConfiguration({ volume: newVolume }),
+        1000
+      );
+    }
+    document.addEventListener("wheel", handleScroll);
+    return () => document.removeEventListener("wheel", handleScroll);
+  }, [volume, setVolume, putUserConfiguration, videoRef]);
 
   return (
     <div className="h-full opacity-50 hover:opacity-70 transition-all flex flex-row items-center space-x-2">
