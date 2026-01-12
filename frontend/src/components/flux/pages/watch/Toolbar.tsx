@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   FiRotateCcw,
   FiRotateCw,
@@ -18,10 +18,9 @@ import type {
   VideoInfo,
 } from "../../../../types";
 import { useSessionStore } from "../../../../store";
+import RangeInput from "../../../base/RangeInput";
 import VideoSelectionForCollection from "./VideoSelectionForCollection";
 import VideoSelectionForSeries from "./VideoSelectionForSeries";
-import RangeInput from "../../../base/RangeInput";
-import { throttle } from "../../../../util/events";
 
 /**
  * Converts a time in seconds to a human-readable format.
