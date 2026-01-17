@@ -4,7 +4,7 @@ import { useSessionStore } from "../../../../store";
 import Avatar from "../../../base/Avatar";
 import ConfirmModal from "../../../base/ConfirmModal";
 import RangeInput from "../../../base/RangeInput";
-import TextInput from "../../../base/TextInput";
+import Button from "../../../base/Button";
 
 export default function SettingsModal() {
   const { navigate } = useRouter();
@@ -24,7 +24,7 @@ export default function SettingsModal() {
 
   function close() {
     const newSearch = new URLSearchParams(search);
-    newSearch.delete("settings");
+    newSearch.delete("m");
     navigate(undefined, newSearch);
   }
 
@@ -43,7 +43,7 @@ export default function SettingsModal() {
                   username={userConfiguration.user?.name}
                 />
               </div>
-              <div className="min-w-64 max-w-96">
+              <div className="min-w-64 max-w-72">
                 <h5 className="text-gray-100 font-semibold text-xl truncate">
                   {userConfiguration.user?.name}
                 </h5>
@@ -54,29 +54,20 @@ export default function SettingsModal() {
                     : "regular user"}
                 </p>
               </div>
-            </div>
-            <div className="flex flex-col space-y-2">
-              <h5 className="text-gray-100 font-semibold text-lg">Password</h5>
-              <div className="flex flex-col space-y-2 ml-2">
-                <label htmlFor="old-password">Old password</label>
-                <TextInput
-                  id="old-password"
-                  className="text-gray-900"
-                  type="password"
-                />
-                <label htmlFor="new-password">New password</label>
-                <TextInput
-                  id="new-password"
-                  className="text-gray-900"
-                  type="password"
-                />
-                <label htmlFor="repeat-new-password">Repeat new password</label>
-                <TextInput
-                  id="repeat-new-password"
-                  className="text-gray-900"
-                  type="password"
-                />
-              </div>
+              <Button
+                onClick={() =>
+                  navigate(
+                    undefined,
+                    new URLSearchParams({
+                      ...Object.entries(search ?? []),
+                      m: "change-password",
+                      backm: "settings",
+                    }),
+                  )
+                }
+              >
+                Change Password
+              </Button>
             </div>
           </div>
           <div className="flex flex-col space-y-2">
