@@ -30,7 +30,7 @@ import VideoSelectionForSeries from "./VideoSelectionForSeries";
  */
 function convertToHumanReadableTime(
   seconds?: number,
-  includeHours: boolean = true
+  includeHours: boolean = true,
 ) {
   if (seconds === undefined) return "-";
   if (isNaN(seconds)) return "-";
@@ -56,6 +56,9 @@ function ToolbarProgressBar({
   | "setMousedownOnCurrentTimeSlider"
   | "draggingCurrentTimeSlider"
 >) {
+  const [seeking, setSeeking] = useState(false);
+  const [seekPosition, setSeekPosition] = useState(0);
+
   return (
     <div
       className="relative h-0 overflow-y-visible w-full -translate-y-1/2 hover:cursor-pointer transition-all"
@@ -63,13 +66,20 @@ function ToolbarProgressBar({
         setMousedownOnCurrentTimeSlider(true);
         setCurrentTime(
           (e.clientX / e.currentTarget.clientWidth) *
-            (videoRef.current?.duration ?? 0)
+            (videoRef.current?.duration ?? 0),
         );
       }}
+      onMouseEnter={() => setSeeking(true)}
+      onMouseLeave={() => setSeeking(false)}
+      onMouseMove={(e) =>
+        setSeekPosition(e.clientX / e.currentTarget.clientWidth)
+      }
     >
-      <div className="absolute top-0 left-0 bg-gray-700 h-2 w-full" />
+      {/* bar-background */}
+      <div className="absolute bg-gray-700 h-2 w-full" />
+      {/* tracer */}
       <div
-        className={`absolute top-0 left-0 bg-blue-700 aspect-square w-4 hover:w-5 rounded-full -translate-x-1/2 -translate-y-1/4 ${
+        className={`absolute bg-blue-700 aspect-square w-4 hover:w-5 rounded-full -translate-x-1/2 -translate-y-1/4 ${
           draggingCurrentTimeSlider ? "" : "transition-all"
         }`}
         style={{
@@ -78,8 +88,23 @@ function ToolbarProgressBar({
           }%`,
         }}
       />
+      {/* seek-time */}
+      {seeking && (
+        <div
+          className="absolute -translate-x-1/2 -translate-y-12 text-gray-100 p-2 rounded-xl bg-black opacity-80"
+          style={{
+            marginLeft: `max(28px, min(calc(100% - 28px), ${seekPosition * 100}%))`,
+          }}
+        >
+          {convertToHumanReadableTime(
+            seekPosition * (videoRef.current?.duration ?? 0), // eslint-disable-line react-hooks/refs
+            (videoRef.current?.duration ?? 0) > 3600, // eslint-disable-line react-hooks/refs
+          )}
+        </div>
+      )}
+      {/* bar-foreground */}
       <div
-        className={`absolute top-0 left-0 bg-blue-700 h-2 hover:h-2 ${
+        className={`absolute bg-blue-700 h-2 hover:h-2 ${
           draggingCurrentTimeSlider ? "" : "transition-all"
         }`}
         style={{
@@ -101,12 +126,12 @@ function ToolbarProgressText({
       <span>
         {convertToHumanReadableTime(
           currentTime,
-          (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
+          (videoRef.current?.duration ?? 0) > 3600, // eslint-disable-line react-hooks/refs
         )}
         {" / "}
         {convertToHumanReadableTime(
           videoRef.current?.duration, // eslint-disable-line react-hooks/refs
-          (videoRef.current?.duration ?? 0) > 3600 // eslint-disable-line react-hooks/refs
+          (videoRef.current?.duration ?? 0) > 3600, // eslint-disable-line react-hooks/refs
         )}
       </span>
     </div>
@@ -188,14 +213,14 @@ function ToolbarVolumeControl({ videoRef }: Pick<ToolbarProps, "videoRef">) {
     function handleScroll(e: WheelEvent) {
       const newVolume = Math.max(
         0,
-        Math.min(100, (volume ?? 0) - 20 * Math.sign(e.deltaY))
+        Math.min(100, (volume ?? 0) - 20 * Math.sign(e.deltaY)),
       );
       setVolume(newVolume);
       if (videoRef.current) videoRef.current.volume = newVolume / 100;
       clearTimeout(putVolumeRef.current);
       putVolumeRef.current = setTimeout(
         () => putUserConfiguration({ volume: newVolume }),
-        1000
+        1000,
       );
     }
     document.addEventListener("wheel", handleScroll);
