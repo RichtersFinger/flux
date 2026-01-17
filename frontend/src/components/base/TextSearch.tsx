@@ -6,8 +6,10 @@ interface TextSearchProps {
   className?: string;
   initialValue?: string;
   placeholder?: string;
+  autoFocus?: boolean;
   maxLength?: number;
   onChange?: (value: string) => void;
+  onFocus?: () => void;
 }
 
 export default function TextSearch({
@@ -15,8 +17,10 @@ export default function TextSearch({
   className = "",
   initialValue,
   placeholder,
+  autoFocus,
   maxLength = 256,
   onChange,
+  onFocus,
 }: TextSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,9 +34,11 @@ export default function TextSearch({
         placeholder={placeholder}
         defaultValue={initialValue}
         maxLength={maxLength}
+        autoFocus={autoFocus}
         onKeyDown={(e) => {
           if (e.key === "Enter") onChange?.(inputRef.current?.value ?? "");
         }}
+        onFocus={onFocus}
       />
       <div
         className="absolute top-1/2 -translate-y-1/2 right-2 hover:cursor-pointer text-gray-500 hover:text-blue-500 transition-colors noselect"

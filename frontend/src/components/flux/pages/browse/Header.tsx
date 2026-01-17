@@ -10,6 +10,7 @@ import TextSearch from "../../../base/TextSearch";
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
+  const [filterAutoFocus, setFilterAutoFocus] = useState(false);
 
   const { navigate } = useRouter();
   const { search } = useLocation();
@@ -26,6 +27,8 @@ export default function Header() {
         <TextSearch
           key={search?.toString()}
           placeholder="Filter ..."
+          autoFocus={filterAutoFocus}
+          onFocus={() => setFilterAutoFocus(true)}
           initialValue={search?.get("search") ?? ""}
           onChange={(value) => {
             const newSearch = new URLSearchParams(search);
