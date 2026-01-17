@@ -8,10 +8,9 @@ import { useSessionStore } from "../../../../store";
 import { useTitle } from "../../../../hooks/Title";
 import { useLocation, useRouter } from "../../../../hooks/Router";
 import Badge from "../../../base/Badge";
-import Modal from "../../../base/Modal";
 import Content from "./Content";
 import Header from "./Header";
-import Button from "../../../base/Button";
+import ConfirmModal from "../../../base/ConfirmModal";
 
 const INDEX_ENDPOINT = "/api/v0/index/records";
 
@@ -45,7 +44,7 @@ export default function Browse() {
   return (
     <>
       {deleteRecord ? (
-        <Modal
+        <ConfirmModal
           header={
             <h5 className="text-lg font-bold">{`Remove '${deleteRecord.name}'?`}</h5>
           }
@@ -74,45 +73,37 @@ export default function Browse() {
               </div>
             </div>
           }
-          footer={
-            <div className="w-full flex flex-row items-center justify-between">
-              <Button onClick={() => setDeleteRecord(undefined)}>Cancel</Button>
-              <Button
-                onClick={() => {
-                  pFetch(`/api/v0/playback/${deleteRecord.id}`, {
-                    method: "DELETE",
-                  })
-                    .then((response) => {
-                      if (!response.ok) {
-                        response.text().then((text) => console.error(text));
-                        throw new Error(response.statusText);
-                      }
-                      return response.json();
-                    })
-                    .then((json: APIResponse) => {
-                      if (json.meta.ok) {
-                        setDeleteRecord(undefined);
-                        setContinueContentKey(Date.now());
-                      } else toast(formatAPIErrorMessage(json.meta));
-                    })
-                    .catch((error) => {
-                      toast(
-                        formatAPIErrorMessage({
-                          error: {
-                            code: 0,
-                            short: "Connection error",
-                            long: error.message,
-                          },
-                        }),
-                      );
-                      console.error(error);
-                    });
-                }}
-              >
-                Confirm
-              </Button>
-            </div>
-          }
+          onCancel={() => setDeleteRecord(undefined)}
+          onConfirm={() => {
+            pFetch(`/api/v0/playback/${deleteRecord.id}`, {
+              method: "DELETE",
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  response.text().then((text) => console.error(text));
+                  throw new Error(response.statusText);
+                }
+                return response.json();
+              })
+              .then((json: APIResponse) => {
+                if (json.meta.ok) {
+                  setDeleteRecord(undefined);
+                  setContinueContentKey(Date.now());
+                } else toast(formatAPIErrorMessage(json.meta));
+              })
+              .catch((error) => {
+                toast(
+                  formatAPIErrorMessage({
+                    error: {
+                      code: 0,
+                      short: "Connection error",
+                      long: error.message,
+                    },
+                  }),
+                );
+                console.error(error);
+              });
+          }}
           onDismiss={() => setDeleteRecord(undefined)}
         />
       ) : null}
