@@ -1,5 +1,6 @@
 """Common definitions for SQLite3-database."""
 
+import sys
 from typing import Optional, Any
 from pathlib import Path
 import sqlite3
@@ -16,13 +17,20 @@ class Transaction:
         self.data: Optional[list[Any]] = None
 
     def __enter__(self):
-        self.connection = sqlite3.connect(
-            f"file:{self.path.resolve()}{'?mode=ro' if self.readonly else ''}",
-            autocommit=True,
-            uri=True,
+        uri = (
+            f"file:{self.path.resolve()}{'?mode=ro' if self.readonly else ''}"
         )
+        if sys.version_info[1] >= 12:
+            self.connection = sqlite3.connect(uri, autocommit=True, uri=True)
+        else:
+            self.connection = sqlite3.connect(
+                uri, isolation_level=None, uri=True
+            )
         self.connection.execute("PRAGMA foreign_keys = ON")
-        self.connection.autocommit = False
+        if sys.version_info[1] >= 12:
+            self.connection.autocommit = False
+        else:
+            self.connection.isolation_level = ""
         self.cursor = self.connection.cursor()
         return self
 
