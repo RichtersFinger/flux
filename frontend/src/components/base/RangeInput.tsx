@@ -29,11 +29,11 @@ export default function RangeInput({
       Math.min(
         100,
         Math.round(
-          ((e.clientX - containerRef.current.offsetLeft) /
+          ((e.clientX - containerRef.current.getBoundingClientRect().left) /
             containerRef.current.offsetWidth) *
-            100
-        )
-      )
+            100,
+        ),
+      ),
     );
   }
 
