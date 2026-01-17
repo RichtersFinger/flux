@@ -1,2 +1,0 @@
-graft client
-include db/schema.sql

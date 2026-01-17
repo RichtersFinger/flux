@@ -1,10 +1,9 @@
 SHELL := /bin/bash
 VENV := venv
 SKIP_CLIENT =
-VERSION =
 
 _:
-	echo "Missing target. See README for details."
+	echo "Missing target."
 
 venv:
 	[ -d "${VENV}" ] || python3 -m venv venv
@@ -44,18 +43,14 @@ build-frontend:
 endif
 
 build-backend:
-	rm -rf backend/flux/client
-	cp -r frontend/dist backend/flux/client
+	rm -rf backend/src/flux/client
+	cp -r frontend/dist backend/src/flux/client
 
 build: venv build-frontend build-backend
-	[ "${VERSION}" != "" ] && \
-		VERSIONENV="VERSION=${VERSION}" || \
-		echo "Using default version"
 	source "${VENV}/bin/activate" && \
-		pip install --upgrade pip wheel setuptools && \
+		pip install --upgrade pip setuptools build && \
 		cd backend && \
-		${VERSIONENV} python3 setup.py sdist bdist_wheel || \
-		python3 setup.py sdist bdist_wheel
+		python -m build --wheel --sdist
 
 clean:
 	git clean -dfX
