@@ -7,6 +7,7 @@ import Avatar from "../../../base/Avatar";
 import ContextMenu from "../../../base/ContextMenu";
 import Logo from "../../../base/Logo";
 import TextSearch from "../../../base/TextSearch";
+import SettingsModal from "./SettingsModal";
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
@@ -39,6 +40,7 @@ export default function Header() {
         />
       </div>
       {/* user */}
+      {search?.get("settings") !== null && <SettingsModal />}
       <ContextMenu
         className="min-w-48"
         open={openMenu}
@@ -55,6 +57,14 @@ export default function Header() {
                 Settings
               </ContextMenu.BasicItem>
             ),
+            onClick: () =>
+              navigate(
+                undefined,
+                new URLSearchParams({
+                  ...Object.entries(search ?? []),
+                  settings: "",
+                }),
+              ),
           },
           {
             id: "logout",
