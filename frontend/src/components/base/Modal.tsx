@@ -36,11 +36,11 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div>{header}</div>
-        {header && body ? <hr className="text-gray-100"/> : null}
+        {header && body ? <hr className="text-gray-100" /> : null}
         <div>{body}</div>
         <div>{footer}</div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
