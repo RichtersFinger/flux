@@ -19,7 +19,7 @@ import ContextMenu from "./ContextMenu";
 export default function Watch() {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | undefined>(undefined);
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
-    undefined
+    undefined,
   );
   const [videoError, setVideoError] = useState<string | undefined>(undefined);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -58,7 +58,7 @@ export default function Watch() {
   }, [recordInfo, videoId]);
 
   const [currentTime, setCurrentTime] = useState(
-    Number(search?.get("t") ?? "0")
+    Number(search?.get("t") ?? "0"),
   );
 
   // handle play/pause
@@ -170,7 +170,7 @@ export default function Watch() {
           navigate(
             undefined,
             new URLSearchParams({ id: videoId ?? "" }),
-            false
+            false,
           );
         }
         node.play();
@@ -192,20 +192,21 @@ export default function Watch() {
       // * error
       function handleOnVideoError() {
         setVideoError(
-          "An unknown error occurred. This is most likely caused by a video format which does not support streaming."
+          "An unknown error occurred. This is most likely caused by a video format which does not support streaming.",
         );
       }
       // * video ended/start next
       function handleOnVideoEnded() {
-        if (
-          userConfiguration.settings?.autoplay &&
-          videoId &&
-          recordInfo &&
-          !node.loop
-        ) {
-          // navigate to next video if available
-          navigateToVideo(recordInfo.id, getNextVideo(recordInfo, videoId));
-        } else {
+        if (!videoId || !recordInfo) return;
+
+        // clear playback if this was the last item in the current list
+        const nextVideoId = getNextVideo(recordInfo, videoId);
+        if (nextVideoId === videoId)
+          pFetch(`/api/v0/playback/${recordInfo.id}`, { method: "DELETE" });
+
+        if (userConfiguration.settings?.autoplay && !node.loop)
+          navigateToVideo(recordInfo.id, nextVideoId);
+        else {
           setPaused(true);
           setCurrentTime(videoRef.current?.duration ?? 0);
         }
@@ -233,7 +234,7 @@ export default function Watch() {
       recordInfo,
       navigate,
       navigateToVideo,
-    ]
+    ],
   );
 
   // get video-info
@@ -260,7 +261,7 @@ export default function Watch() {
               short: "Connection error",
               long: error.message,
             },
-          })
+          }),
         );
         console.error(error);
       });
@@ -291,7 +292,7 @@ export default function Watch() {
               short: "Connection error",
               long: error.message,
             },
-          })
+          }),
         );
         console.error(error);
       });
@@ -309,8 +310,8 @@ export default function Watch() {
           throttledSetCurrentTime(
             Math.round(
               (e.clientX / e.currentTarget.clientWidth) *
-                (videoRef.current?.duration ?? 0)
-            )
+                (videoRef.current?.duration ?? 0),
+            ),
           );
         }
       }}
@@ -318,7 +319,7 @@ export default function Watch() {
         if (mousedownOnCurrentTimeSlider)
           setCurrentTime(
             (e.clientX / e.currentTarget.clientWidth) *
-              (videoRef.current?.duration ?? 0)
+              (videoRef.current?.duration ?? 0),
           );
         setMousedownOnCurrentTimeSlider(false);
         setDraggingCurrentTimeSlider(false);
