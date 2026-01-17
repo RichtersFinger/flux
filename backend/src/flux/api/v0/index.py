@@ -353,13 +353,25 @@ def register_api(app: Flask):
         filter_args = ()
         if search is not None:
             search = search.replace("%", r"\%").replace("_", r"\_")
-            filters += [
-                r"(name LIKE ? ESCAPE '\' OR description LIKE ? ESCAPE '\')",
-            ]
+            if continue_:
+                filters += [
+                    r"(records.name LIKE ? ESCAPE '\' OR records.description LIKE ? ESCAPE '\')",
+                ]
+            else:
+                filters += [
+                    r"(name LIKE ? ESCAPE '\' OR description LIKE ? ESCAPE '\')",
+                ]
             filter_args += (f"%{search}%", f"%{search}%")
         if type_ is not None:
-            filters += ["type = ?"]
+            if continue_:
+                filters += ["records.type = ?"]
+            else:
+                filters += ["type = ?"]
             filter_args += (type_,)
+
+        if continue_:
+            filters += ["playbacks.username = ?"]
+            filter_args += (username,)
 
         # run queries
         # * total number of records
@@ -370,20 +382,15 @@ def register_api(app: Flask):
                 (
                     f"""
                     SELECT COUNT(*)
-                    FROM records
-                    {'WHERE' if filters else ''} {' AND '.join(filters)}
-                    JOIN
-                        playbacks ON records.id = playbacks.record_id
-                        WHERE playbacks.username=?
-                    """
-                    if continue_
-                    else f"""
-                    SELECT COUNT(*)
-                    FROM records
+                    FROM records {
+                        "JOIN playbacks ON records.id = playbacks.record_id"
+                        if continue_ else
+                        ""
+                    }
                     {'WHERE' if filters else ''} {' AND '.join(filters)}
                     """
                 ),
-                filter_args + ((username,) if continue_ else ()),
+                filter_args,
             )
         count = t.data[0][0]
 
@@ -395,7 +402,7 @@ def register_api(app: Flask):
             range_filter_args += (range_[1] - range_[0], range_[0])
 
         # * order
-        order_by = "playbacks.changed DESC" if continue_ else "records.id"
+        order_by = "playbacks.changed DESC" if continue_ else "id"
 
         with Transaction(
             FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
@@ -409,24 +416,17 @@ def register_api(app: Flask):
                         records.name,
                         records.description,
                         records.thumbnail_id
-                    FROM records
+                    FROM records {
+                        "JOIN playbacks ON records.id = playbacks.record_id"
+                        if continue_ else
+                        ""
+                    }
                     {'WHERE' if filters else ''} {' AND '.join(filters)}
-                    JOIN
-                        playbacks ON records.id = playbacks.record_id
-                        WHERE playbacks.username=?
                     ORDER BY {order_by}
-                    {range_filter}
-                    """
-                    if continue_
-                    else f"""
-                    SELECT id, type, name, description, thumbnail_id
-                    FROM records
-                    {'WHERE' if filters else ''} {' AND '.join(filters)}
                     {range_filter}
                     """
                 ),
                 filter_args
-                + ((username,) if continue_ else ())
                 + range_filter_args,
             )
 
