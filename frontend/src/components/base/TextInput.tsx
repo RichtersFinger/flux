@@ -22,13 +22,13 @@ export default function TextInput({
   return (
     <div className="relative">
       {icon ? (
-        <div className="absolute h-full pointer-events-none bg-slate-400 rounded-l noselect">
+        <div className="absolute h-full pointer-events-none bg-gray-500 rounded-l noselect">
           <div className="flex flex-row h-full px-2 items-center">{icon}</div>
         </div>
       ) : null}
       <input
         id={id}
-        className={`p-1 px-2 border bg-gray-50 border-gray-300 rounded outline-none focus:outline-gray-200 ${className} outline-1  ${
+        className={`p-1 px-2 border bg-gray-100 rounded ${className} ${
           icon ? "indent-7" : ""
         }`}
         type={type}
