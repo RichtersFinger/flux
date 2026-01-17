@@ -109,7 +109,10 @@ export default function Browse() {
       ) : null}
       <Header />
       <div
-        key={search?.toString()}
+        key={
+          // reload content when search-filter changes
+          search?.get("search") ?? ""
+        }
         className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar"
       >
         {search?.get("search") && search.get("search") !== "" ? (
