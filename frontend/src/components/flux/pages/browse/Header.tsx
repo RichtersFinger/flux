@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { FiUser, FiSettings, FiLogOut } from "react-icons/fi";
 
+import { useLocation, useRouter } from "../../../../hooks/Router";
 import { useSessionStore } from "../../../../store";
 import Avatar from "../../../base/Avatar";
 import ContextMenu from "../../../base/ContextMenu";
 import Logo from "../../../base/Logo";
+import TextSearch from "../../../base/TextSearch";
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
 
+  const { navigate } = useRouter();
+  const { search } = useLocation();
   const { userConfiguration, logout } = useSessionStore();
 
   return (
@@ -19,10 +23,16 @@ export default function Header() {
       </div>
       {/* tools */}
       <div>
-        <input
-          type="text"
-          className="bg-gray-100 text-gray-900 rounded px-2 py-1"
-          placeholder="Search ..."
+        <TextSearch
+          key={search?.toString()}
+          placeholder="Filter ..."
+          initialValue={search?.get("search") ?? ""}
+          onChange={(value) => {
+            const newSearch = new URLSearchParams(search);
+            if (value !== "") newSearch.set("search", value);
+            else newSearch.delete("search");
+            navigate(undefined, newSearch);
+          }}
         />
       </div>
       {/* user */}

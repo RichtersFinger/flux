@@ -6,18 +6,24 @@ import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
 import { useToaster } from "../../../base/Toaster";
 import { useSessionStore } from "../../../../store";
 import { useTitle } from "../../../../hooks/Title";
+import { useLocation, useRouter } from "../../../../hooks/Router";
+import Badge from "../../../base/Badge";
 import Modal from "../../../base/Modal";
 import Content from "./Content";
 import Header from "./Header";
 import Button from "../../../base/Button";
 
+const INDEX_ENDPOINT = "/api/v0/index/records";
+
 export default function Browse() {
   const [continueContentKey, setContinueContentKey] = useState(0);
   const [deleteRecord, setDeleteRecord] = useState<RecordMetadata | undefined>(
-    undefined
+    undefined,
   );
   useTitle("flux | Browse");
   const { toast } = useToaster();
+  const { navigate } = useRouter();
+  const { search } = useLocation();
   const { userConfiguration } = useSessionStore();
 
   const adminEditOption = userConfiguration.user?.isAdmin
@@ -97,7 +103,7 @@ export default function Browse() {
                             short: "Connection error",
                             long: error.message,
                           },
-                        })
+                        }),
                       );
                       console.error(error);
                     });
@@ -111,12 +117,35 @@ export default function Browse() {
         />
       ) : null}
       <Header />
-      <div className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar">
+      <div
+        key={search?.toString()}
+        className="mt-toolbar h-[calc(100%-var(--spacing-toolbar))] flex flex-col px-3 py-6 space-y-4 overflow-y-auto show-dark-scrollbar"
+      >
+        {search?.get("search") && search.get("search") !== "" ? (
+          <div className="flex flex-row">
+            <Badge
+              onDismiss={() => {
+                const newSearch = new URLSearchParams(search);
+                newSearch.delete("search");
+                navigate(undefined, newSearch);
+              }}
+            >
+              <span className="font-semibold">Text filter</span>
+            </Badge>
+          </div>
+        ) : null}
         <Content
           key={continueContentKey}
           title="Continue watching ..."
-          url="/api/v0/index/records"
-          params={new URLSearchParams({ continue: "true" })}
+          url={INDEX_ENDPOINT}
+          params={
+            new URLSearchParams({
+              continue: "true",
+              ...(search?.get("search")
+                ? { search: search.get("search")! }
+                : {}),
+            })
+          }
           options={[
             ...adminEditOption,
             {
@@ -134,20 +163,41 @@ export default function Browse() {
         />
         <Content
           title="Series"
-          url="/api/v0/index/records"
-          params={new URLSearchParams({ type: "series" })}
+          url={INDEX_ENDPOINT}
+          params={
+            new URLSearchParams({
+              type: "series",
+              ...(search?.get("search")
+                ? { search: search.get("search")! }
+                : {}),
+            })
+          }
           options={[...adminEditOption]}
         />
         <Content
           title="Movies"
-          url="/api/v0/index/records"
-          params={new URLSearchParams({ type: "movie" })}
+          url={INDEX_ENDPOINT}
+          params={
+            new URLSearchParams({
+              type: "movie",
+              ...(search?.get("search")
+                ? { search: search.get("search")! }
+                : {}),
+            })
+          }
           options={[...adminEditOption]}
         />
         <Content
           title="Collections"
-          url="/api/v0/index/records"
-          params={new URLSearchParams({ type: "collection" })}
+          url={INDEX_ENDPOINT}
+          params={
+            new URLSearchParams({
+              type: "collection",
+              ...(search?.get("search")
+                ? { search: search.get("search")! }
+                : {}),
+            })
+          }
           options={[...adminEditOption]}
         />
       </div>

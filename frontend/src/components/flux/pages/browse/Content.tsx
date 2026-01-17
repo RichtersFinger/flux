@@ -17,7 +17,7 @@ interface ContentProps {
     id: string;
     node: React.ReactNode;
     getOnClick: (
-      record: RecordMetadata
+      record: RecordMetadata,
     ) => React.MouseEventHandler<HTMLDivElement>;
   }[];
 }
@@ -40,7 +40,7 @@ export default function Content({ title, url, params, options }: ContentProps) {
         new URLSearchParams({
           ...Object.fromEntries(params ?? []),
           range: `${records?.records.length ?? 0}-${range}`,
-        }).toString()
+        }).toString(),
     )
       .then((response) => {
         if (!response.ok) {
@@ -62,7 +62,7 @@ export default function Content({ title, url, params, options }: ContentProps) {
                   ...(state?.records ?? []),
                   ...(json.content?.records ?? []),
                 ],
-              } as Records)
+              }) as Records,
           );
         else toast(formatAPIErrorMessage(json.meta));
       })
@@ -71,7 +71,7 @@ export default function Content({ title, url, params, options }: ContentProps) {
         toast(
           formatAPIErrorMessage({
             error: { code: 0, short: "Connection error", long: error.message },
-          })
+          }),
         );
         console.error(error);
       });
