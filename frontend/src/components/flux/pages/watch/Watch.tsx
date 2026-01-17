@@ -211,12 +211,16 @@ export default function Watch() {
           setCurrentTime(videoRef.current?.duration ?? 0);
         }
       }
+      function handleKeydownEvents(e: KeyboardEvent) {
+        if (e.code === "Space") setPaused((state) => !state);
+      }
       node.addEventListener("loadeddata", handleOnLoad);
       document.addEventListener("mousemove", handleOnMouseMove);
       handleOnMouseMove();
       node.addEventListener("ended", handleOnVideoEnded);
       node.addEventListener("error", handleOnVideoError);
       node.addEventListener("timeupdate", handleVideoTimeupdate);
+      document.addEventListener("keydown", handleKeydownEvents);
       return () => {
         node.removeEventListener("loadeddata", handleOnLoad);
         document.removeEventListener("mousemove", handleOnMouseMove);
@@ -224,6 +228,7 @@ export default function Watch() {
         node.removeEventListener("ended", handleOnVideoEnded);
         node.removeEventListener("error", handleOnVideoError);
         node.removeEventListener("timeupdate", handleVideoTimeupdate);
+        document.removeEventListener("keydown", handleKeydownEvents);
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
