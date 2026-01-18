@@ -1,10 +1,12 @@
 """Index-API endpoints"""
 
 from typing import Optional, Mapping
+import sys
 import re
 from json import loads
 import base64
 from uuid import uuid4
+import subprocess
 
 from flask import Flask, request, jsonify
 
@@ -508,7 +510,7 @@ def register_api(app: Flask):
             valid, msg = common.run_validation(
                 [
                     lambda *args, **kwargs: common.validate_string(
-                        *args, **(kwargs | {"maxlen": 2**18})
+                        *args, **(kwargs | {"maxlen": FluxConfig.THUMBNAILS_SIZE_UPPER_BOUND_UPLOAD})
                     )
                 ],
                 json["content"]["thumbnail"],
@@ -518,18 +520,50 @@ def register_api(app: Flask):
                 raise exceptions.BadRequestException(msg)
             thumbnail = json["content"]["thumbnail"]
 
+        thumbnail_id = None
         thumbnail_filename = None
         if thumbnail:
-            thumbnail_filename = str(uuid4())
-            (
+            thumbnail_id = str(uuid4())
+            thumbnail_filename = thumbnail_id + ".jpg"
+            thumbnail_path = (
                 FluxConfig.INDEX_LOCATION
                 / FluxConfig.THUMBNAILS
                 / thumbnail_filename
-            ).write_bytes(
+            )
+            thumbnail_path.write_bytes(
                 base64.decodebytes(thumbnail.split(",")[1].encode("utf-8"))
             )
+            # for large files, try to rescale
+            if len(thumbnail) > FluxConfig.THUMBNAILS_SIZE_UPPER_BOUND:
+                try:
+                    subprocess.run(
+                        [
+                            "ffmpeg",
+                            "-y",
+                            "-v",
+                            "error",
+                            "-i",
+                            str(thumbnail_path),
+                            "-vf",
+                            "scale=720:-1",
+                            str(thumbnail_path),
+                        ],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                except subprocess.CalledProcessError as exc_info:
+                    print(
+                        "\033[1;33m"
+                        + "Failed to rescale thumbnail from "
+                        + f"'{thumbnail_path}' at '{thumbnail_path}': "
+                        + f"{exc_info} ({exc_info.stderr})"
+                        + "\033[0m",
+                        file=sys.stderr,
+                    )
+                    raise exc_info
 
-            cols["thumbnail_id"] = thumbnail_filename
+            cols["thumbnail_id"] = thumbnail_id
 
         # run query to update metadata if needed
         if len(cols) > 0:
@@ -539,7 +573,7 @@ def register_api(app: Flask):
                 if thumbnail_filename:
                     t.cursor.execute(
                         "INSERT INTO thumbnails VALUES (?, ?)",
-                        (thumbnail_filename, thumbnail_filename),
+                        (thumbnail_id, thumbnail_filename),
                     )
                 t.cursor.execute(
                     # pylint: disable=consider-using-f-string

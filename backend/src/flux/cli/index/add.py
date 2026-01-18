@@ -271,6 +271,8 @@ class AddToIndex(Command):
                     str(source.path),
                     "-frames:v",
                     "1",
+                    "-vf",
+                    "scale=720:-1",
                     str(destination),
                 ],
                 check=True,

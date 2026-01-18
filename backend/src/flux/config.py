@@ -18,6 +18,8 @@ class FluxConfig:
     INDEX_DB_FILE = Path("index.db")
     SCHEMA_LOCATION = Path(db.__file__).parent / "schema.sql"
     THUMBNAILS = Path(".thumbnails")
+    THUMBNAILS_SIZE_UPPER_BOUND_UPLOAD = 10 * 2**20  # ~ 10MB
+    THUMBNAILS_SIZE_UPPER_BOUND = 2**18  # ~ 256KB
 
     MODE = os.environ.get("MODE", "prod")  # "prod" | "dev" | "test"
     DEV_CORS_FRONTEND_URL = os.environ.get(
