@@ -33,7 +33,7 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
                 short: "Connection error",
                 long: error.message,
               },
-            })
+            }),
           );
           console.error(error);
         });
@@ -59,7 +59,7 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
                 short: "Connection error",
                 long: error.message,
               },
-            })
+            }),
           );
           console.error(error);
         });
@@ -95,15 +95,15 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
                 short: "Connection error",
                 long: error.message,
               },
-            })
+            }),
           );
           console.error(error);
         });
     },
-    putUserConfiguration: (settings) => {
+    putUserConfiguration: (settings, options) => {
       pFetch("/api/v0/user/configuration", {
         method: "PUT",
-        body: JSON.stringify({"content": settings}),
+        body: JSON.stringify({ content: settings }),
         headers: { "Content-Type": "application/json" },
       })
         .then((response) => {
@@ -114,19 +114,25 @@ export const useSessionStore = createShallowStore<SessionStore>((get, set) => {
           return response.json();
         })
         .then((json: APIResponse<UserConfiguration>) => {
-          if (json.meta.ok) get().fetchUserConfiguration();
-          else toast(formatAPIErrorMessage(json.meta));
+          if (json.meta.ok) {
+            options?.onSuccess?.();
+            get().fetchUserConfiguration();
+          } else {
+            if (options?.onFail)
+              options.onFail(formatAPIErrorMessage(json.meta));
+            else toast(formatAPIErrorMessage(json.meta));
+          }
         })
         .catch((error) => {
-          toast(
-            formatAPIErrorMessage({
-              error: {
-                code: 0,
-                short: "Connection error",
-                long: error.message,
-              },
-            })
-          );
+          const message = formatAPIErrorMessage({
+            error: {
+              code: 0,
+              short: "Connection error",
+              long: error.message,
+            },
+          });
+          if (options?.onFail) options.onFail(message);
+          else toast(message);
           console.error(error);
         });
     },

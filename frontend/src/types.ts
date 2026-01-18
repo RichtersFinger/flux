@@ -34,7 +34,13 @@ export interface SessionStore {
   userConfiguration: UserConfiguration;
   setUserConfiguration: (userConfiguration: Partial<UserConfiguration>) => void;
   fetchUserConfiguration: () => void;
-  putUserConfiguration: (settings: Partial<UserConfigurationSettings>) => void;
+  putUserConfiguration: (
+    settings: Partial<UserConfigurationSettings>,
+    options?: {
+      onSuccess?: () => void;
+      onFail?: (message: string) => void;
+    },
+  ) => void;
 }
 
 export interface RecordMetadata {
