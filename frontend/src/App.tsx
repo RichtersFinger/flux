@@ -11,6 +11,7 @@ import LoginRegister from "./components/flux/pages/login_register/LoginRegister"
 import Browse from "./components/flux/pages/browse/Browse";
 import Watch from "./components/flux/pages/watch/Watch";
 import InfoModal from "./components/flux/InfoModal";
+import EditRecordModal from "./components/flux/EditRecordModal";
 
 export default function App() {
   const location = useLocation();
@@ -47,6 +48,7 @@ export default function App() {
       {location.search?.get("m") === "change-password" && (
         <ChangePasswordModal />
       )}
+      {location.search?.get("m") === "edit-record" && <EditRecordModal />}
       {loggedIn !== undefined && (
         <Page>
           {{

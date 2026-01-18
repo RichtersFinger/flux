@@ -34,7 +34,14 @@ export default function Browse() {
             return (e: React.MouseEvent) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log(record);
+              navigate(
+                undefined,
+                new URLSearchParams({
+                  ...Object.entries(search ?? []),
+                  m: "edit-record",
+                  editRecordId: record.id,
+                }),
+              );
             };
           },
         },

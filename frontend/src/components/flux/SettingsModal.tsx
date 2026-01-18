@@ -45,7 +45,7 @@ export default function SettingsModal() {
   return (
     <ConfirmModal
       className="w-2xl max-h-11/12 overflow-y-auto show-dark-scrollbar"
-      header={<h5 className="font-bold text-2xl">{`Settings`}</h5>}
+      header={<h5 className="font-bold text-2xl">Settings</h5>}
       body={
         <div className="py-6 flex flex-col space-y-6 items-start ">
           {errorMessage ? (
