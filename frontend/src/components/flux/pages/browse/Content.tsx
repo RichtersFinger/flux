@@ -32,6 +32,11 @@ export default function Content({ title, url, params, options }: ContentProps) {
   useEffect(() => {
     if (url === "") return;
 
+    if (range - (records?.records.length ?? 0) < RANGE_INCREMENT) {
+      // this has already been fetched before
+      return;
+    }
+
     let discard = false;
 
     pFetch(
