@@ -7,8 +7,6 @@ import Avatar from "../../../base/Avatar";
 import ContextMenu from "../../../base/ContextMenu";
 import Logo from "../../../base/Logo";
 import TextSearch from "../../../base/TextSearch";
-import SettingsModal from "./SettingsModal";
-import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
@@ -41,8 +39,6 @@ export default function Header() {
         />
       </div>
       {/* user */}
-      {search?.get("m") === "settings" && <SettingsModal />}
-      {search?.get("m") === "change-password" && <ChangePasswordModal />}
       <ContextMenu
         className="min-w-48"
         open={openMenu}

@@ -1,11 +1,11 @@
 import { FiArrowLeft } from "react-icons/fi";
-import { useLocation, useRouter } from "../../../../hooks/Router";
-import ConfirmModal from "../../../base/ConfirmModal";
-import TextInput from "../../../base/TextInput";
-import { pFetch } from "../../../../util/api";
+import { useLocation, useRouter } from "../../hooks/Router";
+import ConfirmModal from "../base/ConfirmModal";
+import TextInput from "../base/TextInput";
+import { pFetch } from "../../util/api";
 import { useState } from "react";
-import MessageBox from "../../../base/MessageBox";
-import type { APIResponse } from "../../../../types";
+import MessageBox from "../base/MessageBox";
+import type { APIResponse } from "../../types";
 
 export default function ChangePasswordModal() {
   const { navigate } = useRouter();

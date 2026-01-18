@@ -1,13 +1,15 @@
 import { useEffect } from "react";
 
-import { useLocation, useRouter } from "./hooks/Router";
-import Toaster, { useToaster } from "./components/base/Toaster";
 import { useSessionStore } from "./store";
+import { useLocation, useRouter } from "./hooks/Router";
+import Navigate from "./components/base/Navigate";
+import Toaster, { useToaster } from "./components/base/Toaster";
 import Page from "./components/flux/Page";
+import ChangePasswordModal from "./components/flux/ChangePasswordModal";
+import SettingsModal from "./components/flux/SettingsModal";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
 import Browse from "./components/flux/pages/browse/Browse";
 import Watch from "./components/flux/pages/watch/Watch";
-import Navigate from "./components/base/Navigate";
 
 export default function App() {
   const location = useLocation();
@@ -39,6 +41,10 @@ export default function App() {
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">
       <Toaster />
+      {location.search?.get("m") === "settings" && <SettingsModal />}
+      {location.search?.get("m") === "change-password" && (
+        <ChangePasswordModal />
+      )}
       {loggedIn !== undefined && (
         <Page>
           {{

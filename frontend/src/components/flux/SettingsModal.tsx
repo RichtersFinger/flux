@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useLocation, useRouter } from "../../../../hooks/Router";
-import { useSessionStore } from "../../../../store";
-import Avatar from "../../../base/Avatar";
-import ConfirmModal from "../../../base/ConfirmModal";
-import RangeInput from "../../../base/RangeInput";
-import Button from "../../../base/Button";
+import { useLocation, useRouter } from "../../hooks/Router";
+import { useSessionStore } from "../../store";
+import Avatar from "../base/Avatar";
+import ConfirmModal from "../base/ConfirmModal";
+import RangeInput from "../base/RangeInput";
+import Button from "../base/Button";
 
 export default function SettingsModal() {
   const { navigate } = useRouter();
