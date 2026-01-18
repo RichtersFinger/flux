@@ -10,6 +10,7 @@ import SettingsModal from "./components/flux/SettingsModal";
 import LoginRegister from "./components/flux/pages/login_register/LoginRegister";
 import Browse from "./components/flux/pages/browse/Browse";
 import Watch from "./components/flux/pages/watch/Watch";
+import InfoModal from "./components/flux/InfoModal";
 
 export default function App() {
   const location = useLocation();
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">
       <Toaster />
+      {location.search?.get("m") === "info" && <InfoModal />}
       {location.search?.get("m") === "settings" && <SettingsModal />}
       {location.search?.get("m") === "change-password" && (
         <ChangePasswordModal />
