@@ -7,7 +7,7 @@ from flask import request, Response, jsonify
 
 from flux.db import Transaction
 from flux.config import FluxConfig
-from flux.exceptions import UnauthorizedException
+from flux.exceptions import UnauthorizedException, NotFoundException
 
 
 def header_auth(password: Optional[str]):
@@ -69,6 +69,27 @@ def session_cookie_auth(delete_cookie_on_fail: bool = False):
         return __
 
     return decorator
+
+
+def validate_admin(username: str) -> tuple[bool, str]:
+    """
+    Validates user role to be admin. Returns `True` if ok, `False`
+    alongside message otherwise.
+    """
+    with Transaction(
+        FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+    ) as t:
+        t.cursor.execute(
+            "SELECT is_admin FROM users WHERE name=?",
+            (username,),
+        )
+
+    if len(t.data) != 1:
+        raise NotFoundException(f"Unknown user '{username}'.")
+
+    if t.data[0][0] == 1:
+        return True, ""
+    return False, "Not allowed."
 
 
 def run_validation(

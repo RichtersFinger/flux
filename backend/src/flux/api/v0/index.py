@@ -3,6 +3,8 @@
 from typing import Optional, Mapping
 import re
 from json import loads
+import base64
+from uuid import uuid4
 
 from flask import Flask, request, jsonify
 
@@ -426,8 +428,7 @@ def register_api(app: Flask):
                     {range_filter}
                     """
                 ),
-                filter_args
-                + range_filter_args,
+                filter_args + range_filter_args,
             )
 
         records = [
@@ -459,6 +460,96 @@ def register_api(app: Flask):
             jsonify(common.wrap_response_json(None, get_record_info(id_))),
             200,
         )
+
+    @app.route("/api/v0/index/record/<id_>", methods=["PUT"])
+    @common.session_cookie_auth()
+    def put_record(
+        _: str,
+        username: str,
+        id_: str,
+    ):
+        """Updates record info."""
+        valid, msg = common.validate_admin(username)
+        if not valid:
+            raise exceptions.BadRequestException(msg)
+
+        json = request.get_json(silent=True)
+        if json is None:
+            raise exceptions.BadRequestException("Missing JSON data.")
+
+        # parse and validate metadata
+        cols = {}
+        if "name" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [common.validate_string],
+                json["content"]["name"],
+                name="content.name",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
+            cols["name"] = json["content"]["name"]
+        if "description" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [
+                    lambda *args, **kwargs: common.validate_string(
+                        *args, **(kwargs | {"maxlen": 2048})
+                    )
+                ],
+                json["content"]["description"],
+                name="content.description",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
+            cols["description"] = json["content"]["description"]
+
+        # process thumbnail
+        thumbnail = None
+        if "thumbnail" in json.get("content", {}):
+            valid, msg = common.run_validation(
+                [
+                    lambda *args, **kwargs: common.validate_string(
+                        *args, **(kwargs | {"maxlen": 2**18})
+                    )
+                ],
+                json["content"]["thumbnail"],
+                name="content.thumbnail",
+            )
+            if not valid:
+                raise exceptions.BadRequestException(msg)
+            thumbnail = json["content"]["thumbnail"]
+
+        thumbnail_filename = None
+        if thumbnail:
+            thumbnail_filename = str(uuid4())
+            (
+                FluxConfig.INDEX_LOCATION
+                / FluxConfig.THUMBNAILS
+                / thumbnail_filename
+            ).write_bytes(
+                base64.decodebytes(thumbnail.split(",")[1].encode("utf-8"))
+            )
+
+            cols["thumbnail_id"] = thumbnail_filename
+
+        # run query to update metadata if needed
+        if len(cols) > 0:
+            with Transaction(
+                FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+            ) as t:
+                if thumbnail_filename:
+                    t.cursor.execute(
+                        "INSERT INTO thumbnails VALUES (?, ?)",
+                        (thumbnail_filename, thumbnail_filename),
+                    )
+                t.cursor.execute(
+                    # pylint: disable=consider-using-f-string
+                    "UPDATE records SET {} WHERE id=?".format(
+                        ", ".join(map(lambda k: f"{k}=?", cols.keys()))
+                    ),
+                    tuple(cols.values()) + (id_,),
+                )
+
+        return jsonify(common.wrap_response_json(None, None)), 200
 
     @app.route("/api/v0/index/video/<video_id>", methods=["GET"])
     @common.session_cookie_auth()
