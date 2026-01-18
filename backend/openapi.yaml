@@ -458,6 +458,40 @@ paths:
                               - $ref: '#/components/schemas/CollectionInfo'
                 required:
                   - meta
+    put:
+      summary: update video info
+      description:
+        Returns OK if video has been updated. This endpoint requires the
+        admin-role.
+      tags:
+        - index
+      security:
+        - sessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: object
+                  description: request payload
+                  properties:
+                    name:
+                      type: string
+                      description: record name
+                    description:
+                      type: string
+                      description: record description
+                    thumbnail:
+                      type: string
+                      description: base64-encoded image
+                      format: byte
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericResponseNoContent'
   /api/v0/index/video/{videoId}:
     get:
       summary: get video info
