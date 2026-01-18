@@ -75,6 +75,70 @@ def register_api(app: Flask):
         """Validate session."""
         return jsonify(common.wrap_response_json(None, None)), 200
 
+    @app.route("/api/v0/user/password", methods=["PUT"])
+    @common.session_cookie_auth()
+    def put_password(_: str, username: str):
+        """Update password."""
+        json = request.get_json(silent=True)
+        if json is None:
+            raise exceptions.BadRequestException("Missing JSON data.")
+
+        # parse and validate
+        password = json.get("content", {}).get("currentPassword")
+        valid, msg = common.run_validation(
+            [common.validate_string],
+            password,
+            required=True,
+            name="currentPassword",
+        )
+        if not valid:
+            raise exceptions.BadRequestException(msg)
+        new_password = json.get("content", {}).get("newPassword")
+        valid, msg = common.run_validation(
+            [common.validate_string],
+            new_password,
+            required=True,
+            name="newPassword",
+        )
+        if not valid:
+            raise exceptions.BadRequestException(msg)
+
+        # read from database to validate current password
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE, readonly=True
+        ) as t:
+            t.cursor.execute(
+                "SELECT salt, password FROM user_secrets WHERE username=?",
+                (username,),
+            )
+
+        if len(t.data) != 1:
+            raise exceptions.NotFoundException(f"Unknown user '{username}'.")
+
+        salt, hashed_password = t.data[0]
+        if hash_password(password, salt) != hashed_password:
+            raise exceptions.UnauthorizedException("Bad password.")
+
+        # update database with new password
+        hashed_password = hash_password(new_password, salt)
+        print(
+            f"INFO: User '{username}' changed their password.", file=sys.stderr
+        )
+        with Transaction(
+            FluxConfig.INDEX_LOCATION / FluxConfig.INDEX_DB_FILE
+        ) as t:
+            t.cursor.execute(
+                """
+                UPDATE user_secrets SET password=?
+                WHERE username=?
+                """,
+                (
+                    hashed_password,
+                    username,
+                ),
+            )
+        return jsonify(common.wrap_response_json(None, None)), 200
+
     @app.route("/api/v0/user/session", methods=["POST"])
     def create_session():
         """Login/Create session."""
