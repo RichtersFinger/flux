@@ -42,7 +42,6 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen bg-gray-800 overflow-x-clip overflow-y-hidden">
-      <Toaster />
       {location.search?.get("m") === "info" && <InfoModal />}
       {location.search?.get("m") === "settings" && <SettingsModal />}
       {location.search?.get("m") === "change-password" && (
@@ -63,6 +62,7 @@ export default function App() {
             (loggedIn ? <Navigate pathname="/browse" search="" /> : null)}
         </Page>
       )}
+      <Toaster />
     </div>
   );
 }
