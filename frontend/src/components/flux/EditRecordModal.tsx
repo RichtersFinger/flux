@@ -179,7 +179,7 @@ export default function EditRecordModal() {
                     }}
                   >
                     <img
-                      className={`transition-all ${uploading || hovering || draggingFile ? "blur-xs" : ""}`}
+                      className={`absolute left-1/2 top-1/2 -translate-1/2 transition-all ${uploading || hovering || draggingFile ? "blur-xs" : ""}`}
                       src={
                         thumbnail ??
                         `${BASE_URL}/thumbnail/${recordInfo.thumbnailId}`
@@ -215,7 +215,7 @@ export default function EditRecordModal() {
                     </div>
                     <input ref={fileUploadRef} className="hidden" type="file" />
                   </div>
-                  <div className="w-80 text-gray-800 flex flex-col space-y-2">
+                  <div className="w-80 text-gray-800 flex flex-col space-y-1">
                     <TextInput
                       className="w-full bg-gray-200"
                       maxLength={256}
@@ -224,8 +224,7 @@ export default function EditRecordModal() {
                       onChange={(e) => setName(e.target.value)}
                     />
                     <textarea
-                      className="p-1 px-2 border bg-gray-200 rounded resize-none text-sm"
-                      rows={4}
+                      className="p-1 px-2 h-26 border bg-gray-200 rounded resize-none text-sm"
                       maxLength={2048}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}

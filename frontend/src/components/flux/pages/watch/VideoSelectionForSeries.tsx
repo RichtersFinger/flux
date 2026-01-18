@@ -10,7 +10,7 @@ import { useNavigateToVideo } from "./videoNavigation";
 function getSeasonIndex(seasonsAndSpecials: SeasonInfo[], videoId: string) {
   for (const [seasonIndex, season] of seasonsAndSpecials.entries()) {
     const index = season.episodes.findIndex(
-      (episode) => episode.id === videoId
+      (episode) => episode.id === videoId,
     );
     if (index > -1) return seasonIndex;
   }
@@ -33,7 +33,7 @@ export default function VideoSelectionForSeries({
 }: VideoSelectionForSeriesProps) {
   const numberOfSeasonsAndSpecials = useMemo(
     () => seriesInfo.seasons.length + (seriesInfo.specials.length > 0 ? 1 : 0),
-    [seriesInfo]
+    [seriesInfo],
   );
   const seasonsAndSpecials = useMemo(
     () => [
@@ -44,11 +44,11 @@ export default function VideoSelectionForSeries({
       })),
       { id: "specials", name: "Specials", episodes: seriesInfo.specials },
     ],
-    [seriesInfo]
+    [seriesInfo],
   );
   const initialSeasonIndex = useMemo(
     () => getSeasonIndex(seasonsAndSpecials, videoInfo.id) ?? 0,
-    [seasonsAndSpecials, videoInfo.id]
+    [seasonsAndSpecials, videoInfo.id],
   );
 
   const [season, setSeason] = useState(initialSeasonIndex);
@@ -104,10 +104,12 @@ export default function VideoSelectionForSeries({
                     navigateToVideo(recordId, video.id);
                   }}
                 >
-                  <img
-                    className="w-24 aspect-video"
-                    src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
-                  />
+                  <div className="relative w-24 aspect-video overflow-clip">
+                    <img
+                      className="absolute left-1/2 top-1/2 -translate-1/2"
+                      src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+                    />
+                  </div>
                   <div className="flex flex-col space-y-1 max-w-72 overflow-hidden">
                     <div className="font-bold truncate">
                       <span>{video.name}</span>

@@ -42,10 +42,12 @@ export default function VideoSelectionForCollection({
                   navigateToVideo(recordId, video.id);
                 }}
               >
-                <img
-                  className="w-24 aspect-video"
-                  src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
-                />
+                <div className="relative w-24 aspect-video overflow-clip">
+                  <img
+                    className="absolute left-1/2 top-1/2 -translate-1/2"
+                    src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+                  />
+                </div>
                 <div className="flex flex-col space-y-1 max-w-72 overflow-hidden">
                   <div className="font-bold truncate">
                     <span>{video.name}</span>

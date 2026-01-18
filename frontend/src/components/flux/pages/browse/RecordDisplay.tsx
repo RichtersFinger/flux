@@ -64,7 +64,7 @@ export default function RecordDisplay({ record, options }: RecordDisplayProps) {
           });
       }}
     >
-      <div className="absolute w-full h-full left-0 top-0 z-0">
+      <div className="absolute w-full left-1/2 top-1/2 -translate-1/2 z-0">
         <img src={`${BASE_URL}/thumbnail/${record.thumbnailId}`}></img>
       </div>
       <div className="absolute h-full w-full left-1 bottom-1 z-20 text-nowrap content-end">

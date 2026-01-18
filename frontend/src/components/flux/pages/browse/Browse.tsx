@@ -62,8 +62,9 @@ export default function Browse() {
                 record?
               </p>
               <div className="w-full flex flex-row items-start m-4 space-x-2">
-                <div className="w-64 rounded-xl border-gray-700 border-2 aspect-video overflow-clip">
+                <div className="relative w-64 rounded-xl border-gray-700 border-2 aspect-video overflow-clip">
                   <img
+                    className="absolute left-1/2 top-1/2 -translate-1/2"
                     src={`${BASE_URL}/thumbnail/${deleteRecord.thumbnailId}`}
                   />
                 </div>
