@@ -15,7 +15,7 @@ export default function InfoModal() {
   const { toast } = useToaster();
 
   const [version, setVersion] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   function close() {
     const newSearch = new URLSearchParams(search);
@@ -24,7 +24,6 @@ export default function InfoModal() {
   }
 
   useEffect(() => {
-    setLoading(true);
     pFetch("/version")
       .then((response) => {
         setLoading(false);

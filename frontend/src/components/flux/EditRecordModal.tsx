@@ -82,7 +82,7 @@ export default function EditRecordModal() {
     }
     window.addEventListener("dragover", handleDragOver, false);
     window.addEventListener("drop", handleDragOver, false);
-    () => {
+    return () => {
       window.removeEventListener("dragover", handleDragOver, false);
       window.removeEventListener("drop", handleDragOver, false);
     };
