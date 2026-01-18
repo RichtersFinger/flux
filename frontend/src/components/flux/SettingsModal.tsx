@@ -5,21 +5,35 @@ import Avatar from "../base/Avatar";
 import ConfirmModal from "../base/ConfirmModal";
 import RangeInput from "../base/RangeInput";
 import Button from "../base/Button";
+import MessageBox from "../base/MessageBox";
 
 export default function SettingsModal() {
   const { navigate } = useRouter();
   const { search } = useLocation();
   const { userConfiguration, putUserConfiguration } = useSessionStore();
 
+  // form inputs
   const [volume, setVolume] = useState<number | undefined>(undefined);
   const [muted, setMuted] = useState<boolean | undefined>(undefined);
   const [autoplay, setAutoplay] = useState<boolean | undefined>(undefined);
 
-  if (userConfiguration.settings?.volume && volume === undefined)
+  // workflow
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | undefined>(
+    undefined,
+  );
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(
+    undefined,
+  );
+
+  if (userConfiguration.settings?.volume !== undefined && volume === undefined)
     setVolume(userConfiguration.settings.volume);
-  if (userConfiguration.settings?.muted && muted === undefined)
+  if (userConfiguration.settings?.muted !== undefined && muted === undefined)
     setMuted(userConfiguration.settings.muted);
-  if (userConfiguration.settings?.autoplay && autoplay === undefined)
+  if (
+    userConfiguration.settings?.autoplay !== undefined &&
+    autoplay === undefined
+  )
     setAutoplay(userConfiguration.settings.autoplay);
 
   function close() {
@@ -34,6 +48,22 @@ export default function SettingsModal() {
       header={<h5 className="font-bold text-2xl">{`Settings`}</h5>}
       body={
         <div className="py-6 flex flex-col space-y-6 items-start ">
+          {errorMessage ? (
+            <MessageBox
+              className="w-full"
+              body={errorMessage}
+              onDismiss={() => setErrorMessage(undefined)}
+            />
+          ) : null}
+          {successMessage ? (
+            <MessageBox
+              className="w-full"
+              title="Success"
+              color="green"
+              body={successMessage}
+              onDismiss={() => setSuccessMessage(undefined)}
+            />
+          ) : null}
           <div className="flex flex-col space-y-2">
             <h5 className="text-gray-100 font-semibold text-xl">Account</h5>
             <div className="w-full flex flex-row items-start m-4 space-x-6">
@@ -61,7 +91,7 @@ export default function SettingsModal() {
                     new URLSearchParams({
                       ...Object.entries(search ?? []),
                       m: "change-password",
-                      "mBack": "settings",
+                      mBack: "settings",
                     }),
                   )
                 }
@@ -80,7 +110,7 @@ export default function SettingsModal() {
               <label>Muted</label>
               <div className="translate-y-1/8">
                 <input
-                  className="size-5"
+                  className="size-5 hover:cursor-pointer"
                   type="checkbox"
                   checked={muted ?? false}
                   onChange={(e) => setMuted(e.target.checked)}
@@ -89,7 +119,7 @@ export default function SettingsModal() {
               <label>Autoplay</label>
               <div className="translate-y-1/8">
                 <input
-                  className="size-5"
+                  className="size-5 hover:cursor-pointer"
                   type="checkbox"
                   checked={autoplay ?? false}
                   onChange={(e) => setAutoplay(e.target.checked)}
@@ -100,9 +130,29 @@ export default function SettingsModal() {
         </div>
       }
       onCancel={close}
+      confirmLoading={loading}
+      confirmDisabled={
+        volume === userConfiguration.settings?.volume &&
+        muted === userConfiguration.settings?.muted &&
+        autoplay === userConfiguration.settings?.autoplay
+      }
       onConfirm={() => {
-        putUserConfiguration({ volume, muted, autoplay });
-        close();
+        setErrorMessage(undefined);
+        setSuccessMessage(undefined);
+        setLoading(true);
+        putUserConfiguration(
+          { volume, muted, autoplay },
+          {
+            onSuccess: () => {
+              setLoading(false);
+              setSuccessMessage("Configuration successfully updated.");
+            },
+            onFail: (message) => {
+              setLoading(false);
+              setErrorMessage(message);
+            },
+          },
+        );
       }}
       onDismiss={close}
     />
