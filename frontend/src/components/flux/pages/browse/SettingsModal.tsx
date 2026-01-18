@@ -61,7 +61,7 @@ export default function SettingsModal() {
                     new URLSearchParams({
                       ...Object.entries(search ?? []),
                       m: "change-password",
-                      backm: "settings",
+                      "mBack": "settings",
                     }),
                   )
                 }
