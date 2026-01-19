@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiEdit3, FiTrash } from "react-icons/fi";
+import { FiEdit3, FiInfo, FiTrash } from "react-icons/fi";
 
 import type { APIResponse, RecordMetadata } from "../../../../types";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../../../util/api";
@@ -25,6 +25,26 @@ export default function Browse() {
   const { search } = useLocation();
   const { userConfiguration } = useSessionStore();
 
+  const infoOption = [
+    {
+      id: "info",
+      node: <FiInfo size={15} />,
+      getOnClick: (record: RecordMetadata) => {
+        return (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          navigate(
+            undefined,
+            new URLSearchParams({
+              ...Object.entries(search ?? []),
+              m: "show-record",
+              recordId: record.id,
+            }),
+          );
+        };
+      },
+    },
+  ];
   const adminEditOption = userConfiguration.user?.isAdmin
     ? [
         {
@@ -39,7 +59,7 @@ export default function Browse() {
                 new URLSearchParams({
                   ...Object.entries(search ?? []),
                   m: "edit-record",
-                  editRecordId: record.id,
+                  recordId: record.id,
                 }),
               );
             };
@@ -149,6 +169,7 @@ export default function Browse() {
             })
           }
           options={[
+            ...infoOption,
             ...adminEditOption,
             {
               id: "remove",
@@ -174,7 +195,7 @@ export default function Browse() {
                 : {}),
             })
           }
-          options={[...adminEditOption]}
+          options={[...infoOption, ...adminEditOption]}
         />
         <Content
           title="Movies"
@@ -187,7 +208,7 @@ export default function Browse() {
                 : {}),
             })
           }
-          options={[...adminEditOption]}
+          options={[...infoOption, ...adminEditOption]}
         />
         <Content
           title="Collections"
@@ -200,7 +221,7 @@ export default function Browse() {
                 : {}),
             })
           }
-          options={[...adminEditOption]}
+          options={[...infoOption, ...adminEditOption]}
         />
       </div>
     </>
