@@ -43,12 +43,15 @@ export interface SessionStore {
   ) => void;
 }
 
+export type RecordType = "series" | "movie" | "collection";
+
 export interface RecordMetadata {
   id: string;
-  type: "series" | "movie" | "collection";
+  type: RecordType;
   name: string;
   description?: string;
   thumbnailId?: string;
+  content?: VideoInfo | SeriesInfo | CollectionInfo;
 }
 
 export interface Records {
