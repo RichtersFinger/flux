@@ -38,9 +38,9 @@ export default function EditRecordModal() {
   );
 
   function fetchRecordInfo() {
-    if (!search?.get("editRecordId")) return;
+    if (!search?.get("recordId")) return;
 
-    pFetch(`/api/v0/index/record/${search.get("editRecordId")}`)
+    pFetch(`/api/v0/index/record/${search.get("recordId")}`)
       .then((response) => {
         if (!response.ok) {
           response.text().then((text) => console.error(text));
@@ -73,7 +73,7 @@ export default function EditRecordModal() {
   useEffect(() => {
     fetchRecordInfo();
     // eslint-disable-next-line
-  }, [search?.get("editRecordId")]);
+  }, [search?.get("recordId")]);
 
   // setup event handlers for drag&drop file-upload
   useEffect(() => {
@@ -120,7 +120,7 @@ export default function EditRecordModal() {
   function close() {
     const newSearch = new URLSearchParams(search);
     newSearch.delete("m");
-    newSearch.delete("editRecordId");
+    newSearch.delete("recordId");
     navigate(undefined, newSearch);
   }
 
