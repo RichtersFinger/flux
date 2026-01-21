@@ -393,7 +393,7 @@ class AddToIndex(Command):
                         movie.id,
                         movie.id,
                         None,
-                        movie.thumbnail_id,
+                        None,
                         None,
                         None,
                         0,
