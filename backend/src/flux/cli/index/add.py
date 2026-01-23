@@ -14,7 +14,7 @@ from befehl import Parser, Option, Command, Argument
 from flux.config import FluxConfig
 from flux.db import Transaction
 from ..common import verbose, index_location, get_index
-from .common import batch, dry_run, DEFAULT_THUMBNAIL_EXTENSION
+from .common import dry_run, DEFAULT_THUMBNAIL_EXTENSION
 
 
 @dataclass
@@ -68,7 +68,6 @@ class AddToIndex(Command):
     """Subcommand for adding to index."""
 
     index_location = index_location
-    batch = batch
     auto = Option(
         "--auto",
         helptext="heuristically detect content type",
@@ -85,14 +84,14 @@ class AddToIndex(Command):
     name_ = Option(
         "--name",
         helptext=(
-            "explicitly specify record-name (not available in batch-mode)"
+            "explicitly specify record-name"
         ),
         nargs=1,
     )
     description = Option(
         "--description",
         helptext=(
-            "provide a record-description (not available in batch-mode)"
+            "provide a record-description"
         ),
         nargs=1,
     )
@@ -124,24 +123,12 @@ class AddToIndex(Command):
                     f"Option '{self.name_.names[0]}' is incompatible with "
                     + "multiple targets.",
                 )
-            if self.batch in args:
-                return (
-                    False,
-                    f"Option '{self.name_.names[0]}' is incompatible with "
-                    + "batch mode.",
-                )
         if self.description in args:
             if len(args.get(self.target, [])) > 1:
                 return (
                     False,
                     f"Option '{self.description.names[0]}' is incompatible "
                     + "with multiple targets.",
-                )
-            if self.batch in args:
-                return (
-                    False,
-                    f"Option '{self.description.names[0]}' is incompatible "
-                    + "with batch mode.",
                 )
         return True, ""
 
@@ -301,7 +288,7 @@ class AddToIndex(Command):
         dry_run: bool = False,
     ):
         """
-        Add target to index (no batch).
+        Add target to index.
 
         Keyword arguments:
         index -- index location
@@ -423,7 +410,7 @@ class AddToIndex(Command):
         dry_run: bool = False,
     ):
         """
-        Add target to index (no batch).
+        Add target to index.
 
         Keyword arguments:
         index -- index location
@@ -655,7 +642,7 @@ class AddToIndex(Command):
         dry_run: bool = False,
     ):
         """
-        Add target to index (no batch).
+        Add target to index.
 
         Keyword arguments:
         index -- index location
@@ -801,12 +788,6 @@ class AddToIndex(Command):
 
         match (args[self.type_][0]):
             case "series":
-                if self.batch in args:
-                    print(
-                        "Batch-mode not implemented yet",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
                 for t in args[self.target]:
                     self.process_series(
                         index,
@@ -817,12 +798,6 @@ class AddToIndex(Command):
                         dry_run=dry_run,
                     )
             case "movie":
-                if self.batch in args:
-                    print(
-                        "Batch-mode not implemented yet",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
                 for t in args[self.target]:
                     self.process_movie(
                         index,
@@ -833,12 +808,6 @@ class AddToIndex(Command):
                         dry_run=dry_run,
                     )
             case "collection":
-                if self.batch in args:
-                    print(
-                        "Batch-mode not implemented yet",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
                 for t in args[self.target]:
                     self.process_collection(
                         index,

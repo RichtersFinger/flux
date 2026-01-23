@@ -10,13 +10,4 @@ dry_run = Option(
 )
 
 
-batch = Option(
-    "--batch",
-    helptext=(
-        "process immediate children in given targets as if they were "
-        + "passed individually"
-    ),
-)
-
-
 DEFAULT_THUMBNAIL_EXTENSION = ".jpg"
