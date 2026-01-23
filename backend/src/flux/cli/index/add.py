@@ -68,10 +68,6 @@ class AddToIndex(Command):
     """Subcommand for adding to index."""
 
     index_location = index_location
-    auto = Option(
-        "--auto",
-        helptext="heuristically detect content type",
-    )
     type_ = Option(
         "--type",
         helptext=(
@@ -83,16 +79,12 @@ class AddToIndex(Command):
     )
     name_ = Option(
         "--name",
-        helptext=(
-            "explicitly specify record-name"
-        ),
+        helptext=("explicitly specify record-name"),
         nargs=1,
     )
     description = Option(
         "--description",
-        helptext=(
-            "provide a record-description"
-        ),
+        helptext=("provide a record-description"),
         nargs=1,
     )
     dry_run = dry_run
@@ -106,11 +98,6 @@ class AddToIndex(Command):
     )
 
     def validate(self, args):
-        if self.type_ not in args and self.auto not in args:
-            return (
-                False,
-                "Either '--auto' or '--type' is required for this operation.",
-            )
         if self.target not in args or len(args[self.target]) == 0:
             return (
                 False,
@@ -770,6 +757,34 @@ class AddToIndex(Command):
                         ),
                     )
 
+    def get_target_heuristic(self, target: Path) -> Optional[str]:
+        """
+        Heuristically determine target type (movie, series, collection).
+        """
+        if target.is_file():
+            return "movie"
+
+        files = [f for f in target.glob("*") if f.is_file()]
+        dirs = [f for f in target.glob("*") if f.is_dir()]
+
+        if len(files) == 0 and len(dirs) == 0:
+            return None
+
+        # no directories at all
+        if len(dirs) == 0:
+            return "collection"
+
+        for dir_ in dirs:
+            # deeply nested directories
+            if (
+                len([subdir for subdir in dir_.glob("*") if subdir.is_dir()])
+                > 0
+            ):
+                return "collection"
+
+        # single level directories
+        return "series"
+
     def run(self, args):
         # pylint: disable=redefined-outer-name
         verbose = self.verbose in args
@@ -779,16 +794,22 @@ class AddToIndex(Command):
         index = get_index(args)
 
         # process
-        if self.auto in args:
-            print(
-                "Not implemented yet, please provide an explicit type instead",
-                file=sys.stderr,
-            )
-            sys.exit(1)
+        for t in args[self.target]:
+            # determine type
+            type_ = args.get(self.type_)
+            if type_ is None:
+                type_ = [self.get_target_heuristic(t)]
+                if type[0] is None:
+                    print(
+                        f"Heuristic record type detection failed for '{t}'.",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                if verbose:
+                    print(f"Processing '{t}' as {type_[0]}.")
 
-        match (args[self.type_][0]):
-            case "series":
-                for t in args[self.target]:
+            match (type_[0]):
+                case "series":
                     self.process_series(
                         index,
                         t.resolve(),
@@ -797,8 +818,7 @@ class AddToIndex(Command):
                         verbose=verbose,
                         dry_run=dry_run,
                     )
-            case "movie":
-                for t in args[self.target]:
+                case "movie":
                     self.process_movie(
                         index,
                         t.resolve(),
@@ -807,8 +827,7 @@ class AddToIndex(Command):
                         verbose=verbose,
                         dry_run=dry_run,
                     )
-            case "collection":
-                for t in args[self.target]:
+                case "collection":
                     self.process_collection(
                         index,
                         t.resolve(),
@@ -817,9 +836,9 @@ class AddToIndex(Command):
                         verbose=verbose,
                         dry_run=dry_run,
                     )
-            case _:
-                print(
-                    f"Type '{args[self.type_][0]}' is currently not supported",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
+                case _:
+                    print(
+                        f"Type '{args[self.type_][0]}' is not supported.",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)

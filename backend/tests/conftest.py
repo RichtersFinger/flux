@@ -95,7 +95,7 @@ def tmp_collection(fixtures: Path, cli_tmp_data: Path) -> Path:
     collection.mkdir(exist_ok=False, parents=True)
     for p in [
         collection / "a" / "01.mp4",
-        collection / "a" / "02.mp4",
+        collection / "a" / "x" / "02.mp4",
         collection / "b" / "03.mp4",
         collection / "04.mp4",
     ]:

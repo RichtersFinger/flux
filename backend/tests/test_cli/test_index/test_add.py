@@ -168,11 +168,25 @@ def test_index_add_collection(tmp_index: Path, tmp_collection: Path):
         assert (tmp_index / FluxConfig.THUMBNAILS / row[0]).is_file()
 
 
-# TODO:
-# * test batch add
-# * test multiple args in single call
-# * test non-video files in target
-# * test cli-args validation
-#   * combination of name/description and batch/multi-args
-# * test behavior for adding previously added items?
-# * test auto-detecting content type
+def test_index_add_auto(
+    tmp_index: Path, tmp_movie: Path, tmp_series: Path, tmp_collection: Path
+):
+    """Test adding to index without type."""
+    for path, type_ in [
+        (tmp_movie, "movie"),
+        (tmp_series, "series"),
+        (tmp_collection, "collection"),
+    ]:
+        cli(
+            [
+                "index",
+                "add",
+                "-v",
+                "-i",
+                str(tmp_index),
+                str(path),
+            ]
+        )
+        with Transaction(tmp_index / FluxConfig.INDEX_DB_FILE) as t:
+            t.cursor.execute("SELECT * FROM records WHERE type = ?", (type_,))
+        assert len(t.data) == 1, type_
