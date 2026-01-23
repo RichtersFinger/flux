@@ -146,7 +146,6 @@ def get_record_info(id_: str):
                     """
                     SELECT
                         videos.id,
-                        videos.thumbnail_id,
                         tracks.id,
                         tracks.metadata_json
                     FROM
@@ -162,15 +161,20 @@ def get_record_info(id_: str):
                 zip(
                     (
                         "id",
-                        "thumbnailId",
                         "trackId",
                         "metadata",
                         "name",
                         "description",
+                        "thumbnailId",
                     ),
-                    # the video-name/description is omitted in db
-                    # (use record instead)
-                    t.data[0] + (record["name"], record["description"]),
+                    # the video-name/description/thumbnailId is omitted
+                    # in db (use record instead)
+                    t.data[0]
+                    + (
+                        record["name"],
+                        record["description"],
+                        record["thumbnailId"],
+                    ),
                 )
             )
             record["content"]["metadata"] = parse_and_filter_track_metadata(
