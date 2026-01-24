@@ -3,7 +3,6 @@ import { IoPlay } from "react-icons/io5";
 
 import { useLocation, useRouter } from "../../hooks/Router";
 import type {
-  RecordMetadata,
   APIResponse,
   RecordInfo,
   CollectionInfo,
@@ -20,7 +19,7 @@ export default function RecordInfoModal() {
   const { search } = useLocation();
   const { toast } = useToaster();
 
-  const [recordInfo, setRecordInfo] = useState<RecordMetadata | undefined>(
+  const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
     undefined,
   );
 
@@ -92,15 +91,16 @@ export default function RecordInfoModal() {
       className="p-0! w-2xl max-h-11/12 bg-gray-950 overflow-y-auto show-dark-scrollbar"
       onDismiss={close}
     >
-      <div
-        className="relative w-full min-h-96 rounded-2xl"
-        style={{
-          backgroundImage: `url(${BASE_URL}/thumbnail/${recordInfo?.thumbnailId})`,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-        }}
-      >
+      <div id="record-info-modal-body" className="relative w-full rounded-2xl">
+        <div
+          className="absolute top-0 left-0 w-full h-96 z-10 bg-gray-950"
+          style={{
+            backgroundImage: `url(${BASE_URL}/thumbnail/${recordInfo?.thumbnailId})`,
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center center",
+          }}
+        />
         <div
           className="absolute top-0 left-0 w-full h-96 z-10 bg-gray-950"
           style={{
@@ -108,7 +108,20 @@ export default function RecordInfoModal() {
               "linear-gradient(0deg, var(--color-gray-950) 15%, rgba(0, 0, 0, 0) 100%)",
           }}
         />
-        <div className="absolute top-16 z-10 w-full p-10 flex flex-col space-y-4">
+        <div
+          ref={(node) => {
+            if (!node) return;
+
+            const body = document.getElementById("record-info-modal-body");
+            if (!body) return;
+            document.getElementById("record-info-modal-body")!.style.height =
+              Math.min(
+                0.9 * window.innerHeight,
+                Math.max(node.clientHeight, 400),
+              ) + "px";
+          }}
+          className="absolute top-16 z-10 w-full p-10 flex flex-col space-y-4"
+        >
           <h5 className="text-gray-100 font-semibold text-5xl">
             {recordInfo?.name}
           </h5>
