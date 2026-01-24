@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { IoPlay } from "react-icons/io5";
+import { FiEdit3 } from "react-icons/fi";
 
 import { useLocation, useRouter } from "../../hooks/Router";
 import type {
@@ -10,6 +11,7 @@ import type {
   VideoInfo,
 } from "../../types";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../util/api";
+import { useSessionStore } from "../../store";
 import { useToaster } from "../base/Toaster";
 import BaseModal from "../base/BaseModal";
 import Button from "../base/Button";
@@ -22,6 +24,8 @@ export default function RecordInfoModal() {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
     undefined,
   );
+
+  const { userConfiguration } = useSessionStore();
 
   function fetchRecordInfo() {
     if (!search?.get("recordId")) return;
@@ -127,7 +131,7 @@ export default function RecordInfoModal() {
           </h5>
           <p className="text-gray-100">{recordInfo?.description}</p>
           <div className="text-gray-100 italic">{formatRecord()}</div>
-          <div>
+          <div className="flex flex-row space-x-2">
             <Button
               onClick={() => {
                 if (!recordInfo) return;
@@ -178,6 +182,23 @@ export default function RecordInfoModal() {
                 <span>Start watching</span>
               </div>
             </Button>
+            {userConfiguration.user?.isAdmin ? (
+              <Button
+                color="gray"
+                onClick={() => {
+                  if (!recordInfo) return;
+                  const newSearch = new URLSearchParams(search);
+                  newSearch.set("m", "edit-record");
+                  newSearch.set("recordId", recordInfo.id);
+                  navigate(undefined, newSearch);
+                }}
+              >
+                <div className="flex flex-row items-center space-x-2">
+                  <FiEdit3 size={24} />
+                  <span>Edit metadata</span>
+                </div>
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>

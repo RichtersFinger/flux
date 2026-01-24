@@ -1,6 +1,7 @@
-type ButtonColor = "blue";
+type ButtonColor = "blue" | "gray";
 const colorStyle: Record<ButtonColor, string> = {
   blue: "bg-blue-900 hover:bg-blue-500 text-gray-200",
+  gray: "bg-gray-900 hover:bg-gray-500 text-gray-200"
 };
 
 interface ButtonProps {
