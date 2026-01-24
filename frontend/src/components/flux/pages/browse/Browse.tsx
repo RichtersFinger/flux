@@ -64,8 +64,9 @@ export default function Browse() {
     <>
       {deleteRecord ? (
         <ConfirmModal
+          className="w-3xl"
           header={
-            <h5 className="text-lg font-bold">{`Remove '${deleteRecord.name}'?`}</h5>
+            <h5 className="text-2xl font-bold">{`Remove '${deleteRecord.name}'?`}</h5>
           }
           body={
             <div className="py-2 flex flex-col items-start">
