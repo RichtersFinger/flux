@@ -78,7 +78,7 @@ export default function LoginForm({ onError }: LoginFormProps) {
       }}
     >
       {/* Login-Panel */}
-      <h5 className="font-semibold text-lg">Login</h5>
+      <h5 className="font-semibold text-2xl">Login</h5>
       <div className="flex flex-col space-y-2">
         <label htmlFor="usernameInput">Username</label>
         <TextInput

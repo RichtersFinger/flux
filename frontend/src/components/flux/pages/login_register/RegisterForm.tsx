@@ -76,7 +76,7 @@ export default function RegisterForm({ onError }: RegisterFormProps) {
       }}
     >
       {/* Register-Panel */}
-      <h5 className="font-semibold text-lg">Create a new account</h5>
+      <h5 className="font-semibold text-2xl">Create a new account</h5>
       <div className="flex flex-col space-y-2">
         <div className="flex flex-row space-x-2">
           <label htmlFor="usernameInput">Username</label>
