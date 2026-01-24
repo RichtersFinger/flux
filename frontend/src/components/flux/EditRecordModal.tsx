@@ -263,23 +263,25 @@ export default function EditRecordModal() {
         </h5>
       }
       body={
-        <div className="py-6 flex flex-col space-y-6 items-start ">
-          {errorMessage ? (
-            <MessageBox
-              className="w-full"
-              body={errorMessage}
-              onDismiss={() => setErrorMessage(undefined)}
-            />
-          ) : null}
-          {successMessage ? (
-            <MessageBox
-              className="w-full"
-              title="Success"
-              color="green"
-              body={successMessage}
-              onDismiss={() => setSuccessMessage(undefined)}
-            />
-          ) : null}
+        <div className="relative py-6 flex flex-col space-y-6 items-start ">
+          <div className="absolute z-10 top-5 left-1/2 -translate-x-1/2 w-full">
+            {errorMessage ? (
+              <MessageBox
+                className="w-full"
+                body={errorMessage}
+                onDismiss={() => setErrorMessage(undefined)}
+              />
+            ) : null}
+            {successMessage ? (
+              <MessageBox
+                className="w-full"
+                title="Success"
+                color="green"
+                body={successMessage}
+                onDismiss={() => setSuccessMessage(undefined)}
+              />
+            ) : null}
+          </div>
           {recordInfo ? (
             <div className="flex flex-col space-y-5">
               <div className="w-full">
