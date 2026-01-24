@@ -36,7 +36,6 @@ export default function LoginRegister() {
         boxShadow: "inset 0 0 20em 5em #000",
       }}
     >
-      {/* Background */}
       <div
         ref={panelRef}
         className="z-10 w-96 rounded-xl bg-[rgba(0,0,0,0.8)] shadow-2xl p-8 text-gray-200 select-none"
