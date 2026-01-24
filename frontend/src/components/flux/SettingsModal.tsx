@@ -85,16 +85,12 @@ export default function SettingsModal() {
                 </p>
               </div>
               <Button
-                onClick={() =>
-                  navigate(
-                    undefined,
-                    new URLSearchParams({
-                      ...Object.entries(search ?? []),
-                      m: "change-password",
-                      mBack: "settings",
-                    }),
-                  )
-                }
+                onClick={() => {
+                  const newSearch = new URLSearchParams(search);
+                  newSearch.set("m", "change-password");
+                  newSearch.set("mBack", "settings");
+                  navigate(undefined, newSearch);
+                }}
               >
                 Change Password
               </Button>

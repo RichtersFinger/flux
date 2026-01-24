@@ -33,14 +33,10 @@ export default function Browse() {
         return (e: React.MouseEvent) => {
           e.preventDefault();
           e.stopPropagation();
-          navigate(
-            undefined,
-            new URLSearchParams({
-              ...Object.entries(search ?? []),
-              m: "show-record",
-              recordId: record.id,
-            }),
-          );
+          const newSearch = new URLSearchParams(search);
+          newSearch.set("m", "show-record");
+          newSearch.set("recordId", record.id);
+          navigate(undefined, newSearch);
         };
       },
     },
@@ -54,14 +50,10 @@ export default function Browse() {
             return (e: React.MouseEvent) => {
               e.preventDefault();
               e.stopPropagation();
-              navigate(
-                undefined,
-                new URLSearchParams({
-                  ...Object.entries(search ?? []),
-                  m: "edit-record",
-                  recordId: record.id,
-                }),
-              );
+              const newSearch = new URLSearchParams(search);
+              newSearch.set("m", "edit-record");
+              newSearch.set("recordId", record.id);
+              navigate(undefined, newSearch);
             };
           },
         },

@@ -21,15 +21,11 @@ export default function Header() {
       {/* logo */}
       <div
         className="mx-2 hover:cursor-pointer"
-        onClick={() =>
-          navigate(
-            undefined,
-            new URLSearchParams({
-              ...Object.entries(search ?? []),
-              m: "info",
-            }),
-          )
-        }
+        onClick={() => {
+          const newSearch = new URLSearchParams(search);
+          newSearch.set("m", "info");
+          navigate(undefined, newSearch);
+        }}
       >
         <Logo className="text-gray-100" src="/favicon.svg" text="flux" />
       </div>
@@ -68,13 +64,9 @@ export default function Header() {
             ),
             onClick: () => {
               setOpenMenu(false);
-              navigate(
-                undefined,
-                new URLSearchParams({
-                  ...Object.entries(search ?? []),
-                  m: "settings",
-                }),
-              );
+              const newSearch = new URLSearchParams(search);
+              newSearch.set("m", "settings");
+              navigate(undefined, newSearch);
             },
           },
           {
