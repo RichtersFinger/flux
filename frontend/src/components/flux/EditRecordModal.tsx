@@ -68,7 +68,11 @@ function SeriesContentBody({
               key={video.id}
               className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
               onClick={() => {
-                console.log(video.id);
+                const newSearch = new URLSearchParams(search);
+                newSearch.set("m", "edit-video");
+                newSearch.set("mBack", "edit-record");
+                newSearch.set("videoId", video.id);
+                navigate(undefined, newSearch);
               }}
             >
               <div className="relative w-24 aspect-video overflow-clip">
@@ -102,6 +106,9 @@ function CollectionContentBody({
 }: {
   recordInfo: RecordInfo<CollectionInfo>;
 }) {
+  const { navigate } = useRouter();
+  const { search } = useLocation();
+
   return (
     <div className="flex flex-col space-y-2 max-h-96 select-none">
       <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
@@ -111,7 +118,11 @@ function CollectionContentBody({
             key={video.id}
             className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
             onClick={() => {
-              console.log(video.id);
+              const newSearch = new URLSearchParams(search);
+              newSearch.set("m", "edit-video");
+              newSearch.set("mBack", "edit-record");
+              newSearch.set("videoId", video.id);
+              navigate(undefined, newSearch);
             }}
           >
             <div className="relative w-24 aspect-video overflow-clip">
