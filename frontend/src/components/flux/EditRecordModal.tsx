@@ -28,8 +28,11 @@ function SeriesContentBody({
     newSearch.set("seasonIndex", index);
     navigate(undefined, newSearch);
   }
-  if (!search?.get("seasonIndex"))
-    setSeasonIndex(recordInfo.content.seasons.length > 0 ? "0" : "S");
+
+  useEffect(() => {
+    if (!search?.get("seasonIndex"))
+      setSeasonIndex(recordInfo.content.seasons.length > 0 ? "0" : "S");
+  }, []);
 
   return (
     <div className="flex flex-col space-y-2 max-h-96 select-none">
@@ -38,6 +41,7 @@ function SeriesContentBody({
         <div className="flex flex-col space-y-2 max-h-80 overflow-y-auto show-dark-scrollbar">
           {recordInfo.content.seasons.map((_, index) => (
             <div
+              key={`season-${index}`}
               className={`m-0.5 w-10 p-2 relative aspect-square rounded-xl ${search?.get("seasonIndex") === index.toString() ? "bg-gray-700 outline-2 outline-gray-300" : "bg-gray-800"} hover:bg-gray-500 hover:cursor-pointer`}
               onClick={() => setSeasonIndex(index.toString())}
             >
