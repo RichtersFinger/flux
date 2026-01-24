@@ -8,7 +8,7 @@ interface ConfirmModalProps {
   body?: React.ReactNode;
   confirmDisabled?: boolean;
   confirmLoading?: boolean;
-  onDismiss: () => void;
+  onDismiss?: () => void;
   onCancel: () => void;
   onConfirm: () => void;
 }

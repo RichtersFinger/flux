@@ -17,11 +17,25 @@ import TextInput from "../base/TextInput";
 
 function SeriesContentBody({
   recordInfo,
+  warnAboutChanges,
 }: {
   recordInfo: RecordInfo<SeriesInfo>;
+  warnAboutChanges: boolean;
 }) {
   const { navigate } = useRouter();
   const { search } = useLocation();
+
+  const [warnAndNavigateVideoId, setWarnAndNavigateVideoId] = useState<
+    string | undefined
+  >(undefined);
+
+  function toVideo(videoId: string) {
+    const newSearch = new URLSearchParams(search);
+    newSearch.set("m", "edit-video");
+    newSearch.set("mBack", "edit-record");
+    newSearch.set("videoId", videoId);
+    navigate(undefined, newSearch);
+  }
 
   function setSeasonIndex(index: string) {
     const newSearch = new URLSearchParams(search);
@@ -36,6 +50,18 @@ function SeriesContentBody({
 
   return (
     <div className="flex flex-col space-y-2 max-h-96 select-none">
+      {warnAndNavigateVideoId !== undefined && (
+        <ConfirmModal
+          header={
+            <h5 className="font-bold text-2xl">Continue without saving?</h5>
+          }
+          body={
+            <p className="p-2">The current changes will be lost. Continue?</p>
+          }
+          onCancel={() => setWarnAndNavigateVideoId(undefined)}
+          onConfirm={() => toVideo(warnAndNavigateVideoId)}
+        />
+      )}
       <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
       <div className="flex flex-row space-x-2">
         <div className="flex flex-col space-y-2 max-h-80 overflow-y-auto show-dark-scrollbar">
@@ -72,11 +98,11 @@ function SeriesContentBody({
               key={video.id}
               className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
               onClick={() => {
-                const newSearch = new URLSearchParams(search);
-                newSearch.set("m", "edit-video");
-                newSearch.set("mBack", "edit-record");
-                newSearch.set("videoId", video.id);
-                navigate(undefined, newSearch);
+                if (!warnAboutChanges) {
+                  toVideo(video.id);
+                  return;
+                }
+                setWarnAndNavigateVideoId(video.id);
               }}
             >
               <div className="relative w-24 aspect-video overflow-clip">
@@ -107,14 +133,40 @@ function SeriesContentBody({
 
 function CollectionContentBody({
   recordInfo,
+  warnAboutChanges,
 }: {
   recordInfo: RecordInfo<CollectionInfo>;
+  warnAboutChanges: boolean;
 }) {
   const { navigate } = useRouter();
   const { search } = useLocation();
 
+  const [warnAndNavigateVideoId, setWarnAndNavigateVideoId] = useState<
+    string | undefined
+  >(undefined);
+
+  function toVideo(videoId: string) {
+    const newSearch = new URLSearchParams(search);
+    newSearch.set("m", "edit-video");
+    newSearch.set("mBack", "edit-record");
+    newSearch.set("videoId", videoId);
+    navigate(undefined, newSearch);
+  }
+
   return (
     <div className="flex flex-col space-y-2 max-h-96 select-none">
+      {warnAndNavigateVideoId !== undefined && (
+        <ConfirmModal
+          header={
+            <h5 className="font-bold text-2xl">Continue without saving?</h5>
+          }
+          body={
+            <p className="p-2">The current changes will be lost. Continue?</p>
+          }
+          onCancel={() => setWarnAndNavigateVideoId(undefined)}
+          onConfirm={() => toVideo(warnAndNavigateVideoId)}
+        />
+      )}
       <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
       <div className="flex flex-col space-y-2 overflow-y-auto show-dark-scrollbar">
         {recordInfo.content.map((video) => (
@@ -122,11 +174,11 @@ function CollectionContentBody({
             key={video.id}
             className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
             onClick={() => {
-              const newSearch = new URLSearchParams(search);
-              newSearch.set("m", "edit-video");
-              newSearch.set("mBack", "edit-record");
-              newSearch.set("videoId", video.id);
-              navigate(undefined, newSearch);
+              if (!warnAboutChanges) {
+                toVideo(video.id);
+                return;
+              }
+              setWarnAndNavigateVideoId(video.id);
             }}
           >
             <div className="relative w-24 aspect-video overflow-clip">
@@ -401,11 +453,21 @@ export default function EditRecordModal() {
               {recordInfo.type === "series" && (
                 <SeriesContentBody
                   recordInfo={recordInfo as RecordInfo<SeriesInfo>}
+                  warnAboutChanges={
+                    thumbnail !== undefined ||
+                    name !== recordInfo?.name ||
+                    description !== recordInfo?.description
+                  }
                 />
               )}
               {recordInfo.type === "collection" && (
                 <CollectionContentBody
                   recordInfo={recordInfo as RecordInfo<CollectionInfo>}
+                  warnAboutChanges={
+                    thumbnail !== undefined ||
+                    name !== recordInfo?.name ||
+                    description !== recordInfo?.description
+                  }
                 />
               )}
             </div>
