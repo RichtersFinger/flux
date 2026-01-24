@@ -46,6 +46,7 @@ function SeriesContentBody({
   useEffect(() => {
     if (!search?.get("seasonIndex"))
       setSeasonIndex(recordInfo.content.seasons.length > 0 ? "0" : "S");
+    // eslint-disable-next-line
   }, []);
 
   return (
