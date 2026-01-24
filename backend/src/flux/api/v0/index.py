@@ -534,7 +534,7 @@ def register_api(app: Flask):
         thumbnail_filename = None
         if thumbnail:
             thumbnail_id = str(uuid4())
-            thumbnail_filename = thumbnail_id + ".jpg"
+            thumbnail_filename = thumbnail_id
             thumbnail_path = (
                 FluxConfig.INDEX_LOCATION
                 / FluxConfig.THUMBNAILS
@@ -556,7 +556,7 @@ def register_api(app: Flask):
                             str(thumbnail_path),
                             "-vf",
                             "scale=720:-1",
-                            str(thumbnail_path),
+                            str(thumbnail_path) + ".jpg",
                         ],
                         check=True,
                         capture_output=True,
