@@ -34,6 +34,6 @@ export default function BaseModal({
         {children}
       </div>
     </div>,
-    document.body,
+    document.getElementById("modal") ?? document.body,
   );
 }

@@ -101,6 +101,6 @@ export default function Toaster() {
         ))}
       </div>
     </div>,
-    document.body
+    document.getElementById("toaster") ?? document.body
   );
 }
