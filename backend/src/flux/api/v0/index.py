@@ -467,17 +467,23 @@ def register_api(app: Flask):
             200,
         )
 
-    @app.route("/api/v0/index/record/<id_>", methods=["PUT"])
+    @app.route("/api/v0/index/<record_or_video>/<id_>", methods=["PUT"])
     @common.session_cookie_auth()
-    def put_record(
+    def put_record_or_video(
         _: str,
         username: str,
+        record_or_video: str,
         id_: str,
     ):
-        """Updates record info."""
+        """Updates record/video info."""
         valid, msg = common.validate_admin(username)
         if not valid:
             raise exceptions.BadRequestException(msg)
+
+        if record_or_video not in ["record", "video"]:
+            raise exceptions.NotFoundException(
+                f"Unknown resource type '{record_or_video}'."
+            )
 
         json = request.get_json(silent=True)
         if json is None:
@@ -581,7 +587,8 @@ def register_api(app: Flask):
                     )
                 t.cursor.execute(
                     # pylint: disable=consider-using-f-string
-                    "UPDATE records SET {} WHERE id=?".format(
+                    "UPDATE {}s SET {} WHERE id=?".format(
+                        record_or_video,
                         ", ".join(map(lambda k: f"{k}=?", cols.keys()))
                     ),
                     tuple(cols.values()) + (id_,),
