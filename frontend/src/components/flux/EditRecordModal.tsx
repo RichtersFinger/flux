@@ -153,7 +153,16 @@ export default function EditRecordModal() {
           {recordInfo ? (
             <div className="flex flex-col space-y-5">
               <div className="w-full">
-                <h5 className="text-gray-100 font-semibold text-xl">Record</h5>
+                <h5 className="text-gray-100 font-semibold text-xl">
+                  <span>Record</span>
+                  <span className="w-full mx-4 my-2 text-sm text-gray-500">{`Type: ${
+                    {
+                      movie: "Movie",
+                      series: "Series",
+                      collection: "Collection",
+                    }[recordInfo.type]
+                  }`}</span>
+                </h5>
                 <div className="w-full flex flex-row space-x-2 items-start mx-4 my-2 select-none">
                   <div
                     className="group relative w-64 rounded-xl border-gray-700 border-2 aspect-video overflow-clip hover:cursor-pointer"
