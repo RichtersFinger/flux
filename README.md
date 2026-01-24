@@ -10,7 +10,7 @@
 * continue watching where you left off
 * user-profiles
 * manage your library's contents through a combination of a command-line tool and the web-interface
-* organize your contents by the categories `movie`, `series`, and `collection`
+* organize your contents by the categories `movie`, `collection`, and `series`
 * [platform independent](#software-requirements) (works with Windows, Linux, and macOS)
 
 ## Software requirements
@@ -53,11 +53,54 @@ cd <path-dir-working-dir>\
 
 ## First steps
 
+### Add to index
+Before a `flux`-server can be run, a library index must be created.
+To do this, simply enter
+```bash
+flux index create
+```
+
 ### Server startup
+After an index has been created, the server-application can be started by invoking
+```bash
+flux run
+```
+Some general information like the network address will be printed to the standard output.
+The default port is `8620`.
 
 ### Add to index
+There are three record categories in `flux`:
+* **movie** for single videos
+* **collection** for multiple (unstructured) files
+
+  these need to be placed inside a dedicated directory (subdirectories are allowed as well)
+* **series** for multiple files, organized into multiple seasons and specials
+
+  the expected directory structure is
+  ```
+  <series>
+  ├── season1
+  |    ├── episode1.mp4
+  |    ├── ...
+  |    └── episodeM.mp4
+  ├── ...
+  ├── seasonN
+  ├── special1.mp4
+  └── ...
+  ```
+
+Adding a record is as simple as
+```bash
+flux index add <path-to-record 1> <path-to-record 2> ...
+```
+You can either use the heuristic auto-detection or explicitly state the record-type (`--type=movie|collection|series`).
+As with all cli-(sub-)commands, use `-h` to get a list of all available options.
 
 ### Promote user to admin
+In order to modify the metadata of a record (title, description) or upload custom thumbnails for records, an admin-account is needed.
+To this end, either create a regular account using the GUI or the cli (`flux user create`).
+Then, promote that user with `flux user promote <username>`.
+This user will now see additional UI-elements for updating record-metadata.
 
 ## Development setup
 
