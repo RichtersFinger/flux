@@ -236,7 +236,7 @@ export default function EditRecordModal() {
     if (files.length === 0) return;
     if (!files[0]) return;
     if (!files[0].type.startsWith("image/")) {
-      alert("Not an image!");
+      toast("Not an image!");
       return;
     }
 
@@ -313,7 +313,10 @@ export default function EditRecordModal() {
                 <div className="w-full flex flex-row space-x-2 items-start mx-4 my-2 select-none">
                   <div
                     className="group relative w-64 rounded-xl border-gray-700 border-2 aspect-video overflow-clip hover:cursor-pointer"
-                    onClick={() => fileUploadRef.current?.click()}
+                    onClick={() => {
+                      if (!uploading) fileUploadRef.current?.click();
+                      else toast("A file is already being uploaded!");
+                    }}
                     onMouseEnter={() => setHovering(true)}
                     onMouseLeave={() => setHovering(false)}
                     onDragEnter={(e) => {
@@ -369,7 +372,14 @@ export default function EditRecordModal() {
                       <Spinner size="xs" />
                       <span className="text-nowrap">Uploading ...</span>
                     </div>
-                    <input ref={fileUploadRef} className="hidden" type="file" />
+                    <input
+                      ref={fileUploadRef}
+                      className="hidden"
+                      type="file"
+                      onChange={(e) => {
+                        if (e.target.files) loadThumbnail(e.target.files);
+                      }}
+                    />
                   </div>
                   <div className="w-80 text-gray-800 flex flex-col space-y-1">
                     <TextInput
