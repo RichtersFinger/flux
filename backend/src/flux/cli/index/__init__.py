@@ -13,10 +13,10 @@ class Index(Command):
 
     create = CreateIndex("create", helptext="create a new index")
     show = ShowIndex(
-        "show", helptext="print information about an exiting index"
+        "show", helptext="print information about an existing index"
     )
-    add = AddToIndex("add", helptext="add resources to an exiting index")
-    rm = RmFromIndex("rm", helptext="delete resources from an exiting index")
+    add = AddToIndex("add", helptext="add resources to an existing index")
+    rm = RmFromIndex("rm", helptext="delete resources from an existing index")
 
     def run(self, args):
         self._print_help()
