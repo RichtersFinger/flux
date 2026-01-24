@@ -51,7 +51,6 @@ export interface RecordMetadata {
   name: string;
   description?: string;
   thumbnailId?: string;
-  content?: VideoInfo | SeriesInfo | CollectionInfo;
 }
 
 export interface Records {
@@ -81,6 +80,6 @@ export interface SeriesInfo {
 
 export type CollectionInfo = VideoInfo[];
 
-export interface RecordInfo extends RecordMetadata {
-  content: VideoInfo | SeriesInfo | CollectionInfo;
+export interface RecordInfo<ContentType = VideoInfo | SeriesInfo | CollectionInfo> extends RecordMetadata {
+  content: ContentType;
 }

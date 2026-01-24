@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { FiUpload, FiX } from "react-icons/fi";
+import { FiArrowRight, FiUpload, FiX } from "react-icons/fi";
 
 import { useLocation, useRouter } from "../../hooks/Router";
-import type { RecordMetadata, APIResponse, RecordInfo } from "../../types";
+import type {
+  APIResponse,
+  RecordInfo,
+  SeriesInfo,
+  CollectionInfo,
+} from "../../types";
 import ConfirmModal from "../base/ConfirmModal";
 import MessageBox from "../base/MessageBox";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../util/api";
@@ -10,12 +15,136 @@ import Spinner from "../base/Spinner";
 import { useToaster } from "../base/Toaster";
 import TextInput from "../base/TextInput";
 
+function SeriesContentBody({
+  recordInfo,
+}: {
+  recordInfo: RecordInfo<SeriesInfo>;
+}) {
+  const { navigate } = useRouter();
+  const { search } = useLocation();
+
+  function setSeasonIndex(index: string) {
+    const newSearch = new URLSearchParams(search);
+    newSearch.set("seasonIndex", index);
+    navigate(undefined, newSearch);
+  }
+  if (!search?.get("seasonIndex"))
+    setSeasonIndex(recordInfo.content.seasons.length > 0 ? "0" : "S");
+
+  return (
+    <div className="flex flex-col space-y-2 max-h-96 select-none">
+      <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
+      <div className="flex flex-row space-x-2">
+        <div className="flex flex-col space-y-2 max-h-80 overflow-y-auto show-dark-scrollbar">
+          {recordInfo.content.seasons.map((_, index) => (
+            <div
+              className={`m-0.5 w-10 p-2 relative aspect-square rounded-xl ${search?.get("seasonIndex") === index.toString() ? "bg-gray-700 outline-2 outline-gray-300" : "bg-gray-800"} hover:bg-gray-500 hover:cursor-pointer`}
+              onClick={() => setSeasonIndex(index.toString())}
+            >
+              <span className="absolute left-1/2 top-1/2 -translate-1/2">
+                {index + 1}
+              </span>
+            </div>
+          ))}
+          {recordInfo.content.specials.length > 0 && (
+            <div
+              className={`m-0.5 w-10 p-2 relative aspect-square rounded-xl ${search?.get("seasonIndex") === "S" ? "bg-gray-700 outline-2 outline-gray-300" : "bg-gray-800"} hover:bg-gray-500 hover:cursor-pointer`}
+              onClick={() => setSeasonIndex("S")}
+            >
+              <span className="absolute left-1/2 top-1/2 -translate-1/2">
+                S
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col space-y-2 overflow-y-auto show-dark-scrollbar">
+          {(search?.get("seasonIndex") === "S"
+            ? recordInfo.content.specials
+            : recordInfo.content.seasons[
+                Number.parseInt(search?.get("seasonIndex") ?? "0")
+              ].episodes
+          ).map((video) => (
+            <div
+              key={video.id}
+              className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
+              onClick={() => {
+                console.log(video.id);
+              }}
+            >
+              <div className="relative w-24 aspect-video overflow-clip">
+                <img
+                  className="absolute left-1/2 top-1/2 -translate-1/2"
+                  src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+                />
+              </div>
+              <div className="flex flex-col space-y-1 w-[350px] overflow-hidden">
+                <div className="font-bold truncate">
+                  <span>{video.name}</span>
+                </div>
+                <div className="text-gray-400 truncate">
+                  <span>{video.description}</span>
+                </div>
+              </div>
+              <div className="px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-500 text-gray-300 rounded-xl flex flex-row items-center space-x-2">
+                <span>Edit</span>
+                <FiArrowRight size={20} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CollectionContentBody({
+  recordInfo,
+}: {
+  recordInfo: RecordInfo<CollectionInfo>;
+}) {
+  return (
+    <div className="flex flex-col space-y-2 max-h-96 select-none">
+      <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
+      <div className="flex flex-col space-y-2 overflow-y-auto show-dark-scrollbar">
+        {recordInfo.content.map((video) => (
+          <div
+            key={video.id}
+            className="flex flex-row group space-x-5 items-center rounded-xl p-2 transition-color hover:bg-gray-800 hover:cursor-pointer"
+            onClick={() => {
+              console.log(video.id);
+            }}
+          >
+            <div className="relative w-24 aspect-video overflow-clip">
+              <img
+                className="absolute left-1/2 top-1/2 -translate-1/2"
+                src={`${BASE_URL}/thumbnail/${video.thumbnailId}`}
+              />
+            </div>
+            <div className="flex flex-col space-y-1 w-96 overflow-hidden">
+              <div className="font-bold truncate">
+                <span>{video.name}</span>
+              </div>
+              <div className="text-gray-400 truncate">
+                <span>{video.description}</span>
+              </div>
+            </div>
+            <div className="px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-500 text-gray-300 rounded-xl flex flex-row items-center space-x-2">
+              <span>Edit</span>
+              <FiArrowRight size={20} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function EditRecordModal() {
   const { navigate } = useRouter();
   const { search } = useLocation();
   const { toast } = useToaster();
 
-  const [recordInfo, setRecordInfo] = useState<RecordMetadata | undefined>(
+  const [recordInfo, setRecordInfo] = useState<RecordInfo | undefined>(
     undefined,
   );
 
@@ -121,6 +250,7 @@ export default function EditRecordModal() {
     const newSearch = new URLSearchParams(search);
     newSearch.delete("m");
     newSearch.delete("recordId");
+    newSearch.delete("seasonIndex");
     navigate(undefined, newSearch);
   }
 
@@ -241,12 +371,16 @@ export default function EditRecordModal() {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col space-y-5">
-                <h5 className="text-gray-100 font-semibold text-xl">Content</h5>
-                <div className="w-full mx-4 my-2 text-gray-500">
-                  Not yet implemented.
-                </div>
-              </div>
+              {recordInfo.type === "series" && (
+                <SeriesContentBody
+                  recordInfo={recordInfo as RecordInfo<SeriesInfo>}
+                />
+              )}
+              {recordInfo.type === "collection" && (
+                <CollectionContentBody
+                  recordInfo={recordInfo as RecordInfo<CollectionInfo>}
+                />
+              )}
             </div>
           ) : (
             <Spinner />
