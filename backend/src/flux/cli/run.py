@@ -2,17 +2,23 @@
 
 from pathlib import Path
 
-from befehl import Command
+from befehl import Command, Option
 
 from flux import app, config
+from flux.config import FluxConfig
 from flux.db import Transaction
 from .common import verbose, index_location, get_index
+from .index.create import create_index
 
 
 class Run(Command):
     """Subcommand for running flux."""
 
     index_location = index_location
+    auto_create = Option(
+        "--auto-create",
+        helptext="automatically create index if it does not exist yet",
+    )
     verbose = verbose
 
     def cleanup_thumbnails(
@@ -63,6 +69,13 @@ class Run(Command):
 
         # read and process index-location
         index = get_index(args)
+
+        # create index if necessary
+        if (
+            self.auto_create in args
+            and not (index / FluxConfig.INDEX_DB_FILE).is_file()
+        ):
+            create_index(index, verbose)
 
         if index is not None:
             if verbose:
