@@ -115,7 +115,7 @@ def print_welcome_message(config: FluxConfig) -> None:
     print(delimiter)
     for line in lines:
         print(f"# {line}{' '*(len(delimiter) - len(line) - 4)} #")
-    print(delimiter)
+    print(delimiter, flush=True)
 
 
 def app_factory() -> Flask:
