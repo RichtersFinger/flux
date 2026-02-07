@@ -52,6 +52,30 @@ cd <path-dir-working-dir>
     && flux run
 ```
 
+## Docker
+
+You can run `flux` using Docker.
+To build an image from source, clone this repository and enter
+```bash
+make docker
+```
+Then start a container as
+```bash
+docker run \
+    --detach \
+    --name flux \
+    --restart unless-stopped \
+    -p 8620:8620 \
+    -v <path to video-library>:/videos \
+    flux:latest
+```
+Then manage your instance using the cli via
+```bash
+docker exec -it flux flux
+```
+
+The default user in `flux`-containers is `100:101`.
+
 ## First steps
 
 After `flux` has been set up, interacting with the index via CLI requires to activate the virtual environment again.
