@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 VENV := venv
-DOCKER_TAG := dev
+DOCKER_TAG := latest
 SKIP_CLIENT =
 
 _:
