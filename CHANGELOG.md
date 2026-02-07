@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- fixed error during thumbnail generation for longer videos
 - fixed output buffering for welcome-message on app startup
 
 ## [0.1.0] - 2026-01-25

@@ -231,7 +231,9 @@ class AddToIndex(Command):
                 0.1 * float(source.metadata["format"]["duration"])
             )
             seek = (
-                "00" + f":0{seek_seconds // 60}" + f":{int(seek_seconds % 60)}"
+                "00"
+                + f":0{(seek_seconds // 60) % 10}"
+                + f":{int(seek_seconds % 60)}"
             )
         try:
             subprocess.run(
