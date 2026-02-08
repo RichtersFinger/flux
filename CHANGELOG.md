@@ -4,7 +4,8 @@
 
 ### Added
 
-- added index-validation for `flux run` 
+- added update & db-migration commands
+- added index- & db-schema version validation for `flux run`
 - added option `--auto-create` for `flux run`
 
 ### Fixed
