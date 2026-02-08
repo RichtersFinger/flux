@@ -3,6 +3,7 @@
 import sys
 from pathlib import Path
 from importlib.metadata import version
+from datetime import datetime
 
 from befehl import Command
 
@@ -55,6 +56,14 @@ class Migrate(Command):
                 WHERE schema_version=?
                 """,
                 (new, old),
+            )
+            t.cursor.execute(
+                """
+                INSERT INTO migrations
+                (from_version, to_version, completed_at)
+                VALUES (?, ?, ?)
+                """,
+                (old, new, datetime.now().isoformat())
             )
         if verbose:
             print(f"New database-schema version is {new}.")
