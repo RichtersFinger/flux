@@ -223,8 +223,8 @@ function ToolbarVolumeControl({ videoRef }: Pick<ToolbarProps, "videoRef">) {
         1000,
       );
     }
-    document.addEventListener("wheel", handleScroll);
-    return () => document.removeEventListener("wheel", handleScroll);
+    videoRef.current?.addEventListener("wheel", handleScroll);
+    return () => videoRef.current?.removeEventListener("wheel", handleScroll);
   }, [volume, setVolume, putUserConfiguration, videoRef]);
 
   return (
