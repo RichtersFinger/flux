@@ -1,5 +1,6 @@
 """Definitions of the run-subcommand."""
 
+import sys
 from pathlib import Path
 
 from befehl import Command, Option
@@ -76,6 +77,25 @@ class Run(Command):
             and not (index / FluxConfig.INDEX_DB_FILE).is_file()
         ):
             create_index(index, verbose)
+
+        if not (index / FluxConfig.INDEX_DB_FILE).is_file():
+            print(
+                f"ERROR: No valid index at '{index}'.",
+                file=sys.stderr,
+            )
+            if self.index_location not in args:
+                print(
+                    f"Run with option '{self.index_location.names[0]}' to "
+                    + "specify a different index location.",
+                    file=sys.stderr
+                )
+            if self.auto_create not in args:
+                print(
+                    f"Run with option '{self.auto_create.names[0]}' to "
+                    + "automatically create a new index.",
+                    file=sys.stderr
+                )
+            sys.exit(1)
 
         if index is not None:
             if verbose:

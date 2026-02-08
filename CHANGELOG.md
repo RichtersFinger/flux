@@ -4,6 +4,7 @@
 
 ### Added
 
+- added index-validation for `flux run` 
 - added option `--auto-create` for `flux run`
 
 ### Fixed
