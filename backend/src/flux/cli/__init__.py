@@ -7,6 +7,7 @@ from befehl import Option, Cli
 from .index import Index
 from .user import User
 from .run import Run
+from .update import Update
 
 
 class FluxCli(Cli):
@@ -15,6 +16,7 @@ class FluxCli(Cli):
     index = Index("index", helptext="manage a flux-index")
     user = User("user", helptext="manage users")
     run_ = Run("run", helptext="run flux app")
+    update = Update("update", helptext="update flux")
     version = Option(("-v", "--version"), helptext="prints library version")
 
     def run(self, args):
