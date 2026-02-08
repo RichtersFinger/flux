@@ -52,6 +52,45 @@ cd <path-dir-working-dir>
     && flux run
 ```
 
+## Update
+
+Run the following commands to check for and install updates
+```bash
+flux update && flux update migrate
+```
+
+## Docker
+
+You can run `flux` using Docker.
+To build an image from source, clone this repository and enter
+```bash
+make docker
+```
+Then start a container as
+```bash
+docker run \
+    --detach \
+    --name flux \
+    --restart unless-stopped \
+    -p 8620:8620 \
+    -v <path to video-library>:/videos:ro \
+    flux:latest
+```
+Then manage your instance using the cli via
+```bash
+docker exec -it flux flux
+```
+
+To update to a newer version, all existing containers need to be replaced.
+First, backup the index (at `/var/local/flux/index`) on the host (or use a docker volume), then stop the running container.
+Using the new image, run the database migration with
+```
+docker run --rm -v <index-location>:/var/local/flux/index flux:<new-version> flux update migrate
+```
+Finally, start a new container as described above while mounting the migrated index to the path above.
+
+The default user in `flux`-containers is `100:101`.
+
 ## First steps
 
 After `flux` has been set up, interacting with the index via CLI requires to activate the virtual environment again.

@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 VENV := venv
+DOCKER_TAG := latest
 SKIP_CLIENT =
 
 _:
@@ -51,6 +52,9 @@ build: venv build-frontend build-backend
 		pip install --upgrade pip setuptools build && \
 		cd backend && \
 		python -m build --wheel --sdist
+
+docker: build
+	docker build --tag flux:${DOCKER_TAG} .
 
 clean:
 	git clean -dfX
