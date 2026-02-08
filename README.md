@@ -66,7 +66,7 @@ docker run \
     --name flux \
     --restart unless-stopped \
     -p 8620:8620 \
-    -v <path to video-library>:/videos \
+    -v <path to video-library>:/videos:ro \
     flux:latest
 ```
 Then manage your instance using the cli via
