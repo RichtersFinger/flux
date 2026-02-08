@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- fixed unintended wheel-volume input when scrolling through contents during playback
 - fixed error during thumbnail generation for longer videos
 - fixed output buffering for welcome-message on app startup
 
