@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from importlib.metadata import version
 
 from befehl import Command, Option
 
@@ -19,6 +20,10 @@ class Run(Command):
     auto_create = Option(
         "--auto-create",
         helptext="automatically create index if it does not exist yet",
+    )
+    skip_version_check = Option(
+        "--skip-version-check",
+        helptext="ignore mismatch in app- and db-versions",
     )
     verbose = verbose
 
@@ -78,6 +83,7 @@ class Run(Command):
         ):
             create_index(index, verbose)
 
+        # validate index
         if not (index / FluxConfig.INDEX_DB_FILE).is_file():
             print(
                 f"ERROR: No valid index at '{index}'.",
@@ -102,6 +108,30 @@ class Run(Command):
                 print(f"Using index at '{index}'")
             config.FluxConfig.INDEX_LOCATION = index
 
+        # validate app- and db-version
+        flux_version = version("flux")
+        with Transaction(index / config.FluxConfig.INDEX_DB_FILE) as t:
+            t.cursor.execute("SELECT schema_version FROM index_metadata")
+            db_version = (t.cursor.fetchone() or ("unknown",))[0]
+            if verbose:
+                print(f"App-version: {flux_version}")
+                print(f"Database-version: {db_version}")
+            if db_version != flux_version:
+                if self.skip_version_check in args:
+                    print(
+                        "WARNING: Mismatch in database schema version. "
+                        + "Please run 'flux update migrate'.",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        "ERROR: Mismatch in database schema version. "
+                        + "Please run 'flux update migrate'.",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+
+        # cleanup
         if verbose:
             print("Running cleanup-routine..")
         self.cleanup_thumbnails(index, verbose)
