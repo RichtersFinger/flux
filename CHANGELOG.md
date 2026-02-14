@@ -1,5 +1,11 @@
 # Changelog
 
+## [X.Y.Z] - 2026-02-??
+
+### Fixed
+
+- fixed issues with modal overflow behavior
+
 ## [0.2.0] - 2026-02-08
 
 ### Added

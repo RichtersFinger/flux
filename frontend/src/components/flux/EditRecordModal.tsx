@@ -88,7 +88,7 @@ function SeriesContentBody({
             </div>
           )}
         </div>
-        <div className="flex flex-col space-y-2 overflow-y-auto show-dark-scrollbar">
+        <div className="flex flex-col space-y-2 max-h-80 overflow-y-auto show-dark-scrollbar">
           {(search?.get("seasonIndex") === "S"
             ? recordInfo.content.specials
             : recordInfo.content.seasons[

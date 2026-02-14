@@ -26,7 +26,7 @@ export default function BaseModal({
       onMouseDown={onDismiss}
     >
       <div
-        className={`flex flex-col p-5 rounded-xl bg-gray-900 text-gray-100 shadow-lg space-y-2 ${className} transition-all duration-150 ease-in ${
+        className={`flex flex-col p-5 rounded-xl bg-gray-900 text-gray-100 shadow-lg space-y-2 overflow-x-hidden ${className} transition-all duration-150 ease-in ${
           visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
         onMouseDown={(e) => e.stopPropagation()}
