@@ -54,7 +54,7 @@ build: venv build-frontend build-backend
 		python -m build --wheel --sdist
 
 docker: build
-	docker build --tag flux:${DOCKER_TAG} .
+	docker build --tag ghcr.io/richtersfinger/flux:${DOCKER_TAG} .
 
 clean:
 	git clean -dfX
