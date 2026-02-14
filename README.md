@@ -62,6 +62,12 @@ flux update && flux update migrate
 ## Docker
 
 You can run `flux` using Docker.
+Run
+```bash
+docker pull ghcr.io/richtersfinger/flux:latest
+```
+to get the latest version.
+
 To build an image from source, clone this repository and enter
 ```bash
 make docker
