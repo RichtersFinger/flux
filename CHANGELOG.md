@@ -4,6 +4,7 @@
 
 ### Added
 
+- added support for uploading thumbnails from clipboard
 - added bind-address option `--bind <address>` to `flux run`
 
 ### Fixed

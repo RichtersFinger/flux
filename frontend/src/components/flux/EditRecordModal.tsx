@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FiArrowRight, FiUpload, FiX } from "react-icons/fi";
+import { FiArrowRight, FiUpload, FiX, FiClipboard } from "react-icons/fi";
 
 import { useLocation, useRouter } from "../../hooks/Router";
 import type {
@@ -8,6 +8,7 @@ import type {
   SeriesInfo,
   CollectionInfo,
 } from "../../types";
+import { readImageFilesFromClipboard } from "../../util/clipboard";
 import ConfirmModal from "../base/ConfirmModal";
 import MessageBox from "../base/MessageBox";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../util/api";
@@ -397,6 +398,17 @@ export default function EditRecordModal() {
                         `${BASE_URL}/thumbnail/${recordInfo.thumbnailId}`
                       }
                     />
+                    <div
+                      className={`flex flex-row space-x-2 absolute left-1 top-1 py-1 px-2 opacity-0 group-hover:opacity-80 rounded-full bg-[rgba(0,0,0,0.5)] text-gray-400 hover:text-gray-100 transition-all`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        readImageFilesFromClipboard(loadThumbnail);
+                      }}
+                    >
+                      <span>Insert from </span>
+                      <FiClipboard size={20} />
+                    </div>
                     <div
                       className={`absolute right-1 top-1 p-1 opacity-0 ${thumbnail ? "group-hover:opacity-80" : ""} rounded-full bg-[rgba(0,0,0,0.5)] text-gray-400 hover:text-gray-100 transition-all`}
                       onClick={(e) => {
