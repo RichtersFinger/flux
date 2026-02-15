@@ -158,6 +158,18 @@ To this end, either create a regular account using the GUI or the CLI (`flux use
 Then, promote that user with `flux user promote <username>`.
 This user will now see additional UI elements for updating record metadata.
 
+### CLI autocomplete
+You can also activate a minimalistic autocomplete for (the current session of) bash-terminals with
+```bash
+eval "$(_BEFEHL_COMPLETION= flux --generate-autocomplete)"
+```
+If you want to set up persistent autocomplete, instead generate the source file via
+```bash
+_BEFEHL_COMPLETION= flux --generate-autocomplete
+```
+and insert the output in your `~/.bash_autocomplete`.
+
+
 ## Development setup
 > The following expects a Linux system
 
