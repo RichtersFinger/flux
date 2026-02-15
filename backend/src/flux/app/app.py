@@ -245,7 +245,7 @@ def run(app=None):
             + "Running without proper wsgi-server.",
             file=sys.stderr,
         )
-        app.run(host="0.0.0.0", port=FluxConfig.PORT)
+        app.run(host=FluxConfig.BIND_ADDRESS, port=FluxConfig.PORT)
     else:
 
         class StandaloneApplication(gunicorn.app.base.BaseApplication):
@@ -274,8 +274,8 @@ def run(app=None):
         StandaloneApplication(
             app,
             {
-                "bind": f"0.0.0.0:{FluxConfig.PORT}",
-                "workers": 1,
+                "bind": f"{FluxConfig.BIND_ADDRESS}:{FluxConfig.PORT}",
+                "workers": FluxConfig.FLASK_WORKERS,
                 "threads": FluxConfig.FLASK_THREADS,
             }
             | (FluxConfig.GUNICORN_OPTIONS or {}),

@@ -21,6 +21,14 @@ class Run(Command):
         "--auto-create",
         helptext="automatically create index if it does not exist yet",
     )
+    bind = Option(
+        "--bind",
+        nargs=1,
+        helptext=(
+            "IP address to bind the HTTP server to "
+            + "(default: 0.0.0.0; listens on all interfaces)"
+        ),
+    )
     skip_version_check = Option(
         "--skip-version-check",
         helptext="ignore mismatch in app- and db-versions",
@@ -107,6 +115,9 @@ class Run(Command):
             if verbose:
                 print(f"Using index at '{index}'")
             config.FluxConfig.INDEX_LOCATION = index
+
+        if self.bind in args:
+            config.FluxConfig.BIND_ADDRESS = args[self.bind][0]
 
         # validate app- and db-version
         flux_version = version("flux")

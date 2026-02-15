@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { FiArrowLeft, FiUpload, FiX } from "react-icons/fi";
+import { FiArrowLeft, FiClipboard, FiUpload, FiX } from "react-icons/fi";
 
 import { useLocation, useRouter } from "../../hooks/Router";
 import type { APIResponse, VideoInfo } from "../../types";
+import { readImageFilesFromClipboard } from "../../util/clipboard";
 import ConfirmModal from "../base/ConfirmModal";
 import MessageBox from "../base/MessageBox";
 import { BASE_URL, formatAPIErrorMessage, pFetch } from "../../util/api";
@@ -206,6 +207,17 @@ export default function EditVideoModal() {
                         `${BASE_URL}/thumbnail/${videoInfo.thumbnailId}`
                       }
                     />
+                    <div
+                      className={`flex flex-row space-x-2 absolute left-1 top-1 py-1 px-2 opacity-0 group-hover:opacity-80 rounded-full bg-[rgba(0,0,0,0.5)] text-gray-400 hover:text-gray-100 transition-all`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        readImageFilesFromClipboard(loadThumbnail);
+                      }}
+                    >
+                      <span>Insert from </span>
+                      <FiClipboard size={20} />
+                    </div>
                     <div
                       className={`absolute right-1 top-1 p-1 opacity-0 ${thumbnail ? "group-hover:opacity-80" : ""} rounded-full bg-[rgba(0,0,0,0.5)] text-gray-400 hover:text-gray-100 transition-all`}
                       onClick={(e) => {

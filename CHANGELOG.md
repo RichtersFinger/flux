@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0] - 2026-02-15
+
+### Added
+
+- added support for uploading thumbnails from clipboard
+- added bind-address option `--bind <address>` to `flux run`
+
+### Fixed
+
+- fixed issues with modal overflow behavior
+
 ## [0.2.0] - 2026-02-08
 
 ### Added
