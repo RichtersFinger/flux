@@ -2,6 +2,10 @@
 
 ## [X.Y.Z] - 2026-02-??
 
+### Added
+
+- added bind-address option `--bind <address>` to `flux run`
+
 ### Fixed
 
 - fixed issues with modal overflow behavior

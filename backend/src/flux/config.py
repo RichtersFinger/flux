@@ -25,7 +25,11 @@ class FluxConfig:
     DEV_CORS_FRONTEND_URL = os.environ.get(
         "DEV_CORS_FRONTEND_URL", "http://localhost:3000"
     )
+    BIND_ADDRESS = os.environ.get(
+        "BIND_ADDRESS", "0.0.0.0" if MODE == "prod" else "127.0.0.1"
+    )
     PORT = os.environ.get("PORT", "8620" if MODE == "prod" else "5000")
+    FLASK_WORKERS = 1
     FLASK_THREADS = 5
     GUNICORN_OPTIONS = None
 
